@@ -2,10 +2,11 @@ import bcrypt from "bcrypt";
 import prisma from "../config/prisma";
 import { RegisterInput, LoginInput } from "../schemas/auth.schema";
 import { signToken } from "../utils/jwt";
+import { AuthResponseDto } from "../dtos/auth.dto";
 
 const SALT_ROUNDS = 10;
 
-export const registerUser = async (data: RegisterInput) => {
+export const registerUser = async (data: RegisterInput): Promise<AuthResponseDto> => {
   const existingUser = await prisma.user.findUnique({
     where: { email: data.email },
   });
@@ -19,6 +20,7 @@ export const registerUser = async (data: RegisterInput) => {
   const user = await prisma.user.create({
     data: {
       name: data.name,
+      lastname: data.lastname,
       email: data.email,
       password: hashedPassword,
     },
@@ -30,14 +32,16 @@ export const registerUser = async (data: RegisterInput) => {
     user: {
       id: user.id,
       name: user.name,
+      lastname: user.lastname,
       email: user.email,
       createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     },
     token,
   };
 };
 
-export const loginUser = async (data: LoginInput) => {
+export const loginUser = async (data: LoginInput): Promise<AuthResponseDto> => {
   const user = await prisma.user.findUnique({
     where: { email: data.email },
   });
@@ -46,10 +50,7 @@ export const loginUser = async (data: LoginInput) => {
     throw new Error("Credenciales inválidas");
   }
 
-  const isValidPassword = await bcrypt.compare(
-    data.password,
-    user.password
-  );
+  const isValidPassword = await bcrypt.compare(data.password, user.password);
 
   if (!isValidPassword) {
     throw new Error("Credenciales inválidas");
@@ -61,8 +62,10 @@ export const loginUser = async (data: LoginInput) => {
     user: {
       id: user.id,
       name: user.name,
+      lastname: user.lastname,
       email: user.email,
       createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     },
     token,
   };
@@ -71,8 +74,6 @@ export const loginUser = async (data: LoginInput) => {
 export const getUserProfile = async (userId: string) => {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    // si luego quieres cargar ventas:
-    // include: { sales: true },
   });
 
   if (!user) {
@@ -82,9 +83,9 @@ export const getUserProfile = async (userId: string) => {
   return {
     id: user.id,
     name: user.name,
+    lastname: user.lastname,
     email: user.email,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
-    // sales: user.sales // si usas include
   };
 };

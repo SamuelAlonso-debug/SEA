@@ -16,6 +16,7 @@ datasource db {
 model User {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
+  lastname    String
   email       String   @unique
   password    String   // hash
   createdAt   DateTime @default(now())
@@ -27,10 +28,13 @@ model User {
 model Product {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   name        String
-  sku         String   @unique
-  description String? 
-  price       Float    // precio final (sin impuestos extras)
-  stock       Int      // existencias actuales
+  productCode String   @unique
+  category    String?
+  price       Float
+  stock       Int
+  provider    String?
+  imageUrl    String?
+
   isActive    Boolean  @default(true)
 
   createdAt   DateTime @default(now())
@@ -39,16 +43,28 @@ model Product {
   saleItems   SaleItem[]
 }
 
-model Sale {
-  id          String     @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt   DateTime   @default(now())
-  total       Float
-  // como solo hay Admin, basta con relacionar el user que registró la venta
-  userId      String?    @db.ObjectId
-  user        User?      @relation(fields: [userId], references: [id])
+enum PaymentMethod {
+  CASH   // Pago Efectivo
+  CARD   // Pago Tarjeta
+}
 
-  items       SaleItem[]
-  notes       String?    // opcional, por si quieres comentarios internos
+model Sale {
+  id           String         @id @default(auto()) @map("_id") @db.ObjectId
+  ticketNumber String         @unique                // Ticket No. 0000001
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  subtotal     Float          // suma de subtotales (sin IVA)
+  tax          Float          // IVA calculado
+  total        Float          // subtotal + tax
+
+  paymentMethod PaymentMethod // efectivo / tarjeta
+
+  userId       String?        @db.ObjectId
+  user         User?          @relation(fields: [userId], references: [id])
+
+  items        SaleItem[]
+  notes        String?        // opcional, comentarios internos
 }
 
 model SaleItem {
