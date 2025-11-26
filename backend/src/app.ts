@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import authRouter from "./routes/auth.routes";
 import productRouter from "./routes/product.routes";
 import saleRouter from "./routes/sale.routes";
+import kpiRouter from "./routes/kpi.routes";
 
 dotenv.config();
 
@@ -20,5 +21,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/products", productRouter);
 
 app.use("/api/sales", saleRouter);
+
+app.use("/api/kpis", kpiRouter);
 
 export default app;
