@@ -79,3 +79,27 @@ model SaleItem {
   unitPrice   Float   // precio del producto al momento de la venta
   subtotal    Float   // unitPrice * quantity
 }
+
+enum ExpenseCategory {
+  service    
+  merchandise  
+  maintenance
+  rent
+  payroll
+  tax
+  other  
+}
+
+model Expense {
+  id          String          @id @default(auto()) @map("_id") @db.ObjectId
+  concept     String          // descripción corta del gasto
+  category    ExpenseCategory
+  amount      Float           // monto del gasto en MXN
+  date        DateTime        @default(now())
+  paymentMethod String?       // Efectivo, Tarjeta, Transferencia...
+  vendor      String?         // proveedor (opcional)
+  notes       String?         // comentarios internos
+
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}

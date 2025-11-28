@@ -96,3 +96,53 @@ export interface SummaryKpis {
   todayRevenue: number;
   todaySalesCount: number;
 }
+
+export type ExpenseCategory =
+  | "service"
+  | "merchandise"
+  | "maintenance"
+  | "rent"
+  | "payroll"
+  | "tax"
+  | "other";
+
+export interface ExpenseDto {
+  id: string;
+  concept: string;
+  category: ExpenseCategory; // valores que espera el backend
+  amount: number;
+  date: string;              // ISO 8601
+  paymentMethod: string;
+  vendor?: string | null;
+  notes?: string | null;
+}
+
+export interface ExpensesListResponse {
+  data: ExpenseDto[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface ExpensesKpisResponse {
+  month: number;
+  year: number;
+  totalAmountMonth: number;
+  totalCountMonth: number;
+  totalByCategory: {
+    category: ExpenseCategory;
+    totalAmount: number;
+  }[];
+}
+
+export interface CreateExpenseRequest {
+  concept: string;
+  category: ExpenseCategory;
+  amount: number;
+  date: string; // ISO 8601
+  paymentMethod: string;
+  vendor?: string;
+  notes?: string;
+}
+
+export type UpdateExpenseRequest = Partial<CreateExpenseRequest>;

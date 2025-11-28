@@ -30,9 +30,9 @@ export const mainNav: NavItem[] = [
   // visibles pero sin funcionalidad real por ahora:
   {
     label: "Gastos",
-    href: "#",
+    href: "/dashboard/expenses",
     icon: Wallet,
-    active: false,
+    active: true,
   },
   {
     label: "Clientes",
