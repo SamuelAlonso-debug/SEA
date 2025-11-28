@@ -1,0 +1,66 @@
+:root {
+  /* Fondo global y texto principal */
+  --background: 228 56% 98%;       /* F8F9FD */
+  --foreground: 0 3% 15%;          /* 272525 */
+
+  /* Colores base */
+  --primary: 218 50% 20%;          /* 1A2D4D - iconos/detalles */
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 0 0% 100%;          /* lo usamos para paneles grandes claros */
+  --secondary-foreground: 218 50% 20%;
+
+  --muted: 228 56% 98%;            /* fondos suaves */
+  --muted-foreground: 213 52% 32%; /* 284E7D - texto secundario */
+
+  --accent: 37 91% 55%;            /* F5A524 - botones/highlights */
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 358 84% 56%;      /* ED3237 */
+  --destructive-foreground: 0 0% 100%;
+
+  --success: 146 79% 44%;          /* 17C964 */
+  --success-foreground: 0 0% 100%;
+
+  --border: 214 32% 90%;
+  --input: 214 32% 90%;
+  --ring: 218 50% 20%;
+
+  --card: 0 0% 100%;               /* FFFFFF */
+  --card-foreground: 0 3% 15%;
+
+  --sidebar: 217 100% 97%;         /* F2F7FF */
+}
+
+/* Modo dark por si luego lo quieres usar */
+.dark {
+  --background: 222 47% 11%;
+  --foreground: 210 40% 98%;
+
+  --primary: 218 50% 60%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 217 33% 20%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 217 33% 20%;
+  --muted-foreground: 215 20% 75%;
+
+  --accent: 37 91% 55%;
+  --accent-foreground: 0 0% 100%;
+
+  --destructive: 0 70% 45%;
+  --destructive-foreground: 0 0% 100%;
+
+  --success: 146 79% 44%;
+  --success-foreground: 0 0% 0%;
+
+  --border: 217 33% 20%;
+  --input: 217 33% 20%;
+  --ring: 218 50% 60%;
+
+  --card: 222 47% 11%;
+  --card-foreground: 210 40% 98%;
+
+  --sidebar: 222 47% 15%;
+}
