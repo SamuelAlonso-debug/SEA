@@ -10,6 +10,7 @@ import {
   updateProduct,
   deleteProduct,
   activateProduct,
+  getProductByCode,
 } from "../services/product.service";
 
 export const createProductHandler = async (req: Request, res: Response) => {
@@ -107,5 +108,22 @@ export const activateProductHandler = async (req: Request, res: Response) => {
     return res.status(200).json(product);
   } catch (error: any) {
     return res.status(400).json({ message: error.message });
+  }
+};
+
+export const getProductByCodeHandler = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const productCode = req.params.productCode as string;
+
+    const product = await getProductByCode(productCode);
+
+    return res.json(product);
+  } catch (error: any) {
+    return res.status(404).json({
+      message: error.message ?? "Producto no encontrado",
+    });
   }
 };

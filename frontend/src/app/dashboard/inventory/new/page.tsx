@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { LabeledInput } from "@/components/forms/labeled-input";
 import { ProductImageUploadCard } from "@/components/inventory/product-image-upload-card";
+import { productsClient } from "@/lib/products-client";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-MX", {
@@ -16,8 +18,19 @@ const formatCurrency = (value: number) =>
   }).format(value);
 
 export default function AddProductPage() {
+  const router = useRouter();
+
+  // Estado de campos
+  const [name, setName] = useState("");
+  const [productCode, setProductCode] = useState("");
+  const [category, setCategory] = useState("");
   const [unitPrice, setUnitPrice] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("");
+  const [supplier, setSupplier] = useState("");
+
+  // Estado UI
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const total = useMemo(() => {
     const priceNum = parseFloat(unitPrice.replace(",", "."));
@@ -27,6 +40,48 @@ export default function AddProductPage() {
     if (isNaN(result)) return "";
     return formatCurrency(result);
   }, [unitPrice, quantity]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    const priceNum = parseFloat(unitPrice.replace(",", "."));
+    const qtyNum = parseFloat(quantity.replace(",", "."));
+
+    if (!name || !productCode) {
+      setError("Nombre e ID del producto son obligatorios.");
+      return;
+    }
+    if (isNaN(priceNum) || priceNum <= 0) {
+      setError("Ingresa un precio por unidad válido.");
+      return;
+    }
+    if (isNaN(qtyNum) || qtyNum <= 0) {
+      setError("Ingresa una cantidad adquirida válida.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      await productsClient.create({
+        name,
+        productCode,
+        category: category || null,
+        price: priceNum,
+        stock: Math.round(qtyNum),
+        provider: supplier || null,
+        imageUrl: null, // TODO: conectar con ProductImageUploadCard cuando esté listo
+      });
+
+      // Después de crear, regresar al inventario
+      router.push("/dashboard/inventory");
+    } catch (err: any) {
+      setError(err.message ?? "Error al agregar el producto.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -43,7 +98,7 @@ export default function AddProductPage() {
         {/* Regresar */}
         <div className="mb-4">
           <Link
-            href="/dashboard/inventory" // cambia si tu ruta es /dashboard/inventory
+            href="/dashboard/inventory"
             className="inline-flex items-center gap-2 text-xs font-semibold text-primary hover:text-primary/80"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -56,8 +111,18 @@ export default function AddProductPage() {
           Agregar Nuevo Producto
         </h2>
 
+        {/* Mensaje de error */}
+        {error && (
+          <p className="mt-3 text-xs font-semibold text-destructive">
+            {error}
+          </p>
+        )}
+
         {/* Layout principal: foto izquierda, formulario derecha */}
-        <div className="mt-6 grid items-start gap-8 lg:grid-cols-3">
+        <form
+          className="mt-6 grid items-start gap-8 lg:grid-cols-3"
+          onSubmit={handleSubmit}
+        >
           {/* Columna 1: tarjeta de subir foto */}
           <div className="flex justify-center lg:justify-start">
             <ProductImageUploadCard />
@@ -71,11 +136,17 @@ export default function AddProductPage() {
                 name="name"
                 label="Nombre del Producto"
                 placeholder="Ingresa el Nombre del Producto"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
               />
               <LabeledInput
                 name="productCode"
                 label="ID del Producto"
                 placeholder="Ingresa ID"
+                value={productCode}
+                onChange={(e) => setProductCode(e.target.value)}
+                required
               />
             </div>
 
@@ -85,6 +156,8 @@ export default function AddProductPage() {
                 name="category"
                 label="Categoría"
                 placeholder="Ingresa Categoría"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
               />
               <LabeledInput
                 name="quantity"
@@ -125,18 +198,24 @@ export default function AddProductPage() {
                 name="supplier"
                 label="Proveedor"
                 placeholder="Ingresa el Nombre del Proveedor"
+                value={supplier}
+                onChange={(e) => setSupplier(e.target.value)}
                 className="md:col-span-2"
               />
             </div>
 
             {/* Botón Agregar Producto */}
             <div className="mt-4 flex justify-end">
-              <Button className="rounded-full bg-accent px-10 text-xs font-semibold text-accent-foreground hover:bg-accent/90">
-                Agregar Producto
+              <Button
+                type="submit"
+                className="rounded-full bg-accent px-10 text-xs font-semibold text-accent-foreground hover:bg-accent/90"
+                disabled={loading}
+              >
+                {loading ? "Guardando..." : "Agregar Producto"}
               </Button>
             </div>
           </div>
-        </div>
+        </form>
       </section>
     </div>
   );

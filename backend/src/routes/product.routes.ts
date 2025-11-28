@@ -6,6 +6,7 @@ import {
   updateProductHandler,
   deleteProductHandler,
   activateProductHandler,
+  getProductByCodeHandler,
 } from "../controllers/product.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 
@@ -20,5 +21,6 @@ router.post("/", createProductHandler);
 router.put("/:id", updateProductHandler);
 router.delete("/:id", deleteProductHandler);
 router.patch("/:id/activate", activateProductHandler);
+router.get("/code/:productCode", getProductByCodeHandler);
 
 export default router;

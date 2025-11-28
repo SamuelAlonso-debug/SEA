@@ -143,3 +143,16 @@ export const activateProduct = async (id: string): Promise<ProductDto> => {
   return updated;
 };
 
+export const getProductByCode = async (
+  productCode: string
+): Promise<ProductDto> => {
+  const product = await prisma.product.findUnique({
+    where: { productCode },
+  });
+
+  if (!product) {
+    throw new Error("Producto no encontrado");
+  }
+
+  return product;
+};

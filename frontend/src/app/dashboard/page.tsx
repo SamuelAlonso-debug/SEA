@@ -1,8 +1,22 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 import { KpiCard } from "@/components/dashboard/kpi-card";
 import { LowStockTable } from "@/components/dashboard/low-stock-table";
 import { PaymentMethodsChart } from "@/components/dashboard/payment-methods-chart";
 import { SummaryBlock } from "@/components/dashboard/summary-block";
 import { TopProductsDonut } from "@/components/dashboard/top-products-donut";
+
+import { kpisClient } from "@/lib/kpis-client";
+import { getUser } from "@/lib/auth-client";
+import type {
+  HeaderKpis,
+  PaymentMethodKpi,
+  LowStockProduct,
+  TopProduct,
+  SummaryKpis,
+} from "@/types/api";
 
 // Helpers de formato
 const currency = (v: number) =>
@@ -16,86 +30,97 @@ const numberFmt = (v: number) =>
   new Intl.NumberFormat("es-MX").format(v);
 
 export default function DashboardHomePage() {
-  // 🔹 MOCK DATA – más adelante lo reemplazamos por llamadas al backend
-  const headerKpis = {
-    month: 10,
-    year: 2025,
-    totalTransactions: 18,
-    totalSalesAmount: 8423.5,
-    totalTickets: 18,
-    totalProductsSold: 136,
-  };
+  const [headerKpis, setHeaderKpis] = useState<HeaderKpis | null>(null);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethodKpi[]>([]);
+  const [lowStockProducts, setLowStockProducts] = useState<LowStockProduct[]>(
+    []
+  );
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [summary, setSummary] = useState<SummaryKpis | null>(null);
 
-  const paymentMethods = [
-    {
-      paymentMethod: "CASH",
-      totalSalesAmount: 5120.75,
-      count: 11,
-    },
-    {
-      paymentMethod: "CARD",
-      totalSalesAmount: 3302.75,
-      count: 7,
-    },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const lowStockProducts = [
-    {
-      id: "692699b49321c248154b5a45",
-      name: "Coca Cola 600ml",
-      productCode: "COCA-600",
-      stock: 3,
-    },
-    {
-      id: "692699b49321c248154b5a46",
-      name: "Sabritas Adobadas 45g",
-      productCode: "SABRITAS-45",
-      stock: 4,
-    },
-  ];
+  const [userName, setUserName] = useState("Empresa X");
 
-  const topProducts = [
-    {
-      productId: "692699b49321c248154b5a45",
-      productCode: "COCA-600",
-      name: "Coca Cola 600ml",
-      totalQuantity: 42,
-      totalRevenue: 777.0,
-    },
-    {
-      productId: "692699b49321c248154b5a46",
-      productCode: "SABRITAS-45",
-      name: "Sabritas Adobadas 45g",
-      totalQuantity: 31,
-      totalRevenue: 573.5,
-    },
-    {
-      productId: "692699b49321c248154b5a47",
-      productCode: "AGUA-1L",
-      name: "Agua 1L",
-      totalQuantity: 23,
-      totalRevenue: 420.0,
-    },
-  ];
+  // Nombre del usuario logueado
+  useEffect(() => {
+    const user = getUser();
+    if (user) {
+      setUserName(`${user.name} ${user.lastname}`);
+    }
+  }, []);
 
-  const summary = {
-    month: 10,
-    year: 2025,
-    averageTicketAmount: 467.97,
-    averageProductsPerTicket: 7.56,
-    todayRevenue: 1320.5,
-    todaySalesCount: 4,
-  };
+  // Cargar KPIs
+  useEffect(() => {
+    const fetchKpis = async () => {
+      try {
+        const [
+          header,
+          payment,
+          lowStock,
+          top,
+          summaryData,
+        ] = await Promise.all([
+          kpisClient.getHeader(),
+          kpisClient.getPaymentMethods(),
+          kpisClient.getLowStock(),
+          kpisClient.getTopProducts(),
+          kpisClient.getSummary(),
+        ]);
+
+        setHeaderKpis(header);
+        setPaymentMethods(payment);
+        setLowStockProducts(lowStock);
+        setTopProducts(top);
+        setSummary(summaryData);
+      } catch (err: any) {
+        setError(err.message ?? "Error al cargar KPIs");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchKpis();
+  }, []);
+
+  const todayLabel = (() => {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("es-MX", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+    const formatted = formatter.format(now);
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+  })();
+
+  if (loading) {
+    return (
+      <div className="p-6 text-sm text-muted-foreground">
+        Cargando panel...
+      </div>
+    );
+  }
+
+  if (error || !headerKpis || !summary) {
+    return (
+      <div className="p-6 text-sm text-red-500">
+        {error ?? "No se pudieron cargar los datos del dashboard."}
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-5">
       {/* Encabezado */}
       <section className="space-y-1">
         <h1 className="text-2xl font-extrabold text-foreground">
-          Bienvenido, Empresa X 👋
+          Bienvenido, {userName} 👋
         </h1>
         <p className="text-xs text-muted-foreground">
-          Hoy es Lunes 25 Agosto del 2025.
+          Hoy es {todayLabel}.
         </p>
       </section>
 
@@ -147,3 +172,4 @@ export default function DashboardHomePage() {
     </div>
   );
 }
+
