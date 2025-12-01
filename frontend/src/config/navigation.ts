@@ -36,9 +36,9 @@ export const mainNav: NavItem[] = [
   },
   {
     label: "Clientes",
-    href: "#",
+    href: "/dashboard/client",
     icon: Users,
-    active: false,
+    active: true,
   },
   {
     label: "Notificaciones",

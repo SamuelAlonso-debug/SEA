@@ -6,6 +6,7 @@ import productRouter from "./routes/product.routes";
 import saleRouter from "./routes/sale.routes";
 import kpiRouter from "./routes/kpi.routes";
 import expenseRouter from "./routes/expense.routes";
+import clientRouter from "./routes/client.routes";
 
 dotenv.config();
 
@@ -26,5 +27,6 @@ app.use("/api/products", productRouter);
 app.use("/api/sales", saleRouter);
 app.use("/api/kpis", kpiRouter);
 app.use("/api/expenses", expenseRouter);
+app.use("/api/clients", clientRouter);
 
 export default app;

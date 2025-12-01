@@ -145,4 +145,42 @@ export interface CreateExpenseRequest {
   notes?: string;
 }
 
+// ----------------------
+// Clients
+// ----------------------
+
+export interface ClientDto {
+  id: string;
+  name: string;
+  lastname: string;
+  phone: string;
+  email?: string | null;
+  street?: string | null;        // calle
+  neighborhood?: string | null;  // colonia
+  city?: string | null;
+  state?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClientsListResponse {
+  data: ClientDto[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface CreateClientRequest {
+  name: string;
+  lastname: string;
+  phone: string;
+  email?: string;
+  street?: string;
+  neighborhood?: string;
+  city?: string;
+  state?: string;
+}
+
+export type UpdateClientRequest = Partial<CreateClientRequest>;
+
 export type UpdateExpenseRequest = Partial<CreateExpenseRequest>;

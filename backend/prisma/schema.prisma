@@ -65,6 +65,10 @@ model Sale {
 
   items        SaleItem[]
   notes        String?        // opcional, comentarios internos
+
+  clientId    String?    @db.ObjectId
+  client      Client?    @relation(fields: [clientId], references: [id])
+
 }
 
 model SaleItem {
@@ -102,4 +106,21 @@ model Expense {
 
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+}
+
+model Client {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  lastname  String
+  phone     String
+  email     String?  @unique
+  street    String?  // calle
+  neighborhood String? // colonia
+  city      String?
+  state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sales     Sale[]
 }
