@@ -9,7 +9,7 @@ SEA es un sistema administrativo de escritorio (versión web) orientado a la ges
 - Registro de ventas y tickets  
 - Control de gastos y KPIs financieros  
 - Gestión de clientes  
-- Campañas publicitarias
+- Notificación de alertas
 
 La solución está compuesta por:
 
@@ -51,7 +51,6 @@ Antes de comenzar, asegúrate de contar con:
 - **Node.js** v18+ (recomendado LTS)  
 - **npm** o **pnpm** (según se use en el proyecto)  
 - Acceso a una instancia de **MongoDB** (local o en la nube, por ejemplo MongoDB Atlas)  
-- Git instalado (para clonar el repositorio)
 
 ---
 
@@ -87,7 +86,6 @@ sea/
       styles/
 ```
 
-> Nota: adapta esta sección si tu estructura real tiene carpetas adicionales o nombres distintos.
 
 ---
 
@@ -95,7 +93,7 @@ sea/
 
 ### 5.1 Backend – Archivo `.env`
 
-En la carpeta `backend/`, crear un archivo `.env` con las variables necesarias, por ejemplo:
+En la carpeta `backend/`, crear un archivo `.env` con las variables necesarias:
 
 ```env
 # Puerto de la API
@@ -105,7 +103,7 @@ PORT=4000
 DATABASE_URL="mongodb+srv://usuario:password@cluster.mongodb.net/sea?retryWrites=true&w=majority"
 
 # Clave secreta para firmar JWT
-JWT_SECRET="cambia_esta_clave_por_una_segura"
+JWT_SECRET="clave"
 
 # Entorno
 NODE_ENV=development
@@ -113,7 +111,7 @@ NODE_ENV=development
 
 Variables típicas:
 
-- `PORT`: Puerto donde se expondrá la API (ej. 4000).  
+- `PORT`: Puerto donde se expondrá la API (4000).  
 - `DATABASE_URL`: URL de conexión a MongoDB (local o Atlas).  
 - `JWT_SECRET`: Cadena secreta para firmar tokens JWT.  
 
@@ -128,7 +126,7 @@ NEXT_PUBLIC_API_BASE_URL="http://localhost:4000/api"
 
 Variables típicas:
 
-- `NEXT_PUBLIC_API_BASE_URL`: Ruta base pública hacia la API (incluye `/api` si está así configurado en el backend).
+- `NEXT_PUBLIC_API_BASE_URL`: api.
 
 ---
 
@@ -164,8 +162,6 @@ cd ../frontend
 # Instalar dependencias
 npm install
 ```
-
-Si utilizas `pnpm` o `yarn`, sustituye los comandos de acuerdo con tu gestor de paquetes.
 
 ---
 
@@ -218,9 +214,3 @@ http://localhost:3000
 - `npm start` – Inicia la aplicación compilada.  
 
 ---
-
-## 9. Notas adicionales
-
-- Asegúrate de no versionar los archivos `.env` ni `.env.local` (usa `.gitignore`).  
-- Para entornos productivos, configura variables de entorno seguras y distintas a las de desarrollo.  
-- Revisa la documentación de Prisma y Next.js si necesitas ajustar la configuración para despliegues específicos (Docker, Vercel, etc.).  
