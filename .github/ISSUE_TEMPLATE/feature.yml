@@ -1,0 +1,71 @@
+name: Funcionalidad / tarea técnica
+description: Nueva funcionalidad, mejora, refactor, CI o infraestructura.
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto
+      description: Situación actual y por qué importa. Enlaza código, issues o páginas de la wiki.
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: Objetivo
+      description: Qué debe existir al cerrar la issue. Resultado, no implementación.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Alcance
+      value: |
+        **Incluye**
+        -
+
+        **Excluye**
+        -
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptación
+      description: Verificables y binarios. Cada uno se marca en la PR.
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: dropdown
+    id: criticality
+    attributes:
+      label: Criticidad
+      description: Define los tests exigidos (wiki → Testing-Strategy).
+      options:
+        - "Baja: estilos, textos, config sin lógica"
+        - "Media: CRUD simple, UI con estado"
+        - "Alta: lógica de negocio, cálculos, validación"
+        - "Crítica: dinero, stock, auth, permisos, datos personales"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      multiple: true
+      options: [backend, frontend, ci-cd, infra, base de datos]
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Riesgos y seguridad
+      description: Endpoints, datos sensibles, permisos o dependencias afectadas. "Ninguno" si no aplica.
+    validations:
+      required: true
+  - type: textarea
+    id: refs
+    attributes:
+      label: Referencias
+      description: Diseños, capturas, enlaces.

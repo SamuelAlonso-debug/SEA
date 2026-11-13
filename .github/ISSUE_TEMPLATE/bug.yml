@@ -1,0 +1,70 @@
+name: Bug
+description: Comportamiento incorrecto en código existente.
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: context
+    attributes:
+      label: Contexto
+      description: Módulo afectado e impacto (quién lo sufre, con qué frecuencia).
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Pasos para reproducir
+      value: |
+        1.
+        2.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Comportamiento actual
+      description: Incluye respuesta HTTP, logs o capturas.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportamiento esperado
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Alcance del fix
+      value: |
+        **Incluye**
+        -
+
+        **Excluye**
+        -
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Criterios de aceptación
+      description: Siempre incluye el test de regresión si la criticidad es Media o superior.
+      value: |
+        - [ ]
+    validations:
+      required: true
+  - type: dropdown
+    id: criticality
+    attributes:
+      label: Criticidad
+      options:
+        - "Baja: estilos, textos, config sin lógica"
+        - "Media: CRUD simple, UI con estado"
+        - "Alta: lógica de negocio, cálculos, validación"
+        - "Crítica: dinero, stock, auth, permisos, datos personales"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Entorno
+      placeholder: "commit/tag, navegador, local/staging"
