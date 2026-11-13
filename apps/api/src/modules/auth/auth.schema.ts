@@ -4,7 +4,7 @@ import {
   UserLastNameLength,
   UserEmailLength,
   UserPasswordLength,
-} from "../enums/user.enums";
+} from "./user.enums";
 
 // Si quieres seguir usando los DTOs, no es obligatorio intersectarlos aquí;
 // z.infer ya te da el tipo correcto para los servicios.

@@ -3,7 +3,7 @@ import {
   createClientSchema,
   updateClientSchema,
   listClientsQuerySchema,
-} from "../schemas/client.schema";
+} from "./client.schema";
 import {
   listClients,
   getClientById,
@@ -13,7 +13,7 @@ import {
   getClientSales,
   // asegúrate de tener esto si ya existe el servicio
   // getClientSales,
-} from "../services/client.service";
+} from "./client.service";
 
 export const listClientsHandler = async (req: Request, res: Response) => {
   try {

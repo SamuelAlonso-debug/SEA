@@ -1,8 +1,8 @@
 import bcrypt from "bcrypt";
-import prisma from "../config/prisma";
-import { RegisterInput, LoginInput } from "../schemas/auth.schema";
-import { signToken } from "../utils/jwt";
-import { AuthResponseDto } from "../dtos/auth.dto";
+import prisma from "../../shared/prisma";
+import { RegisterInput, LoginInput } from "./auth.schema";
+import { signToken } from "../../shared/jwt";
+import { AuthResponseDto } from "./auth.dto";
 
 const SALT_ROUNDS = 10;
 

@@ -1,16 +1,16 @@
 // src/services/expense.service.ts
 
-import prisma from "../config/prisma";
+import prisma from "../../shared/prisma";
 import {
   CreateExpenseInput,
   UpdateExpenseInput,
-} from "../schemas/expense.schema";
+} from "./expense.schema";
 import {
   ExpenseDto,
   ExpenseListFilters,
   ExpenseListResult,
   ExpenseKpisDto,
-} from "../dtos/expense.dto";
+} from "./expense.dto";
 import { ExpenseCategory } from "@prisma/client";
 
 export const createExpense = async (

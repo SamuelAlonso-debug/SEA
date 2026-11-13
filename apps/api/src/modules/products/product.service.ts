@@ -1,9 +1,9 @@
-import prisma from "../config/prisma";
+import prisma from "../../shared/prisma";
 import {
   CreateProductInput,
   UpdateProductInput,
-} from "../schemas/product.schema";
-import { ProductDto } from "../dtos/product.dto";
+} from "./product.schema";
+import { ProductDto } from "./product.dto";
 import { Prisma } from "@prisma/client";
 
 export const createProduct = async (

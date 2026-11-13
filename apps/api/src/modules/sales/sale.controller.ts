@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { createSaleSchema } from "../schemas/sale.schema";
-import { createSale, listSales, getSaleById } from "../services/sale.service";
+import { createSaleSchema } from "./sale.schema";
+import { createSale, listSales, getSaleById } from "./sale.service";
 
 export const createSaleHandler = async (req: Request, res: Response) => {
   try {

@@ -1,7 +1,7 @@
 // src/routes/expense.routes.ts
 
 import { Router } from "express";
-import { authMiddleware } from "../middlewares/auth.middleware";
+import { authMiddleware } from "../../shared/auth.middleware";
 import {
   listExpensesHandler,
   getExpenseHandler,
@@ -9,7 +9,7 @@ import {
   updateExpenseHandler,
   deleteExpenseHandler,
   getExpenseKpisHandler,
-} from "../controllers/expense.controller";
+} from "./expense.controller";
 
 const router = Router();
 

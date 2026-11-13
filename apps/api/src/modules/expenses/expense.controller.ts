@@ -5,7 +5,7 @@ import {
   createExpenseSchema,
   updateExpenseSchema,
   listExpensesQuerySchema,
-} from "../schemas/expense.schema";
+} from "./expense.schema";
 import {
   createExpense,
   deleteExpense,
@@ -13,9 +13,9 @@ import {
   listExpenses,
   updateExpense,
   getMonthlyExpenseKpis,
-} from "../services/expense.service";
+} from "./expense.service";
 import { ExpenseCategory } from "@prisma/client";
-import { ExpenseListFilters } from "../dtos/expense.dto";
+import { ExpenseListFilters } from "./expense.dto";
 
 export const listExpensesHandler = async (req: Request, res: Response) => {
   try {

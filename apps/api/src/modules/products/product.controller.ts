@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import {
   createProductSchema,
   updateProductSchema,
-} from "../schemas/product.schema";
+} from "./product.schema";
 import {
   createProduct,
   listProducts,
@@ -11,7 +11,7 @@ import {
   deleteProduct,
   activateProduct,
   getProductByCode,
-} from "../services/product.service";
+} from "./product.service";
 
 export const createProductHandler = async (req: Request, res: Response) => {
   try {

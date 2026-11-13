@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { registerSchema, loginSchema } from "../schemas/auth.schema";
+import { registerSchema, loginSchema } from "./auth.schema";
 import {
   registerUser,
   loginUser,
   getUserProfile,
-} from "../services/auth.service";
-import { AuthRequest } from "../middlewares/auth.middleware";
+} from "./auth.service";
+import { AuthRequest } from "../../shared/auth.middleware";
 
 export const registerHandler = async (req: Request, res: Response) => {
   try {
