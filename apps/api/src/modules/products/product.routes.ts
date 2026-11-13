@@ -7,8 +7,8 @@ import {
   deleteProductHandler,
   activateProductHandler,
   getProductByCodeHandler,
-} from "../controllers/product.controller";
-import { authMiddleware } from "../middlewares/auth.middleware";
+} from "./product.controller";
+import { authMiddleware } from "../../shared/auth.middleware";
 
 const router = Router();
 

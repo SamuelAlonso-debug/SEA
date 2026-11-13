@@ -1,6 +1,6 @@
-import prisma from "../config/prisma";
-import { CreateSaleInput } from "../schemas/sale.schema";
-import { SaleDto, SaleItemDto } from "../dtos/sale.dto";
+import prisma from "../../shared/prisma";
+import { CreateSaleInput } from "./sale.schema";
+import { SaleDto, SaleItemDto } from "./sale.dto";
 import { PaymentMethod } from "@prisma/client";
 
 const IVA_RATE = 0.16; // 16%

@@ -3,8 +3,8 @@ import {
   createSaleHandler,
   listSalesHandler,
   getSaleHandler,
-} from "../controllers/sale.controller";
-import { authMiddleware } from "../middlewares/auth.middleware";
+} from "./sale.controller";
+import { authMiddleware } from "../../shared/auth.middleware";
 
 const router = Router();
 

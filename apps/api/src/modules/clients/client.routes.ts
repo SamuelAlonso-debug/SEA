@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../middlewares/auth.middleware";
+import { authMiddleware } from "../../shared/auth.middleware";
 import {
   listClientsHandler,
   getClientHandler,
@@ -7,7 +7,7 @@ import {
   updateClientHandler,
   deleteClientHandler,
   getClientSalesHandler,
-} from "../controllers/client.controller";
+} from "./client.controller";
 
 const router = Router();
 

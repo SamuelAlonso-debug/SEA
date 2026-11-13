@@ -6,7 +6,7 @@ import {
   ProductProviderLength,
   ProductPriceLimits,
   ProductStockLimits,
-} from "../enums/product.enums";
+} from "./product.enums";
 
 export const createProductSchema = z.object({
   name: z

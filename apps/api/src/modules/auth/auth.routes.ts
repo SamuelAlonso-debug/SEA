@@ -4,8 +4,8 @@ import {
   registerHandler,
   loginHandler,
   profileHandler,
-} from "../controllers/auth.controller";
-import { authMiddleware } from "../middlewares/auth.middleware";
+} from "./auth.controller";
+import { authMiddleware } from "../../shared/auth.middleware";
 
 const router = Router();
 

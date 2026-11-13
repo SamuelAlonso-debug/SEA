@@ -5,7 +5,7 @@ import {
   getLowStockProducts,
   getTopProducts,
   getSummaryKpis,
-} from "../services/kpi.service";
+} from "./kpi.service";
 
 export const getHeaderKpisHandler = async (req: Request, res: Response) => {
   try {

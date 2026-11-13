@@ -1,11 +1,11 @@
-import prisma from "../config/prisma";
+import prisma from "../../shared/prisma";
 import {
   HeaderKpisDto,
   PaymentMethodKpiDto,
   LowStockProductDto,
   TopProductDto,
   SummaryKpisDto,
-} from "../dtos/kpi.dto";
+} from "./kpi.dto";
 
 // Helpers de fechas
 function getMonthRange() {

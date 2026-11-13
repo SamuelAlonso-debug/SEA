@@ -1,12 +1,12 @@
 import { Router } from "express";
-import { authMiddleware } from "../middlewares/auth.middleware";
+import { authMiddleware } from "../../shared/auth.middleware";
 import {
   getHeaderKpisHandler,
   getPaymentMethodKpisHandler,
   getLowStockProductsHandler,
   getTopProductsHandler,
   getSummaryKpisHandler,
-} from "../controllers/kpi.controller";
+} from "./kpi.controller";
 
 const router = Router();
 

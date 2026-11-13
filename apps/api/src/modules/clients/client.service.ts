@@ -1,13 +1,13 @@
-import prisma from "../config/prisma";
+import prisma from "../../shared/prisma";
 import {
   CreateClientInput,
   UpdateClientInput,
-} from "../schemas/client.schema";
+} from "./client.schema";
 import {
   ClientDto,
   ClientListResult,
   ClientSalesSummaryDto,
-} from "../dtos/client.dto";
+} from "./client.dto";
 
 export const listClients = async (
   search: string | undefined,

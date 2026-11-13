@@ -1,7 +1,7 @@
 // src/schemas/expense.schema.ts
 
 import { z } from "zod";
-import { ExpenseCategoryEnum } from "../enums/expense.enums";
+import { ExpenseCategoryEnum } from "./expense.enums";
 
 export const createExpenseSchema = z.object({
   concept: z

@@ -2,12 +2,12 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import authRouter from "./routes/auth.routes";
-import productRouter from "./routes/product.routes";
-import saleRouter from "./routes/sale.routes";
-import kpiRouter from "./routes/kpi.routes";
-import expenseRouter from "./routes/expense.routes";
-import clientRouter from "./routes/client.routes";
+import authRouter from "./modules/auth/auth.routes";
+import productRouter from "./modules/products/product.routes";
+import saleRouter from "./modules/sales/sale.routes";
+import kpiRouter from "./modules/kpis/kpi.routes";
+import expenseRouter from "./modules/expenses/expense.routes";
+import clientRouter from "./modules/clients/client.routes";
 
 const app = express();
 
