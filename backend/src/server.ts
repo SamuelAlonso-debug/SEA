@@ -1,3 +1,5 @@
+// Debe ser el primer import: los módulos leen process.env al cargarse.
+import "dotenv/config";
 import app from "./app";
 
 const PORT = process.env.PORT || 4000;

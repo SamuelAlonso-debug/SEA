@@ -1,14 +1,11 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import authRouter from "./routes/auth.routes";
 import productRouter from "./routes/product.routes";
 import saleRouter from "./routes/sale.routes";
 import kpiRouter from "./routes/kpi.routes";
 import expenseRouter from "./routes/expense.routes";
 import clientRouter from "./routes/client.routes";
-
-dotenv.config();
 
 const app = express();
 
