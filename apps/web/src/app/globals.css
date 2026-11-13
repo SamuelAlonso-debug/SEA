@@ -5,9 +5,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ya no necesitamos el theme.css aparte */
-/* @import "../styles/theme.css"; */
-
 html,
 body {
   height: 100%;
