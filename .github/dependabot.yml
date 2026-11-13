@@ -4,11 +4,13 @@ updates:
     directory: /backend
     schedule:
       interval: weekly
-    # Majors que exigen migración propia. @types/node sigue al runtime (Node 22).
+    # Majors que exigen migración propia (TS 7 rompe ts-node-dev). @types/node sigue al runtime (Node 22).
     ignore:
       - dependency-name: "prisma"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
