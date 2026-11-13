@@ -28,7 +28,6 @@
     "recharts": "^3.10.1",
     "sonner": "^2.0.8",
     "tailwind-merge": "^3.7.0",
-    "tailwindcss-animate": "^1.0.7",
     "zod": "^4.1.13",
     "zustand": "^5.1.0"
   },
