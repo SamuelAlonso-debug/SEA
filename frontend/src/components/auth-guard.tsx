@@ -37,6 +37,8 @@ export function AuthGuard({ children }: { children: ReactNode }) {
       return;
     }
 
+    // localStorage solo existe en cliente: leer tras montar evita mismatch de hidratación.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setReady(true);
   }, [pathname, router]);
 

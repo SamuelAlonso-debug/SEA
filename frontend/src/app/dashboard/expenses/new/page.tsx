@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "@/lib/utils";
 import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,12 +13,13 @@ import {
   EXPENSE_CATEGORIES,
 } from "@/constants/expense-categories";
 import { createExpense } from "@/lib/expenses-client";
+import type { ExpenseCategory } from "@/types/api";
 
 export default function AddExpensePage() {
   const router = useRouter();
 
   const [concept, setConcept] = useState("");
-  const [category, setCategory] = useState<string>("service");
+  const [category, setCategory] = useState<ExpenseCategory>("service");
   const [date, setDate] = useState("");
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
@@ -44,7 +46,7 @@ export default function AddExpensePage() {
 
       await createExpense({
         concept,
-        category: category as any, // cast porque viene de string
+        category,
         amount: amountNumber,
         date: isoDate,
         paymentMethod,
@@ -54,8 +56,8 @@ export default function AddExpensePage() {
 
       router.push("/dashboard/expenses");
       router.refresh();
-    } catch (err: any) {
-      setErrorMsg(err.message ?? "Error inesperado");
+    } catch (err) {
+      setErrorMsg(errorMessage(err, "Error inesperado"));
     } finally {
       setSubmitting(false);
     }
@@ -104,7 +106,7 @@ export default function AddExpensePage() {
               name="category"
               label="Categoría"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
             >
               {EXPENSE_CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>

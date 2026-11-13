@@ -1,5 +1,6 @@
 // src/app/dashboard/clients/new/page.tsx
 "use client";
+import { errorMessage } from "@/lib/utils";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -58,8 +59,8 @@ export default function NewClientPage() {
       });
 
       router.push("/dashboard/client");
-    } catch (err: any) {
-      setError(err.message ?? "Error al crear el cliente");
+    } catch (err) {
+      setError(errorMessage(err, "Error al crear el cliente"));
     } finally {
       setSubmitting(false);
     }
