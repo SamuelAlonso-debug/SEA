@@ -17,6 +17,8 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    labels: [dependencies, javascript, "type:chore", "area:backend"]
+    assignees: [SamuelAlonso-debug]
     commit-message:
       prefix: build
       include: scope
@@ -33,6 +35,8 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    labels: [dependencies, javascript, "type:chore", "area:frontend"]
+    assignees: [SamuelAlonso-debug]
     commit-message:
       prefix: build
       include: scope
@@ -40,5 +44,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    labels: [dependencies, github_actions, "type:chore", "area:ci-cd"]
+    assignees: [SamuelAlonso-debug]
     commit-message:
       prefix: ci

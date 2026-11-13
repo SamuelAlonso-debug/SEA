@@ -1,0 +1,21 @@
+name: Project
+
+on:
+  push:
+    branches: [master]
+    paths: [.github/project.json, .github/scripts/sync-project.sh]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    name: Sync labels and milestones
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: .github/scripts/sync-project.sh
+        env:
+          GH_TOKEN: ${{ github.token }}

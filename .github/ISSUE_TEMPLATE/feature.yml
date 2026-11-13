@@ -54,7 +54,7 @@ body:
     attributes:
       label: Área
       multiple: true
-      options: [backend, frontend, ci-cd, infra, base de datos]
+      options: [backend, frontend, ci-cd, infra, repo, base de datos]
     validations:
       required: true
   - type: textarea
