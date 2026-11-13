@@ -1,0 +1,7 @@
+# Secretos en claro nunca entran al repo: solo secrets/*.env cifrados con SOPS.
+.env
+.env.*
+*.env
+!secrets/*.env
+*.agekey
+keys.txt
