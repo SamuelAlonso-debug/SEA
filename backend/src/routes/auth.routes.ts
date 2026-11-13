@@ -1,4 +1,5 @@
 import { Router } from "express";
+import rateLimit from "express-rate-limit";
 import {
   registerHandler,
   loginHandler,
@@ -8,8 +9,11 @@ import { authMiddleware } from "../middlewares/auth.middleware";
 
 const router = Router();
 
-router.post("/register", registerHandler);
-router.post("/login", loginHandler);
+// Frena fuerza bruta de credenciales y altas masivas.
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: "draft-8", legacyHeaders: false });
+
+router.post("/register", authLimiter, registerHandler);
+router.post("/login", authLimiter, loginHandler);
 router.get("/profile", authMiddleware, profileHandler);
 
 export default router;
