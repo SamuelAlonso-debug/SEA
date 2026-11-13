@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "@/lib/utils";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
@@ -72,8 +73,8 @@ export default function ExpensesPage() {
 
         setExpenses(rows);
         setTotal(resp.total);
-      } catch (err: any) {
-        setErrorList(err.message ?? "Error al obtener los gastos");
+      } catch (err) {
+        setErrorList(errorMessage(err, "Error al obtener los gastos"));
       } finally {
         setLoadingList(false);
       }
@@ -91,8 +92,8 @@ export default function ExpensesPage() {
 
         const data = await getExpensesKpis();
         setKpis(data);
-      } catch (err: any) {
-        setErrorKpis(err.message ?? "Error al obtener los KPIs de gastos");
+      } catch (err) {
+        setErrorKpis(errorMessage(err, "Error al obtener los KPIs de gastos"));
       } finally {
         setLoadingKpis(false);
       }

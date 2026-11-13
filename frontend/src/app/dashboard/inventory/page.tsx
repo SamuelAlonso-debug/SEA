@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -64,8 +65,8 @@ export default function InventoryPage() {
       try {
         const data = await productsClient.list();
         setProducts(data);
-      } catch (err: any) {
-        setError(err.message ?? "Error al cargar inventario");
+      } catch (err) {
+        setError(errorMessage(err, "Error al cargar inventario"));
       } finally {
         setLoading(false);
       }

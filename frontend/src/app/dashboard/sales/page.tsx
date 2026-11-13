@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "@/lib/utils";
 import { useState, KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -191,8 +192,8 @@ export default function SalesPage() {
       // dejamos listo para escanear el siguiente producto
       setProductCode("");
       setQuantity("1");
-    } catch (err: any) {
-      setError(err.message ?? "Error al buscar el producto.");
+    } catch (err) {
+      setError(errorMessage(err, "Error al buscar el producto."));
     } finally {
       setLoadingScan(false);
     }
@@ -231,8 +232,8 @@ export default function SalesPage() {
 
       // ✅ Después de registrar la venta, limpiamos el ticket COMPLETO
       handleCancelTicket();
-    } catch (err: any) {
-      setError(err.message ?? "Error al registrar la venta.");
+    } catch (err) {
+      setError(errorMessage(err, "Error al registrar la venta."));
     } finally {
       setLoadingSale(false);
       setConfirmOpen(false);

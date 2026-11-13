@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -38,8 +39,8 @@ export default function RegisterPage() {
 
       // 👇 NO guardamos token, solo mandamos a login
       router.push("/auth/login");
-    } catch (err: any) {
-      setError(err.message ?? "Error al crear la cuenta");
+    } catch (err) {
+      setError(errorMessage(err, "Error al crear la cuenta"));
     } finally {
       setLoading(false);
     }

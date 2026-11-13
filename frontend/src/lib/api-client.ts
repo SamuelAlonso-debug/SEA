@@ -8,7 +8,7 @@ type Method = "GET" | "POST" | "PUT" | "DELETE";
 
 interface RequestOptions {
   method?: Method;
-  body?: any;
+  body?: unknown;
   token?: string | null;
   query?: Record<string, string | number | boolean | undefined>;
 }
@@ -46,7 +46,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     let msg = `Error ${res.status}`;
     try {
       const data = await res.json();
-      msg = (data as any).message || msg;
+      msg = (data as { message?: string }).message || msg;
     } catch {}
     throw new Error(msg);
   }

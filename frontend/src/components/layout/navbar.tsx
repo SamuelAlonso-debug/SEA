@@ -30,6 +30,8 @@ export function Navbar() {
 
   useEffect(() => {
     const u = getUser();
+    // localStorage solo existe en cliente: leer tras montar evita mismatch de hidratación.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (u) setUser(u);
   }, []);
 
