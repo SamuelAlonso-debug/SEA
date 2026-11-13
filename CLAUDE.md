@@ -22,6 +22,7 @@ Detalle de flujo, tests y seguridad: wiki del repo.
 
 ## Flujo
 1. Issue primero, con plantilla completa: contexto, objetivo, alcance (incluye/excluye), criterios de aceptación verificables, criticidad, riesgos.
+   Solo para problemas o cambios del repositorio. Configuración en plataformas externas (Settings de GitHub, cloud, cuentas) no lleva issue.
 2. Rama desde `master`: `tipo/descripcion-corta` (`feat/`, `fix/`, `chore/`, `refactor/`, `docs/`, `ci/`).
 3. Commits en Conventional Commits, en inglés, sin trailers.
 4. PR con la plantilla. Título `tipo(scope): resumen`. Cuerpo con `Closes #N`.
