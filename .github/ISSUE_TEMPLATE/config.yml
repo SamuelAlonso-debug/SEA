@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Vulnerabilidad de seguridad
+    url: https://github.com/SamuelAlonso-debug/SEA/security/advisories/new
+    about: Reporte privado. Nunca abras una issue pública para una vulnerabilidad.
+  - name: Cómo contribuir
+    url: https://github.com/SamuelAlonso-debug/SEA/wiki/How-to-Contribute
+    about: Flujo, reglas de PR, tests y seguridad.
