@@ -1,6 +1,6 @@
 // src/constants/expense-categories.ts
 
-import type { ExpenseCategory } from "@/lib/expenses-client";
+import type { ExpenseCategory } from "@/features/expenses/api";
 
 export const EXPENSE_CATEGORIES: { value: ExpenseCategory; label: string }[] = [
   { value: "service", label: "Servicios" },

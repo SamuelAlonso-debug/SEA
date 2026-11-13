@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { AuthLayout } from "@/components/auth/auth-layout";
+import { AuthLayout } from "@/features/auth/auth-layout";
 import { LabeledInput } from "@/components/forms/labeled-input";
 import { Button } from "@/components/ui/button";
 
-import { registerRequest } from "@/lib/auth-client";
+import { registerRequest } from "@/features/auth/api";
 
 export default function RegisterPage() {
   const router = useRouter();

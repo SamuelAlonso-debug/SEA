@@ -8,8 +8,8 @@ import { ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { LabeledInput } from "@/components/forms/labeled-input";
-import { ProductImageUploadCard } from "@/components/inventory/product-image-upload-card";
-import { productsClient } from "@/lib/products-client";
+import { ProductImageUploadCard } from "@/features/inventory/product-image-upload-card";
+import { productsClient } from "@/features/inventory/api";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-MX", {

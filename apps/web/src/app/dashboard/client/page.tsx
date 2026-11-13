@@ -10,12 +10,12 @@ import { Button } from "@/components/ui/button";
 import {
   ClientsTable,
   type ClientRow,
-} from "@/components/clients/clients-table";
+} from "@/features/clients/clients-table";
 import {
   getClients,
   type ClientDto,
   type ClientsListResponse,
-} from "@/lib/clients-client";
+} from "@/features/clients/api";
 
 const formatFullName = (c: ClientDto) => `${c.name} ${c.lastname}`;
 

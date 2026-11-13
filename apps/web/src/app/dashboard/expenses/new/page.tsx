@@ -11,8 +11,8 @@ import { LabeledInput } from "@/components/forms/labeled-input";
 import { LabeledSelect } from "@/components/forms/labeled-select";
 import {
   EXPENSE_CATEGORIES,
-} from "@/constants/expense-categories";
-import { createExpense } from "@/lib/expenses-client";
+} from "@/features/expenses/expense-categories";
+import { createExpense } from "@/features/expenses/api";
 import type { ExpenseCategory } from "@/types/api";
 
 export default function AddExpensePage() {

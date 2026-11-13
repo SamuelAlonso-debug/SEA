@@ -3,14 +3,14 @@
 import { errorMessage } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
-import { KpiCard } from "@/components/dashboard/kpi-card";
-import { LowStockTable } from "@/components/dashboard/low-stock-table";
-import { PaymentMethodsChart } from "@/components/dashboard/payment-methods-chart";
-import { SummaryBlock } from "@/components/dashboard/summary-block";
-import { TopProductsDonut } from "@/components/dashboard/top-products-donut";
+import { KpiCard } from "@/features/dashboard/kpi-card";
+import { LowStockTable } from "@/features/dashboard/low-stock-table";
+import { PaymentMethodsChart } from "@/features/dashboard/payment-methods-chart";
+import { SummaryBlock } from "@/features/dashboard/summary-block";
+import { TopProductsDonut } from "@/features/dashboard/top-products-donut";
 
-import { kpisClient } from "@/lib/kpis-client";
-import { getUser } from "@/lib/auth-client";
+import { kpisClient } from "@/features/dashboard/api";
+import { getUser } from "@/features/auth/api";
 import type {
   HeaderKpis,
   PaymentMethodKpi,

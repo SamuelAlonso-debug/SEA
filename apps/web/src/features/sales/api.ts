@@ -2,7 +2,7 @@
 "use client";
 
 import { apiClient } from "@/lib/api-client";
-import { getToken } from "@/lib/auth-client";
+import { getToken } from "@/features/auth/api";
 import type { Sale, PaymentMethod } from "@/types/api";
 
 function withToken() {

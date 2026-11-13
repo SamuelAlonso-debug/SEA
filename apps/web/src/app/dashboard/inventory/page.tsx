@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { productsClient } from "@/lib/products-client";
+import { productsClient } from "@/features/inventory/api";
 import type { Product } from "@/types/api";
 
 // Umbral para “bajo stock”, igual que en el backend
