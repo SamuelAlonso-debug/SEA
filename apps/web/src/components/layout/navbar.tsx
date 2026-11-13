@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { getUser, clearToken, clearUser } from "@/lib/auth-client";
+import { getUser, clearToken, clearUser } from "@/features/auth/api";
 
 interface StoredUser {
   id: string;

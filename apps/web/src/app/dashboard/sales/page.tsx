@@ -5,8 +5,8 @@ import { useState, KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { salesClient } from "@/lib/sales-client";
-import { productsClient } from "@/lib/products-client";
+import { salesClient } from "@/features/sales/api";
+import { productsClient } from "@/features/inventory/api";
 import type { Sale, PaymentMethod } from "@/types/api";
 
 import {

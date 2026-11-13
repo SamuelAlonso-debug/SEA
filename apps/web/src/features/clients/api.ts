@@ -2,7 +2,7 @@
 "use client";
 
 import { apiClient } from "@/lib/api-client";
-import { getToken } from "@/lib/auth-client";
+import { getToken } from "@/features/auth/api";
 import type {
   ClientDto,
   ClientsListResponse,

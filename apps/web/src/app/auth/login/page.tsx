@@ -5,12 +5,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { AuthLayout } from "@/components/auth/auth-layout";
+import { AuthLayout } from "@/features/auth/auth-layout";
 import { LabeledInput } from "@/components/forms/labeled-input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { loginRequest } from "@/lib/auth-client";
+import { loginRequest } from "@/features/auth/api";
 
 export default function LoginPage() {
   const router = useRouter();

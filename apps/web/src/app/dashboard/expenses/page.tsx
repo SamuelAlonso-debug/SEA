@@ -5,19 +5,19 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 
-import { KpiCard } from "@/components/dashboard/kpi-card";
+import { KpiCard } from "@/features/dashboard/kpi-card";
 import { Button } from "@/components/ui/button";
 import {
   ExpensesTable,
   type ExpenseRow,
-} from "@/components/expenses/expenses-table";
+} from "@/features/expenses/expenses-table";
 import {
   getExpenses,
   getExpensesKpis,
   type ExpensesKpisResponse,
   type ExpenseDto,
-} from "@/lib/expenses-client";
-import { EXPENSE_CATEGORY_LABELS } from "@/constants/expense-categories";
+} from "@/features/expenses/api";
+import { EXPENSE_CATEGORY_LABELS } from "@/features/expenses/expense-categories";
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
