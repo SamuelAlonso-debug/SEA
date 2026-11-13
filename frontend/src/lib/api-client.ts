@@ -1,6 +1,6 @@
 // src/lib/api-client.ts
 const RAW_API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api";
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 const API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, ""); // sin / al final
 
