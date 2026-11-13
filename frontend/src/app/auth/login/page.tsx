@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -9,7 +10,7 @@ import { LabeledInput } from "@/components/forms/labeled-input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { loginRequest, saveToken } from "@/lib/auth-client";
+import { loginRequest } from "@/lib/auth-client";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,15 +30,12 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res: any = await loginRequest(email, password);
-
-      // Guardar token
-      saveToken(res.token);
+      await loginRequest(email, password);
 
       // Ir al dashboard
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message ?? "Credenciales incorrectas");
+    } catch (err) {
+      setError(errorMessage(err, "Credenciales incorrectas"));
     } finally {
       setLoading(false);
     }

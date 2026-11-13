@@ -1,6 +1,7 @@
 // src/app/dashboard/clients/page.tsx
 "use client";
 
+import { errorMessage } from "@/lib/utils";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
@@ -52,8 +53,8 @@ export default function ClientsPage() {
 
         setClients(rows);
         setTotal(resp.total);
-      } catch (err: any) {
-        setErrorList(err.message ?? "Error al obtener los clientes");
+      } catch (err) {
+        setErrorList(errorMessage(err, "Error al obtener los clientes"));
       } finally {
         setLoadingList(false);
       }

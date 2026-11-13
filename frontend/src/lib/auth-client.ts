@@ -1,6 +1,7 @@
 "use client";
 
 import { apiClient } from "@/lib/api-client";
+import type { AuthResponse, User } from "@/types/api";
 
 const TOKEN_KEY = "sea_token";
 const USER_KEY = "sea_user";
@@ -20,12 +21,12 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
-export function saveUser(user: any) {
+export function saveUser(user: User) {
   if (typeof window === "undefined") return;
   localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
-export function getUser(): any | null {
+export function getUser(): User | null {
   if (typeof window === "undefined") return null;
   const raw = localStorage.getItem(USER_KEY);
   if (!raw) return null;
@@ -42,7 +43,7 @@ export function clearUser() {
 }
 
 export async function loginRequest(email: string, password: string) {
-  const res: any = await apiClient.post("/auth/login", {
+  const res = await apiClient.post<AuthResponse>("/auth/login", {
     body: { email, password },
   });
 

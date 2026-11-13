@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "@/lib/utils";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -76,8 +77,8 @@ export default function AddProductPage() {
 
       // Después de crear, regresar al inventario
       router.push("/dashboard/inventory");
-    } catch (err: any) {
-      setError(err.message ?? "Error al agregar el producto.");
+    } catch (err) {
+      setError(errorMessage(err, "Error al agregar el producto."));
     } finally {
       setLoading(false);
     }

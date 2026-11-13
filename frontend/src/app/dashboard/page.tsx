@@ -1,5 +1,6 @@
 "use client";
 
+import { errorMessage } from "@/lib/utils";
 import { useEffect, useState } from "react";
 
 import { KpiCard } from "@/components/dashboard/kpi-card";
@@ -47,6 +48,8 @@ export default function DashboardHomePage() {
   useEffect(() => {
     const user = getUser();
     if (user) {
+      // localStorage solo existe en cliente: leer tras montar evita mismatch de hidratación.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setUserName(`${user.name} ${user.lastname}`);
     }
   }, []);
@@ -74,8 +77,8 @@ export default function DashboardHomePage() {
         setLowStockProducts(lowStock);
         setTopProducts(top);
         setSummary(summaryData);
-      } catch (err: any) {
-        setError(err.message ?? "Error al cargar KPIs");
+      } catch (err) {
+        setError(errorMessage(err, "Error al cargar KPIs"));
       } finally {
         setLoading(false);
       }
