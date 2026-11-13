@@ -151,6 +151,10 @@ export default function ExpensesPage() {
         />
       </section>
 
+      {errorKpis && (
+        <p className="text-[11px] text-red-500">{errorKpis}</p>
+      )}
+
       {/* Barra para agregar gasto */}
       <section className="flex items-center justify-between rounded-2xl bg-card px-6 py-4 shadow-soft">
         <div>
