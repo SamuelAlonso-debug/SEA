@@ -1,6 +1,5 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import authRouter from "./routes/auth.routes";
 import productRouter from "./routes/product.routes";
 import saleRouter from "./routes/sale.routes";
@@ -8,14 +7,12 @@ import kpiRouter from "./routes/kpi.routes";
 import expenseRouter from "./routes/expense.routes";
 import clientRouter from "./routes/client.routes";
 
-dotenv.config();
-
 const app = express();
 
-app.use(cors({
-   origin: ["http://localhost:3000"], // frontend
-    credentials: true,
-}));
+// CORS_ORIGIN: lista separada por comas de orígenes permitidos.
+const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:3000").split(",");
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
 app.get("/api/health", (req: Request, res: Response) => {
