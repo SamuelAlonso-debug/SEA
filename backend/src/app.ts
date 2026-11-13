@@ -9,10 +9,10 @@ import clientRouter from "./routes/client.routes";
 
 const app = express();
 
-app.use(cors({
-   origin: ["http://localhost:3000"], // frontend
-    credentials: true,
-}));
+// CORS_ORIGIN: lista separada por comas de orígenes permitidos.
+const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:3000").split(",");
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
 app.get("/api/health", (req: Request, res: Response) => {
