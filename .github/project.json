@@ -1,0 +1,31 @@
+{
+  "labels": [
+    { "name": "type:bug", "color": "d73a4a", "description": "Comportamiento incorrecto en código existente" },
+    { "name": "type:feature", "color": "a2eeef", "description": "Funcionalidad nueva o mejora" },
+    { "name": "type:refactor", "color": "5319e7", "description": "Cambio de estructura sin cambio de comportamiento" },
+    { "name": "type:chore", "color": "cfd3d7", "description": "Mantenimiento: config, dependencias, limpieza" },
+    { "name": "type:epic", "color": "3e4b9e", "description": "Issue padre con sub-issues" },
+    { "name": "area:repo", "color": "006b75", "description": "Estructura, plantillas, reglas y config del repositorio" },
+    { "name": "area:backend", "color": "1d76db", "description": "apps/api" },
+    { "name": "area:frontend", "color": "5ebeff", "description": "apps/web" },
+    { "name": "area:ci-cd", "color": "0e8a16", "description": "Workflows, scripts de CI, release" },
+    { "name": "area:infra", "color": "8a6d3b", "description": "Despliegue, servidores, secretos de entorno" },
+    { "name": "criticidad:baja", "color": "c2e0c6", "description": "Estilos, textos, config. Tests: ninguno" },
+    { "name": "criticidad:media", "color": "fbca04", "description": "CRUD simple, UI con estado. Tests: integración si cambia contrato" },
+    { "name": "criticidad:alta", "color": "d93f0b", "description": "Lógica de negocio, cálculos, validación. Tests: unit + integración" },
+    { "name": "criticidad:crítica", "color": "b60205", "description": "Dinero, stock, auth, permisos, datos personales. Tests: unit + integración + E2E" },
+    { "name": "security", "color": "ee0701", "description": "Auth, secretos, datos sensibles o vulnerabilidades" },
+    { "name": "status:bloqueada", "color": "000000", "description": "Depende de otra issue o de una acción externa" },
+    { "name": "dependencies", "color": "0366d6", "description": "Actualización de dependencias (Dependabot)" },
+    { "name": "javascript", "color": "168700", "description": "Dependencias npm (Dependabot)" },
+    { "name": "github_actions", "color": "000000", "description": "Dependencias de GitHub Actions (Dependabot)" }
+  ],
+  "milestones": [
+    { "title": "1. Bases del repositorio", "description": "Estructura, plantillas, reglas de flujo, labels, milestones y protección de master." },
+    { "title": "2. Bases del proyecto", "description": "Arquitectura por módulos y features, gestión de secretos, limpieza de código." },
+    { "title": "3. Control de calidad (CI/CD)", "description": "Pipeline, escaneos de seguridad, lint, tests E2E, dependencias y release a GHCR." },
+    { "title": "4. Desarrollo del backend", "description": "Reglas de negocio, auth y roles, manejo de errores, paginación." },
+    { "title": "5. Desarrollo del frontend", "description": "Vistas, estados de error y carga, integración con la API." },
+    { "title": "6. Despliegue", "description": "Kubernetes, secretos descifrados en servidor, entornos staging y prod." }
+  ]
+}
