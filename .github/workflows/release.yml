@@ -20,7 +20,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        app: [backend, frontend]
+        app: [api, web]
     steps:
       - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v4
@@ -38,7 +38,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
       - uses: docker/build-push-action@v7
         with:
-          context: ${{ matrix.app }}
+          context: apps/${{ matrix.app }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
