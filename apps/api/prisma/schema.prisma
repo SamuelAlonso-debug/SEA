@@ -44,8 +44,9 @@ model Product {
 }
 
 enum PaymentMethod {
-  CASH   // Pago Efectivo
-  CARD   // Pago Tarjeta
+  CASH     // Pago Efectivo
+  CARD     // Pago Tarjeta
+  TRANSFER // Transferencia (gastos; ventas en #82)
 }
 
 model Sale {
@@ -100,7 +101,7 @@ model Expense {
   category    ExpenseCategory
   amount      Float           // monto del gasto en MXN
   date        DateTime        @default(now())
-  paymentMethod String?       // Efectivo, Tarjeta, Transferencia...
+  paymentMethod PaymentMethod // mismo catálogo que ventas
   vendor      String?         // proveedor (opcional)
   notes       String?         // comentarios internos
 

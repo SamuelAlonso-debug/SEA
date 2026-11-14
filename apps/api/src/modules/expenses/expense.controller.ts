@@ -45,7 +45,7 @@ export const listExpensesHandler = async (req: Request, res: Response) => {
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
-        errors: error.errors,
+        errors: error.issues,
       });
     }
     return res
@@ -81,7 +81,7 @@ export const createExpenseHandler = async (req: Request, res: Response) => {
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
-        errors: error.errors,
+        errors: error.issues,
       });
     }
     return res
@@ -106,7 +106,7 @@ export const updateExpenseHandler = async (req: Request, res: Response) => {
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
-        errors: error.errors,
+        errors: error.issues,
       });
     }
     return res

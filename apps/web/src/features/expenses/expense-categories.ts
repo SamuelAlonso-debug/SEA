@@ -1,6 +1,6 @@
 // src/constants/expense-categories.ts
 
-import type { ExpenseCategory } from "@/features/expenses/api";
+import type { ExpenseCategory, ExpensePaymentMethod } from "@/types/api";
 
 export const EXPENSE_CATEGORIES: { value: ExpenseCategory; label: string }[] = [
   { value: "service", label: "Servicios" },
@@ -21,3 +21,14 @@ export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
   tax: "Impuestos",
   other: "Otros",
 };
+
+// Mismo catálogo que ventas (enum PaymentMethod de la API).
+export const EXPENSE_PAYMENT_METHODS: { value: ExpensePaymentMethod; label: string }[] = [
+  { value: "CASH", label: "Efectivo" },
+  { value: "CARD", label: "Tarjeta" },
+  { value: "TRANSFER", label: "Transferencia" },
+];
+
+export const EXPENSE_PAYMENT_METHOD_LABELS = Object.fromEntries(
+  EXPENSE_PAYMENT_METHODS.map((m) => [m.value, m.label])
+) as Record<ExpensePaymentMethod, string>;
