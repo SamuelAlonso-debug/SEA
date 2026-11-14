@@ -6,8 +6,7 @@ import {
   UserPasswordLength,
 } from "./user.enums";
 
-// Si quieres seguir usando los DTOs, no es obligatorio intersectarlos aquí;
-// z.infer ya te da el tipo correcto para los servicios.
+// El correo se normaliza (trim, minúsculas): una cuenta por correo sin importar mayúsculas.
 export const registerSchema = z.object({
   name: z
     .string()
@@ -33,6 +32,8 @@ export const registerSchema = z.object({
 
   email: z
     .string()
+    .trim()
+    .toLowerCase()
     .min(
       UserEmailLength.MIN,
       `El correo debe tener al menos ${UserEmailLength.MIN} caracteres`
@@ -56,7 +57,7 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("Correo inválido"),
+  email: z.string().trim().toLowerCase().email("Correo inválido"),
   password: z
     .string()
     .min(1, "La contraseña es obligatoria"),
