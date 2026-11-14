@@ -9,6 +9,7 @@ import type {
   ExpensesListResponse,
   ExpensesKpisResponse,
   Compared,
+  Period,
   CreateExpenseRequest,
   UpdateExpenseRequest,
 } from "@/types/api";
@@ -37,9 +38,10 @@ export const expensesClient = {
     }),
 
   // GET /api/expenses/kpis
-  getKpis: () =>
+  getKpis: (period?: Period | null) =>
     apiClient.get<Compared<ExpensesKpisResponse>>("/expenses/kpis", {
       ...withToken(),
+      query: { ...period },
     }),
 
   // POST /api/expenses
@@ -77,7 +79,7 @@ export const expensesClient = {
 export const getExpenses = (params?: GetExpensesParams) =>
   expensesClient.list(params ?? {});
 
-export const getExpensesKpis = () => expensesClient.getKpis();
+export const getExpensesKpis = (period?: Period | null) => expensesClient.getKpis(period);
 
 export const createExpense = (input: CreateExpenseRequest) =>
   expensesClient.create(input);

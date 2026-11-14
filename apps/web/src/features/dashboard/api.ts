@@ -10,6 +10,7 @@ import type {
   TopProduct,
   SummaryKpis,
   Compared,
+  Period,
 } from "@/types/api";
 
 function withToken() {
@@ -17,14 +18,16 @@ function withToken() {
 }
 
 export const kpisClient = {
-  getHeader: () =>
+  getHeader: (period?: Period | null) =>
     apiClient.get<Compared<HeaderKpis>>("/kpis/header", {
       ...withToken(),
+      query: { ...period },
     }),
 
-  getPaymentMethods: () =>
+  getPaymentMethods: (period?: Period | null) =>
     apiClient.get<Compared<PaymentMethodKpi[]>>("/kpis/payment-methods", {
       ...withToken(),
+      query: { ...period },
     }),
 
   getLowStock: (threshold = 5) =>
@@ -33,14 +36,15 @@ export const kpisClient = {
       query: { threshold },
     }),
 
-  getTopProducts: (limit = 5) =>
+  getTopProducts: (period?: Period | null) =>
     apiClient.get<Compared<TopProduct[]>>("/kpis/top-products", {
       ...withToken(),
-      query: { limit },
+      query: { ...period },
     }),
 
-  getSummary: () =>
+  getSummary: (period?: Period | null) =>
     apiClient.get<Compared<SummaryKpis>>("/kpis/summary", {
       ...withToken(),
+      query: { ...period },
     }),
 };
