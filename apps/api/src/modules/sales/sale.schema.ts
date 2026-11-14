@@ -17,4 +17,3 @@ export const createSaleSchema = z.object({
 });
 
 export type CreateSaleInput = z.infer<typeof createSaleSchema>;
-export type CreateSaleItemInput = z.infer<typeof saleItemInputSchema>;

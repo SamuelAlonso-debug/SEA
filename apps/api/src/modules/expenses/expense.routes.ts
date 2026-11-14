@@ -1,5 +1,3 @@
-// src/routes/expense.routes.ts
-
 import { Router } from "express";
 import { authMiddleware } from "../../shared/auth.middleware";
 import {
@@ -17,9 +15,8 @@ const router = Router();
 router.use(authMiddleware);
 
 // /api/expenses
-router.get("/kpis", getExpenseKpisHandler); 
+router.get("/kpis", getExpenseKpisHandler);
 router.get("/", listExpensesHandler);             // ?from=&to=&category=&page=&pageSize=
-router.get("/kpis/month", getExpenseKpisHandler); // KPIs mes actual
 router.get("/:id", getExpenseHandler);
 router.post("/", createExpenseHandler);
 router.put("/:id", updateExpenseHandler);
