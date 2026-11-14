@@ -4,14 +4,34 @@ Closes #
 ## Qué cambia y por qué
 <!-- 1-3 líneas. Sin relleno. -->
 
+## Criterios de aceptación
+<!-- Copia TODOS los criterios de la issue. Marca cada uno y añade su evidencia: test, comando con salida o captura.
+     Un criterio sin marcar hace fallar PR guard: cúmplelo o deja la PR en borrador. -->
+- [ ] criterio → evidencia
+
+## Contrato y errores
+<!-- Códigos, `path` y `message` reales, verificados contra la tabla de la issue. Diferencias, explicadas.
+     "No aplica" si la issue no tiene contrato. -->
+
+## Alcance
+- [ ] Solo cambia lo listado en **Toca** de la issue. Desvíos y motivo:
+- [ ] Nada de **Excluye** entra en esta PR.
+
+## Dudas y hallazgos
+<!-- Obligatorio. Cada duda abierta de la issue con su resolución y quién decidió.
+     Hallazgos nuevos al implementar → issue nueva enlazada, no se arreglan aquí.
+     "Ninguno" si no hay. -->
+- Duda: → Resolución:
+- Hallazgo: → #
+
 ## Criticidad
 <!-- Baja | Media | Alta | Crítica (igual que la issue) -->
 
 ## Tests
 <!-- Exigidos por criticidad: wiki → Testing-Strategy. Marca solo los que aplican. -->
-- [ ] Unit
-- [ ] Integración
-- [ ] E2E
+- [ ] Unit:
+- [ ] Integración:
+- [ ] E2E:
 - [ ] No aplica. Motivo:
 
 ## Sanidad del código

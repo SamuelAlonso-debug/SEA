@@ -6,22 +6,38 @@ body:
     id: context
     attributes:
       label: Contexto
-      description: Situación actual y por qué importa. Enlaza código, issues o páginas de la wiki.
+      description: Situación actual y por qué importa. Módulo, archivos y endpoints implicados, con enlaces.
     validations:
       required: true
   - type: textarea
-    id: goal
+    id: problem
     attributes:
-      label: Objetivo
-      description: Qué debe existir al cerrar la issue. Resultado, no implementación.
+      label: Problema
+      description: Qué no se puede hacer hoy o qué falla. Si es reproducible, pasos y resultado actual.
+      value: |
+        1.
+        2.
+
+        Resultado actual:
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado
+      description: Qué debe pasar al cerrar la issue. Resultado, no implementación. Incluye decisiones ya tomadas por el owner.
     validations:
       required: true
   - type: textarea
     id: scope
     attributes:
       label: Alcance
+      description: "Incluye: qué cambia. Toca: archivos, endpoints y pantallas. Excluye: lo que no entra aunque esté cerca. Lo que no esté en Toca no se modifica en la PR."
       value: |
         **Incluye**
+        -
+
+        **Toca**
         -
 
         **Excluye**
@@ -29,12 +45,40 @@ body:
     validations:
       required: true
   - type: textarea
+    id: contract
+    attributes:
+      label: Contrato y errores
+      description: Endpoints, request y response. Cada error con código, campo (`path`) y `message` exacto en español. "No aplica" si no hay contrato.
+      value: |
+        | Caso | Código | `path` | `message` |
+        |---|---|---|---|
+        |  | 400 |  |  |
+    validations:
+      required: true
+  - type: textarea
     id: acceptance
     attributes:
       label: Criterios de aceptación
-      description: Verificables y binarios. Cada uno se marca en la PR.
+      description: Binarios y verificables. El primero reproduce el Problema y comprueba el Resultado esperado. Luego cada error de la tabla y los tests exigidos por la criticidad. La PR los copia y marca con evidencia.
       value: |
+        - [ ] Pasos del problema →
         - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: questions
+    attributes:
+      label: Dudas abiertas
+      description: Decisiones pendientes y quién decide, con propuesta. Se resuelven antes o en la PR. "Ninguna" si no hay.
+      value: "Ninguna."
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencias
+      description: Issues que bloquean a esta o que esta bloquea. "Ninguna" si no hay.
+      value: "Ninguna."
     validations:
       required: true
   - type: dropdown
@@ -61,11 +105,6 @@ body:
     id: security
     attributes:
       label: Riesgos y seguridad
-      description: Endpoints, datos sensibles, permisos o dependencias afectadas. "Ninguno" si no aplica.
+      description: Endpoints, datos sensibles, permisos, migraciones o dependencias afectadas. "Ninguno" si no aplica.
     validations:
       required: true
-  - type: textarea
-    id: refs
-    attributes:
-      label: Referencias
-      description: Diseños, capturas, enlaces.
