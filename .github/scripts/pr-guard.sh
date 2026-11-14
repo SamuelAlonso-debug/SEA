@@ -22,12 +22,31 @@ title_re='^(feat|fix|refactor|perf|test|docs|build|ci|chore|revert)(\([a-z0-9-]+
 # 3. Toda PR enlaza una issue.
 grep -qiE '(closes|fixes|resolves|refs) #[0-9]+' <<<"$PR_BODY" || err "Falta 'Closes #N' en la descripción."
 
-# 4. Commits sin trailers.
+# 4. La PR responde a su issue: todos los criterios cumplidos y dudas/hallazgos declarados.
+# Sin comentarios HTML ni CR: la ayuda de la plantilla no cuenta como contenido.
+body=$(tr -d '\r' <<<"$PR_BODY" | perl -0pe 's/<!--.*?-->//gs')
+section() { awk -v h="## $1" '$0 == h { f = 1; next } /^## / { f = 0 } f' <<<"$body"; }
+
+if ! grep -qx '## Criterios de aceptación' <<<"$body"; then
+  err "Falta la sección '## Criterios de aceptación'."
+else
+  criteria=$(section "Criterios de aceptación")
+  total=$(grep -cE '^\s*- \[[ xX]\]' <<<"$criteria" || true)
+  pending=$(grep -cE '^\s*- \[ \]' <<<"$criteria" || true)
+  [ "$total" -gt 0 ] || err "'Criterios de aceptación' sin casillas: copia los criterios de la issue."
+  [ "$pending" -eq 0 ] || err "Criterios sin cumplir: $pending. Marca cada uno con su evidencia o deja la PR en borrador."
+fi
+
+# Las líneas guía de la plantilla sin rellenar cuentan como vacío.
+answers=$(section "Dudas y hallazgos" | { grep -vxE -e '- (Duda: → Resolución:|Hallazgo: → #)' || true; } | tr -d '[:space:]')
+[ -n "$answers" ] || err "'Dudas y hallazgos' vacío: responde las dudas de la issue o escribe 'Ninguno'."
+
+# 5. Commits sin trailers.
 if [ -n "$(git log --format='%(trailers:only)' "$BASE_SHA..$HEAD_SHA" | tr -d '[:space:]')" ]; then
   err "Hay commits con trailers. Reescribe los mensajes sin ellos."
 fi
 
-# 5. Solo código en el repo: la documentación vive en la wiki.
+# 6. Solo código en el repo: la documentación vive en la wiki.
 docs=$(git diff --name-only --diff-filter=A "$BASE_SHA...$HEAD_SHA" \
   | grep -iE '\.(md|mdx|pdf|docx?|pptx?|xlsx?|odt)$' \
   | grep -vE '^(README\.md|\.github/.*)$' || true)

@@ -6,37 +6,38 @@ body:
     id: context
     attributes:
       label: Contexto
-      description: Módulo afectado e impacto (quién lo sufre, con qué frecuencia).
+      description: "Módulo afectado e impacto: quién lo sufre y con qué frecuencia. Archivos y endpoints implicados, con enlaces."
     validations:
       required: true
   - type: textarea
-    id: steps
+    id: problem
     attributes:
-      label: Pasos para reproducir
+      label: Problema
+      description: "Pasos para reproducir y resultado actual: respuesta HTTP, logs o capturas. Entorno (commit, local/staging) si importa."
       value: |
         1.
         2.
-    validations:
-      required: true
-  - type: textarea
-    id: actual
-    attributes:
-      label: Comportamiento actual
-      description: Incluye respuesta HTTP, logs o capturas.
+
+        Resultado actual:
     validations:
       required: true
   - type: textarea
     id: expected
     attributes:
-      label: Comportamiento esperado
+      label: Resultado esperado
+      description: Comportamiento correcto al repetir los pasos. Incluye decisiones ya tomadas por el owner.
     validations:
       required: true
   - type: textarea
     id: scope
     attributes:
-      label: Alcance del fix
+      label: Alcance
+      description: "Incluye: qué cambia. Toca: archivos, endpoints y pantallas. Excluye: lo que no entra aunque esté cerca. Lo que no esté en Toca no se modifica en la PR."
       value: |
         **Incluye**
+        -
+
+        **Toca**
         -
 
         **Excluye**
@@ -44,18 +45,47 @@ body:
     validations:
       required: true
   - type: textarea
+    id: contract
+    attributes:
+      label: Contrato y errores
+      description: Endpoints, request y response. Cada error con código, campo (`path`) y `message` exacto en español. "No aplica" si no hay contrato.
+      value: |
+        | Caso | Código | `path` | `message` |
+        |---|---|---|---|
+        |  | 400 |  |  |
+    validations:
+      required: true
+  - type: textarea
     id: acceptance
     attributes:
       label: Criterios de aceptación
-      description: Siempre incluye el test de regresión si la criticidad es Media o superior.
+      description: Binarios y verificables. El primero reproduce el Problema y comprueba el Resultado esperado. Luego cada error de la tabla, el test de regresión (criticidad Media o superior) y los tests exigidos. La PR los copia y marca con evidencia.
       value: |
+        - [ ] Pasos del problema →
         - [ ]
+    validations:
+      required: true
+  - type: textarea
+    id: questions
+    attributes:
+      label: Dudas abiertas
+      description: Decisiones pendientes y quién decide, con propuesta. Se resuelven antes o en la PR. "Ninguna" si no hay.
+      value: "Ninguna."
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencias
+      description: Issues que bloquean a esta o que esta bloquea. "Ninguna" si no hay.
+      value: "Ninguna."
     validations:
       required: true
   - type: dropdown
     id: criticality
     attributes:
       label: Criticidad
+      description: Define los tests exigidos (wiki → Testing-Strategy).
       options:
         - "Baja: estilos, textos, config sin lógica"
         - "Media: CRUD simple, UI con estado"
@@ -63,8 +93,18 @@ body:
         - "Crítica: dinero, stock, auth, permisos, datos personales"
     validations:
       required: true
-  - type: input
-    id: env
+  - type: dropdown
+    id: area
     attributes:
-      label: Entorno
-      placeholder: "commit/tag, navegador, local/staging"
+      label: Área
+      multiple: true
+      options: [backend, frontend, ci-cd, infra, repo, base de datos]
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Riesgos y seguridad
+      description: Endpoints, datos sensibles, permisos, migraciones o dependencias afectadas. "Ninguno" si no aplica.
+    validations:
+      required: true
