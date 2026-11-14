@@ -12,9 +12,13 @@ import {
 export const listClients = async (
   search: string | undefined,
   page: number,
-  pageSize: number
+  pageSize: number,
+  includeInactive = false
 ): Promise<ClientListResult> => {
   const where: any = {};
+
+  // Documentos previos sin el campo cuentan como activos (Prisma excluye los ausentes en `not`).
+  if (!includeInactive) where.AND = [{ OR: [{ isActive: true }, { isActive: { isSet: false } }] }];
 
   if (search && search.trim() !== "") {
     const term = search.trim();
@@ -116,15 +120,16 @@ export const updateClient = async (
   return updated;
 };
 
-export const deleteClient = async (id: string): Promise<void> => {
-  const existing = await prisma.client.findUnique({ where: { id } });
+// Baja lógica; false si el cliente no existe.
+export const deactivateClient = async (id: string): Promise<boolean> => {
+  const { count } = await prisma.client.updateMany({ where: { id }, data: { isActive: false } });
+  return count > 0;
+};
 
-  if (!existing) {
-    throw new Error("Cliente no encontrado");
-  }
-
-  // Borrado físico. Si quieres soft-delete, habría que agregar isActive al modelo.
-  await prisma.client.delete({ where: { id } });
+// Reactivación; null si el cliente no existe.
+export const activateClient = async (id: string): Promise<ClientDto | null> => {
+  const { count } = await prisma.client.updateMany({ where: { id }, data: { isActive: true } });
+  return count > 0 ? prisma.client.findUnique({ where: { id } }) : null;
 };
 
 // Ventas de un cliente; null si el cliente no existe.

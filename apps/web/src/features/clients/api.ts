@@ -14,6 +14,7 @@ export type GetClientsParams = {
   search?: string;
   page?: number;
   pageSize?: number;
+  includeInactive?: boolean;
 };
 
 function withToken() {
@@ -48,7 +49,13 @@ export const clientsClient = {
       body: input,
     }),
 
-  // DELETE /api/clients/:id
+  // PATCH /api/clients/:id/activate (reactiva tras la baja lógica)
+  activate: (id: string) =>
+    apiClient.patch<ClientDto>(`/clients/${id}/activate`, {
+      ...withToken(),
+    }),
+
+  // DELETE /api/clients/:id (baja lógica)
   remove: (id: string) =>
     apiClient.delete<void>(`/clients/${id}`, {
       ...withToken(),
@@ -71,3 +78,4 @@ export const deleteClient = (id: string) => clientsClient.remove(id);
 
 // Re-export de tipos por conveniencia
 export type { ClientDto, ClientsListResponse, CreateClientRequest, UpdateClientRequest };
+export const activateClient = (id: string) => clientsClient.activate(id);

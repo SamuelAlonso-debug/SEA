@@ -159,6 +159,7 @@ export interface ClientDto {
   neighborhood?: string | null;  // colonia
   city?: string | null;
   state?: string | null;
+  isActive?: boolean | null; // null en clientes previos = activo
   createdAt: string;
   updatedAt: string;
 }

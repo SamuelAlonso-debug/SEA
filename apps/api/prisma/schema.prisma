@@ -119,6 +119,9 @@ model Client {
   city      String?
   state     String?
 
+  // Baja lógica: las ventas conservan al cliente. Opcional: documentos previos no lo tienen (= activo).
+  isActive  Boolean? @default(true)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

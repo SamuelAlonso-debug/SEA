@@ -72,8 +72,10 @@ export const createSale = async (
 
     const saleItemsToCreate: any[] = [];
 
-    if (data.clientId && !(await tx.client.findUnique({ where: { id: data.clientId } }))) {
-      throw new SaleError(404, "Cliente no encontrado");
+    if (data.clientId) {
+      const client = await tx.client.findUnique({ where: { id: data.clientId } });
+      if (!client) throw new SaleError(404, "Cliente no encontrado");
+      if (client.isActive === false) throw new SaleError(409, "El cliente está dado de baja");
     }
 
     for (const item of data.items) {
