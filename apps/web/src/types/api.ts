@@ -54,10 +54,15 @@ export interface AuthResponse {
 }
 
 // KPIs header
+export interface Period {
+  from: string; // AAAA-MM-DD
+  to: string;
+}
+
 // KPI de un periodo comparado con el anterior de igual duración (fechas AAAA-MM-DD).
 export interface Compared<T, C = Record<string, number | null>> {
-  period: { from: string; to: string };
-  previousPeriod: { from: string; to: string };
+  period: Period;
+  previousPeriod: Period;
   current: T;
   previous: T;
   change: C; // variación % ; null si el anterior es 0

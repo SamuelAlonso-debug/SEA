@@ -8,6 +8,7 @@ import { LowStockTable } from "@/features/dashboard/low-stock-table";
 import { PaymentMethodsChart } from "@/features/dashboard/payment-methods-chart";
 import { SummaryBlock } from "@/features/dashboard/summary-block";
 import { TopProductsDonut } from "@/features/dashboard/top-products-donut";
+import { RangePicker, periodLabel } from "@/features/dashboard/range-picker";
 
 import { kpisClient } from "@/features/dashboard/api";
 import { getUser } from "@/features/auth/api";
@@ -17,6 +18,7 @@ import type {
   LowStockProduct,
   TopProduct,
   SummaryKpis,
+  Period,
 } from "@/types/api";
 
 // Helpers de formato
@@ -38,6 +40,8 @@ export default function DashboardHomePage() {
   );
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [summary, setSummary] = useState<SummaryKpis | null>(null);
+  const [period, setPeriod] = useState<Period | null>(null);
+  const [headerChange, setHeaderChange] = useState<Record<string, number | null>>({});
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,14 +69,15 @@ export default function DashboardHomePage() {
           top,
           summaryData,
         ] = await Promise.all([
-          kpisClient.getHeader(),
-          kpisClient.getPaymentMethods(),
+          kpisClient.getHeader(period),
+          kpisClient.getPaymentMethods(period),
           kpisClient.getLowStock(),
-          kpisClient.getTopProducts(),
-          kpisClient.getSummary(),
+          kpisClient.getTopProducts(period),
+          kpisClient.getSummary(period),
         ]);
 
         setHeaderKpis(header.current);
+        setHeaderChange(header.change);
         setPaymentMethods(payment.current);
         setLowStockProducts(lowStock);
         setTopProducts(top.current);
@@ -85,7 +90,7 @@ export default function DashboardHomePage() {
     };
 
     fetchKpis();
-  }, []);
+  }, [period]);
 
   const todayLabel = (() => {
     const now = new Date();
@@ -125,6 +130,7 @@ export default function DashboardHomePage() {
         <p className="text-xs text-muted-foreground">
           Hoy es {todayLabel}.
         </p>
+        <RangePicker value={period} onChange={setPeriod} />
       </section>
 
       {/* 4 cards superiores */}
@@ -132,22 +138,26 @@ export default function DashboardHomePage() {
         <KpiCard
           title="Ventas totales"
           value={currency(headerKpis.totalSalesAmount)}
-          subtitle="Mes actual"
+          subtitle={periodLabel(period)}
+          change={headerChange.totalSalesAmount}
         />
         <KpiCard
           title="Transacciones"
           value={numberFmt(headerKpis.totalTransactions)}
-          subtitle="Mes actual"
+          subtitle={periodLabel(period)}
+          change={headerChange.totalTransactions}
         />
         <KpiCard
           title="Tickets totales"
           value={numberFmt(headerKpis.totalTickets)}
-          subtitle="Mes actual"
+          subtitle={periodLabel(period)}
+          change={headerChange.totalTickets}
         />
         <KpiCard
           title="Productos vendidos"
           value={numberFmt(headerKpis.totalProductsSold)}
-          subtitle="Mes actual"
+          subtitle={periodLabel(period)}
+          change={headerChange.totalProductsSold}
         />
       </section>
 

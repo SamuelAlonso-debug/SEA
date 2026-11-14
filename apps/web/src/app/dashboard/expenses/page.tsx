@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 
 import { KpiCard } from "@/features/dashboard/kpi-card";
+import { RangePicker, periodLabel } from "@/features/dashboard/range-picker";
+import type { Period } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import {
   ExpensesTable,
@@ -42,6 +44,8 @@ export default function ExpensesPage() {
   const [pageSize] = useState(10);
 
   const [kpis, setKpis] = useState<ExpensesKpisResponse | null>(null);
+  const [period, setPeriod] = useState<Period | null>(null);
+  const [kpisChange, setKpisChange] = useState<Record<string, number | null>>({});
 
   const [loadingList, setLoadingList] = useState(true);
   const [loadingKpis, setLoadingKpis] = useState(true);
@@ -90,8 +94,9 @@ export default function ExpensesPage() {
         setLoadingKpis(true);
         setErrorKpis(null);
 
-        const data = await getExpensesKpis();
+        const data = await getExpensesKpis(period);
         setKpis(data.current);
+        setKpisChange(data.change);
       } catch (err) {
         setErrorKpis(errorMessage(err, "Error al obtener los KPIs de gastos"));
       } finally {
@@ -100,7 +105,7 @@ export default function ExpensesPage() {
     };
 
     loadKpis();
-  }, []);
+  }, [period]);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -129,10 +134,14 @@ export default function ExpensesPage() {
         </p>
       </section>
 
+      <RangePicker value={period} onChange={setPeriod} />
+
       {/* KPIs superiores */}
       <section className="grid gap-4 md:grid-cols-2">
         <KpiCard
-          title="Gasto total del mes"
+          title="Gasto total"
+          subtitle={periodLabel(period)}
+          change={kpisChange.totalAmountMonth}
           value={
             loadingKpis
               ? "Cargando..."
@@ -144,6 +153,8 @@ export default function ExpensesPage() {
         />
         <KpiCard
           title="Número de gastos"
+          subtitle={periodLabel(period)}
+          change={kpisChange.totalCountMonth}
           value={
             loadingKpis ? "Cargando..." : kpis ? String(kpis.totalCountMonth) : "--"
           }
