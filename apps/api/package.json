@@ -9,7 +9,8 @@
     "start": "node dist/server.js",
     "postinstall": "prisma generate",
     "test:unit": "vitest run src",
-    "test:integration": "vitest run test/integration"
+    "test:integration": "vitest run test/integration",
+    "migrate:expense-payment-method": "node prisma/migrate-expense-payment-method.mjs"
   },
   "keywords": [],
   "author": "",

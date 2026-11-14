@@ -3,6 +3,9 @@
 import { z } from "zod";
 import { ExpenseCategoryEnum } from "./expense.enums";
 
+// Mismo catálogo que ventas (enum PaymentMethod de Prisma).
+export const PAYMENT_METHODS = ["CASH", "CARD", "TRANSFER"] as const;
+
 export const createExpenseSchema = z.object({
   concept: z
     .string()
@@ -27,7 +30,12 @@ export const createExpenseSchema = z.object({
     .optional()
     .or(z.date().optional()),
 
-  paymentMethod: z.string().max(100).optional().nullable(),
+  paymentMethod: z.enum(PAYMENT_METHODS, {
+    error: (issue) =>
+      issue.input === undefined
+        ? "El método de pago es obligatorio"
+        : `Opción inválida: se esperaba una de ${PAYMENT_METHODS.map((m) => `"${m}"`).join("|")}`,
+  }),
   vendor: z.string().max(150).optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
 });

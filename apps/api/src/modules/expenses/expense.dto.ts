@@ -1,4 +1,4 @@
-import { ExpenseCategory } from "@prisma/client";
+import { ExpenseCategory, PaymentMethod } from "@prisma/client";
 
 export interface ExpenseDto {
   id: string;
@@ -6,7 +6,7 @@ export interface ExpenseDto {
   category: ExpenseCategory;
   amount: number;
   date: Date;
-  paymentMethod?: string | null;
+  paymentMethod: PaymentMethod;
   vendor?: string | null;
   notes?: string | null;
   createdAt: Date;
@@ -35,6 +35,10 @@ export interface ExpenseKpisDto {
   totalCountMonth: number;
   totalByCategory: {
     category: ExpenseCategory;
+    amount: number;
+  }[];
+  totalByPaymentMethod: {
+    paymentMethod: PaymentMethod;
     amount: number;
   }[];
 }
