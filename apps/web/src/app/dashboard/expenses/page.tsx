@@ -17,7 +17,10 @@ import {
   type ExpensesKpisResponse,
   type ExpenseDto,
 } from "@/features/expenses/api";
-import { EXPENSE_CATEGORY_LABELS } from "@/features/expenses/expense-categories";
+import {
+  EXPENSE_CATEGORY_LABELS,
+  EXPENSE_PAYMENT_METHOD_LABELS,
+} from "@/features/expenses/expense-categories";
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -67,7 +70,7 @@ export default function ExpensesPage() {
           date: formatDate(e.date),
           category: EXPENSE_CATEGORY_LABELS[e.category] ?? e.category,
           concept: e.concept,
-          paymentMethod: e.paymentMethod,
+          paymentMethod: EXPENSE_PAYMENT_METHOD_LABELS[e.paymentMethod] ?? e.paymentMethod,
           amount: e.amount,
         }));
 

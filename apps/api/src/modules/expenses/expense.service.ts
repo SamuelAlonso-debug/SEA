@@ -4,6 +4,7 @@ import prisma from "../../shared/prisma";
 import {
   CreateExpenseInput,
   UpdateExpenseInput,
+  PAYMENT_METHODS,
 } from "./expense.schema";
 import {
   ExpenseDto,
@@ -11,7 +12,7 @@ import {
   ExpenseListResult,
   ExpenseKpisDto,
 } from "./expense.dto";
-import { ExpenseCategory } from "@prisma/client";
+import { ExpenseCategory, PaymentMethod } from "@prisma/client";
 
 export const createExpense = async (
   data: CreateExpenseInput
@@ -22,7 +23,7 @@ export const createExpense = async (
       category: data.category as ExpenseCategory,
       amount: data.amount,
       date: data.date ? new Date(data.date as any) : new Date(),
-      paymentMethod: data.paymentMethod ?? null,
+      paymentMethod: data.paymentMethod,
       vendor: data.vendor ?? null,
       notes: data.notes ?? null,
     },
@@ -47,10 +48,7 @@ export const updateExpense = async (
       category: (data.category as ExpenseCategory) ?? expense.category,
       amount: data.amount ?? expense.amount,
       date: data.date ? new Date(data.date as any) : expense.date,
-      paymentMethod:
-        data.paymentMethod !== undefined
-          ? data.paymentMethod
-          : expense.paymentMethod,
+      paymentMethod: data.paymentMethod ?? expense.paymentMethod,
       vendor:
         data.vendor !== undefined ? data.vendor : expense.vendor,
       notes:
@@ -131,11 +129,14 @@ export const getMonthlyExpenseKpis = async (): Promise<ExpenseKpisDto> => {
 
   let totalAmountMonth = 0;
   const byCategory = new Map<ExpenseCategory, number>();
+  // Los tres métodos siempre presentes, aunque sumen 0.
+  const byPaymentMethod = new Map<PaymentMethod, number>(PAYMENT_METHODS.map((m) => [m, 0]));
 
   for (const e of expenses) {
     totalAmountMonth += e.amount;
     const current = byCategory.get(e.category) ?? 0;
     byCategory.set(e.category, current + e.amount);
+    byPaymentMethod.set(e.paymentMethod, byPaymentMethod.get(e.paymentMethod)! + e.amount);
   }
 
   const totalByCategory = Array.from(byCategory.entries()).map(
@@ -151,5 +152,6 @@ export const getMonthlyExpenseKpis = async (): Promise<ExpenseKpisDto> => {
     totalAmountMonth,
     totalCountMonth: expenses.length,
     totalByCategory,
+    totalByPaymentMethod: Array.from(byPaymentMethod, ([paymentMethod, amount]) => ({ paymentMethod, amount })),
   };
 };

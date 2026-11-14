@@ -11,9 +11,10 @@ import { LabeledInput } from "@/components/forms/labeled-input";
 import { LabeledSelect } from "@/components/forms/labeled-select";
 import {
   EXPENSE_CATEGORIES,
+  EXPENSE_PAYMENT_METHODS,
 } from "@/features/expenses/expense-categories";
 import { createExpense } from "@/features/expenses/api";
-import type { ExpenseCategory } from "@/types/api";
+import type { ExpenseCategory, ExpensePaymentMethod } from "@/types/api";
 
 export default function AddExpensePage() {
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function AddExpensePage() {
   const [category, setCategory] = useState<ExpenseCategory>("service");
   const [date, setDate] = useState("");
   const [amount, setAmount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<ExpensePaymentMethod>("CASH");
   const [vendor, setVendor] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -137,13 +138,18 @@ export default function AddExpensePage() {
 
           {/* Fila 3: Método de pago / Proveedor */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <LabeledInput
+            <LabeledSelect
               name="paymentMethod"
               label="Método de pago"
-              placeholder="Efectivo, Tarjeta, Transferencia..."
               value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
-            />
+              onChange={(e) => setPaymentMethod(e.target.value as ExpensePaymentMethod)}
+            >
+              {EXPENSE_PAYMENT_METHODS.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </LabeledSelect>
             <LabeledInput
               name="vendor"
               label="Proveedor"
