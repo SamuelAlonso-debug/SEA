@@ -33,7 +33,7 @@ describe("KPIs en hora del negocio", () => {
     await sale("2026-11-13T20:00:00-06:00", 116);
     at("2026-11-13T20:05:00-06:00");
     const res = await get("/api/kpis/summary");
-    expect(res.body).toMatchObject({ todayRevenue: 116, todaySalesCount: 1, month: 11 });
+    expect(res.body.current).toMatchObject({ todayRevenue: 116, todaySalesCount: 1, month: 11 });
   });
 
   it("venta y gasto del 30-nov 23:00 cuentan en noviembre", async () => {
@@ -44,9 +44,9 @@ describe("KPIs en hora del negocio", () => {
     at("2026-11-30T23:30:00-06:00");
 
     const header = await get("/api/kpis/header");
-    expect(header.body).toMatchObject({ month: 11, year: 2026, totalSalesAmount: 50 });
+    expect(header.body.current).toMatchObject({ month: 11, year: 2026, totalSalesAmount: 50 });
 
     const expenses = await get("/api/expenses/kpis");
-    expect(expenses.body).toMatchObject({ month: 11, totalAmountMonth: 30 });
+    expect(expenses.body.current).toMatchObject({ month: 11, totalAmountMonth: 30 });
   });
 });
