@@ -32,6 +32,7 @@ model Product {
   category    String?
   price       Float
   stock       Int
+  minStock    Int?     @default(5) // umbral de stock bajo; null en productos previos = 5
   provider    String?
   imageUrl    String?
 

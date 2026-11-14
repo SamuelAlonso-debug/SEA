@@ -28,6 +28,7 @@ export interface ProductDto {
   stock: number;
   provider?: string | null;
   imageUrl?: string | null;
+  minStock?: number | null;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
