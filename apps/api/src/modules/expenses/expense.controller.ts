@@ -14,6 +14,7 @@ import {
   updateExpense,
   getMonthlyExpenseKpis,
 } from "./expense.service";
+import { comparedKpi, numericChange } from "../../shared/period";
 import { ExpenseCategory } from "@prisma/client";
 import { ExpenseListFilters } from "./expense.dto";
 
@@ -132,13 +133,4 @@ export const deleteExpenseHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const getExpenseKpisHandler = async (req: Request, res: Response) => {
-  try {
-    const kpis = await getMonthlyExpenseKpis();
-    return res.status(200).json(kpis);
-  } catch (error: any) {
-    return res
-      .status(500)
-      .json({ message: error.message || "Error al obtener KPIs de gastos" });
-  }
-};
+export const getExpenseKpisHandler = comparedKpi(getMonthlyExpenseKpis, numericChange, "Error al obtener KPIs de gastos");

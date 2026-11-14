@@ -8,6 +8,7 @@ import type {
   ExpenseDto,
   ExpensesListResponse,
   ExpensesKpisResponse,
+  Compared,
   CreateExpenseRequest,
   UpdateExpenseRequest,
 } from "@/types/api";
@@ -37,7 +38,7 @@ export const expensesClient = {
 
   // GET /api/expenses/kpis
   getKpis: () =>
-    apiClient.get<ExpensesKpisResponse>("/expenses/kpis", {
+    apiClient.get<Compared<ExpensesKpisResponse>>("/expenses/kpis", {
       ...withToken(),
     }),
 

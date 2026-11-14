@@ -1,7 +1,7 @@
 // src/services/expense.service.ts
 
 import prisma from "../../shared/prisma";
-import { businessRanges } from "../../shared/business-time";
+import { Range } from "../../shared/business-time";
 import {
   CreateExpenseInput,
   UpdateExpenseInput,
@@ -113,8 +113,8 @@ export const listExpenses = async (
   };
 };
 
-export const getMonthlyExpenseKpis = async (): Promise<ExpenseKpisDto> => {
-  const { year, month, startOfMonth, startOfNextMonth } = businessRanges(new Date());
+export const getMonthlyExpenseKpis = async (range: Range): Promise<ExpenseKpisDto> => {
+  const { year, month, start: startOfMonth, end: startOfNextMonth } = range;
 
   const expenses = await prisma.expense.findMany({
     where: {
