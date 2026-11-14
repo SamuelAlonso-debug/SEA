@@ -20,5 +20,7 @@ export interface SaleDto {
   total: number;
   paymentMethod: PaymentMethod;
   notes?: string | null;
+  clientId: string | null;
+  clientName: string | null;
   items: SaleItemDto[];
 }
