@@ -1,5 +1,3 @@
-// src/services/expense.service.ts
-
 import prisma from "../../shared/prisma";
 import {
   CreateExpenseInput,

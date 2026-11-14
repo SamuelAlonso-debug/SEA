@@ -73,12 +73,5 @@ export const updateProductSchema = createProductSchema
     isActive: z.boolean().optional(),
   });
 
-  export const activateProductSchema = z.object({
-  params: z.object({
-    id: z.string().min(1, "El ID es requerido"),
-  }),
-});
-
-export type ActivateProductInput = z.infer<typeof activateProductSchema>["params"];
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;

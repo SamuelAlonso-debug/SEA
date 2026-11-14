@@ -29,7 +29,7 @@ router.put("/:id", updateClientHandler);
 // DELETE /api/clients/:id
 router.delete("/:id", deleteClientHandler);
 
-// (Opcional / futuro) GET /api/clients/:id/sales
+// GET /api/clients/:id/sales
 router.get("/:id/sales", getClientSalesHandler);
 
 export default router;

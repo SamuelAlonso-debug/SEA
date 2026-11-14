@@ -38,4 +38,3 @@ export const listClientsQuerySchema = z.object({
 
 export type CreateClientInput = z.infer<typeof createClientSchema>;
 export type UpdateClientInput = z.infer<typeof updateClientSchema>;
-export type ListClientsQueryInput = z.infer<typeof listClientsQuerySchema>;

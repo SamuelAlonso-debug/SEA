@@ -11,8 +11,6 @@ import {
   updateClient,
   deleteClient,
   getClientSales,
-  // asegúrate de tener esto si ya existe el servicio
-  // getClientSales,
 } from "./client.service";
 
 export const listClientsHandler = async (req: Request, res: Response) => {
@@ -110,7 +108,7 @@ export const deleteClientHandler = async (
   }
 };
 
-// (Opcional / futuro) ventas de un cliente
+// Ventas de un cliente
 export const getClientSalesHandler = async (
   req: Request<{ id: string }>,
   res: Response
