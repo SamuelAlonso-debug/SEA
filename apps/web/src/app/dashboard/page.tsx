@@ -72,11 +72,11 @@ export default function DashboardHomePage() {
           kpisClient.getSummary(),
         ]);
 
-        setHeaderKpis(header);
-        setPaymentMethods(payment);
+        setHeaderKpis(header.current);
+        setPaymentMethods(payment.current);
         setLowStockProducts(lowStock);
-        setTopProducts(top);
-        setSummary(summaryData);
+        setTopProducts(top.current);
+        setSummary(summaryData.current);
       } catch (err) {
         setError(errorMessage(err, "Error al cargar KPIs"));
       } finally {
