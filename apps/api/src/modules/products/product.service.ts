@@ -38,6 +38,7 @@ export const createProduct = async (
         stock: data.stock,
         provider: data.provider ?? null,
         imageUrl: data.imageUrl ?? null,
+        ...(data.minStock !== undefined && { minStock: data.minStock }),
       },
     })
     .catch(rethrowCodeTaken(data.productCode));
@@ -111,6 +112,10 @@ export const updateProduct = async (
 
   if (data.imageUrl !== undefined) {
     updateData.imageUrl = data.imageUrl ?? null;
+  }
+
+  if (data.minStock !== undefined) {
+    updateData.minStock = data.minStock;
   }
 
   if (data.isActive !== undefined) {

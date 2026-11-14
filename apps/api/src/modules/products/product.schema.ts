@@ -65,6 +65,13 @@ export const createProductSchema = z.object({
     .url("La URL de la imagen no es válida")
     .optional()
     .nullable(),
+
+  minStock: z
+    .number()
+    .int("El stock mínimo debe ser un número entero")
+    .min(0, "El stock mínimo no puede ser negativo")
+    .max(ProductStockLimits.MAX, "El stock mínimo es demasiado alto")
+    .optional(),
 });
 
 export const updateProductSchema = createProductSchema

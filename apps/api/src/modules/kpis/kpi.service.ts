@@ -118,28 +118,23 @@ export const getPaymentMethodKpis = async (): Promise<
   return result;
 };
 
-// 3) Productos con stock bajo
-const LOW_STOCK_THRESHOLD = 5;
+// 3) Productos con stock bajo: stock <= minStock del producto, mayor faltante primero
+const DEFAULT_MIN_STOCK = 5; // productos creados antes de minStock (mismo valor que el @default)
 
-export const getLowStockProducts = async (
-  threshold: number = LOW_STOCK_THRESHOLD
-): Promise<LowStockProductDto[]> => {
+export const getLowStockProducts = async (): Promise<LowStockProductDto[]> => {
+  // Prisma no compara dos campos en Mongo: se filtra aquí (#88 lo lleva a agregación).
   const products = await prisma.product.findMany({
-    where: {
-      isActive: true,
-      stock: {
-        lte: threshold,
-      },
-    },
-    orderBy: { stock: "asc" },
+    where: { isActive: true },
+    select: { id: true, name: true, productCode: true, stock: true, minStock: true },
   });
 
-  return products.map((p) => ({
-    id: p.id,
-    name: p.name,
-    productCode: p.productCode,
-    stock: p.stock,
-  }));
+  return products
+    .map((p) => {
+      const minStock = p.minStock ?? DEFAULT_MIN_STOCK;
+      return { ...p, minStock, missing: minStock - p.stock };
+    })
+    .filter((p) => p.missing >= 0)
+    .sort((a, b) => b.missing - a.missing);
 };
 
 // 4) Top productos vendidos del mes

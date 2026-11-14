@@ -18,6 +18,7 @@ export interface Product {
   stock: number;
   provider?: string | null;
   imageUrl?: string | null;
+  minStock?: number | null; // null en productos previos: umbral 5
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -76,6 +77,8 @@ export interface LowStockProduct {
   name: string;
   productCode: string;
   stock: number;
+  minStock: number;
+  missing: number;
 }
 
 // Top productos

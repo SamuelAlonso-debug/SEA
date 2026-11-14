@@ -26,10 +26,10 @@ export const kpisClient = {
       ...withToken(),
     }),
 
-  getLowStock: (threshold = 5) =>
+  // Umbral por producto (minStock); ordenado por faltante
+  getLowStock: () =>
     apiClient.get<LowStockProduct[]>("/kpis/low-stock", {
       ...withToken(),
-      query: { threshold },
     }),
 
   getTopProducts: (limit = 5) =>
