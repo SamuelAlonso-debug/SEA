@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import {
   createProductSchema,
   updateProductSchema,
+  stockEntrySchema,
 } from "./product.schema";
 import {
   createProduct,
@@ -11,6 +12,8 @@ import {
   deleteProduct,
   activateProduct,
   getProductByCode,
+  addStock,
+  ProductError,
 } from "./product.service";
 
 export const createProductHandler = async (req: Request, res: Response) => {
@@ -22,8 +25,12 @@ export const createProductHandler = async (req: Request, res: Response) => {
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
-        errors: error.errors,
+        errors: error.issues,
       });
+    }
+
+    if (error instanceof ProductError) {
+      return res.status(error.status).json({ message: error.message });
     }
 
     return res
@@ -73,8 +80,12 @@ export const updateProductHandler = async (req: Request, res: Response) => {
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
-        errors: error.errors,
+        errors: error.issues,
       });
+    }
+
+    if (error instanceof ProductError) {
+      return res.status(error.status).json({ message: error.message });
     }
 
     return res
@@ -125,5 +136,20 @@ export const getProductByCodeHandler = async (
     return res.status(404).json({
       message: error.message ?? "Producto no encontrado",
     });
+  }
+};
+export const addStockHandler = async (req: Request, res: Response) => {
+  try {
+    const parsed = stockEntrySchema.parse(req.body);
+    const product = await addStock(req.params.id as string, parsed);
+    return res.status(200).json(product);
+  } catch (error: any) {
+    if (error.name === "ZodError") {
+      return res.status(400).json({ message: "Datos inválidos", errors: error.issues });
+    }
+    if (error instanceof ProductError) {
+      return res.status(error.status).json({ message: error.message });
+    }
+    return res.status(500).json({ message: "Error al registrar la entrada de stock" });
   }
 };
