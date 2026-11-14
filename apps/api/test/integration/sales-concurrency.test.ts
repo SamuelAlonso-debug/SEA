@@ -1,34 +1,22 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { execSync } from "node:child_process";
-import { MongoMemoryReplSet } from "mongodb-memory-server";
 import request from "supertest";
 import { signToken } from "../../src/shared/jwt";
+import { startMongo } from "./mongo";
 
-// Mongo real en memoria: las transacciones exigen replica set.
-let replSet: MongoMemoryReplSet;
+let db: Awaited<ReturnType<typeof startMongo>>;
 let app: any;
 let prisma: any;
 let auth: string;
 
 beforeAll(async () => {
-  replSet = await MongoMemoryReplSet.create({ replSet: { count: 1, storageEngine: "wiredTiger" } });
-  process.env.DATABASE_URL = replSet.getUri("sea");
-  execSync("npx prisma db push --skip-generate", { env: process.env, stdio: "ignore" });
-  app = (await import("../../src/app")).default;
-  prisma = (await import("../../src/shared/prisma")).default;
+  db = await startMongo();
+  ({ app, prisma } = db);
 }, 300_000);
 
-afterAll(async () => {
-  await prisma?.$disconnect();
-  await replSet?.stop();
-});
+afterAll(() => db?.stop());
 
 beforeEach(async () => {
-  await prisma.saleItem.deleteMany();
-  await prisma.sale.deleteMany();
-  await prisma.counter.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.user.deleteMany();
+  await db.reset();
   const user = await prisma.user.create({ data: { name: "C", lastname: "C", email: "c@c.mx", password: "x" } });
   auth = `Bearer ${signToken({ userId: user.id })}`;
 });
