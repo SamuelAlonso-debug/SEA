@@ -26,6 +26,7 @@ export default function AddProductPage() {
   const [productCode, setProductCode] = useState("");
   const [category, setCategory] = useState("");
   const [unitPrice, setUnitPrice] = useState<string>("");
+  const [unitCost, setUnitCost] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("");
   const [supplier, setSupplier] = useState("");
   const [minStock, setMinStock] = useState("5");
@@ -49,6 +50,7 @@ export default function AddProductPage() {
 
     const priceNum = parseFloat(unitPrice.replace(",", "."));
     const qtyNum = parseFloat(quantity.replace(",", "."));
+    const costNum = parseFloat(unitCost.replace(",", "."));
 
     if (!name || !productCode) {
       setError("Nombre e ID del producto son obligatorios.");
@@ -56,6 +58,10 @@ export default function AddProductPage() {
     }
     if (isNaN(priceNum) || priceNum <= 0) {
       setError("Ingresa un precio por unidad válido.");
+      return;
+    }
+    if (isNaN(costNum) || costNum < 0) {
+      setError("Ingresa un costo por unidad válido.");
       return;
     }
     if (isNaN(qtyNum) || qtyNum <= 0) {
@@ -76,6 +82,7 @@ export default function AddProductPage() {
         productCode,
         category: category || null,
         price: priceNum,
+        cost: costNum,
         stock: Math.round(qtyNum),
         provider: supplier || null,
         minStock: minStockNum,
@@ -186,6 +193,16 @@ export default function AddProductPage() {
                 value={unitPrice}
                 onChange={(e) => setUnitPrice(e.target.value)}
                 inputMode="decimal"
+              />
+
+              <LabeledInput
+                name="unitCost"
+                label="Costo por Unidad (sin IVA)"
+                placeholder="Lo que te cuesta cada unidad"
+                value={unitCost}
+                onChange={(e) => setUnitCost(e.target.value)}
+                inputMode="decimal"
+                required
               />
 
               <div className="flex flex-col gap-1 text-xs">
