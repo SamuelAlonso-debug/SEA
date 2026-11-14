@@ -118,6 +118,9 @@ export const getClientSalesHandler = async (
   try {
     const { id } = req.params;
     const sales = await getClientSales(id);
+    if (!sales) {
+      return res.status(404).json({ message: "Cliente no encontrado" });
+    }
     return res.status(200).json(sales);
   } catch (error: any) {
     return res.status(400).json({

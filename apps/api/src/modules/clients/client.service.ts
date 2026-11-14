@@ -127,14 +127,14 @@ export const deleteClient = async (id: string): Promise<void> => {
   await prisma.client.delete({ where: { id } });
 };
 
-// Opcional / futuro: ventas de un cliente
-// Esto asume que el modelo Sale tiene un campo clientId que referencia a Client.
-// Si aún no lo tienes, tendrías que añadirlo en schema.prisma.
+// Ventas de un cliente; null si el cliente no existe.
 export const getClientSales = async (
   clientId: string
-): Promise<ClientSalesSummaryDto[]> => {
+): Promise<ClientSalesSummaryDto[] | null> => {
+  if (!(await prisma.client.findUnique({ where: { id: clientId } }))) return null;
+
   const sales = await prisma.sale.findMany({
-    where: { clientId }, // <-- requiere campo clientId en Sale
+    where: { clientId },
     orderBy: { createdAt: "desc" },
     select: {
       id: true,

@@ -27,6 +27,8 @@ function mapSaleToDto(sale: any): SaleDto {
     total: sale.total,
     paymentMethod: sale.paymentMethod,
     notes: sale.notes,
+    clientId: sale.clientId ?? null,
+    clientName: sale.client ? `${sale.client.name} ${sale.client.lastname}` : null,
     items,
   };
 }
@@ -69,6 +71,10 @@ export const createSale = async (
     let subtotal = 0;
 
     const saleItemsToCreate: any[] = [];
+
+    if (data.clientId && !(await tx.client.findUnique({ where: { id: data.clientId } }))) {
+      throw new SaleError(404, "Cliente no encontrado");
+    }
 
     for (const item of data.items) {
       const product = await tx.product.findUnique({
@@ -130,12 +136,17 @@ export const createSale = async (
       saleData.user = { connect: { id: userId } };
     }
 
+    if (data.clientId) {
+      saleData.client = { connect: { id: data.clientId } };
+    }
+
     const sale = await tx.sale.create({
       data: saleData,
       include: {
         items: {
           include: { product: true },
         },
+        client: { select: { name: true, lastname: true } },
       },
     });
 
@@ -148,6 +159,7 @@ export const listSales = async (): Promise<SaleDto[]> => {
     orderBy: { createdAt: "desc" },
     include: {
       items: { include: { product: true } },
+      client: { select: { name: true, lastname: true } },
     },
   });
 
@@ -159,6 +171,7 @@ export const getSaleById = async (id: string): Promise<SaleDto> => {
     where: { id },
     include: {
       items: { include: { product: true } },
+      client: { select: { name: true, lastname: true } },
     },
   });
 
