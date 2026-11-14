@@ -35,6 +35,7 @@ export const createProduct = async (
         productCode: data.productCode,
         category: data.category ?? null,
         price: data.price,
+        cost: data.cost,
         stock: data.stock,
         provider: data.provider ?? null,
         imageUrl: data.imageUrl ?? null,
@@ -100,6 +101,10 @@ export const updateProduct = async (
 
   if (data.price !== undefined) {
     updateData.price = data.price;
+  }
+
+  if (data.cost !== undefined) {
+    updateData.cost = data.cost;
   }
 
   if (data.stock !== undefined) {

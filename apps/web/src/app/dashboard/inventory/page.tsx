@@ -251,6 +251,7 @@ export default function InventoryPage() {
                   <TableHead>Categoría</TableHead>
                   <TableHead>Cantidad</TableHead>
                   <TableHead>Precio c/u</TableHead>
+                  <TableHead>Margen</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>En-stock</TableHead>
                   <TableHead>Proveedor</TableHead>
@@ -283,6 +284,13 @@ export default function InventoryPage() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {currency(p.price)}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {p.marginPct != null
+                          ? `${currency(p.margin!)} (${p.marginPct}%)`
+                          : p.margin != null
+                            ? currency(p.margin)
+                            : <span className="font-semibold text-[#F5A524]">Captura el costo</span>}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {currency(p.price * p.stock)}

@@ -19,6 +19,9 @@ export interface Product {
   provider?: string | null;
   imageUrl?: string | null;
   minStock?: number | null; // null en productos previos: umbral 5
+  cost?: number | null; // null en productos previos: falta capturarlo
+  margin: number | null; // price - cost
+  marginPct: number | null; // margen sobre el precio
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

@@ -28,6 +28,7 @@ export const productsClient = {
     productCode: string;
     category?: string | null;
     price: number;
+    cost?: number;
     stock: number;
     provider?: string | null;
     imageUrl?: string | null;

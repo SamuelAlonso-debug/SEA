@@ -16,7 +16,7 @@ afterAll(() => db?.stop());
 beforeEach(() => db.reset());
 
 const create = (body: object) =>
-  request(app).post("/api/products").set("Authorization", auth).send({ name: "Prod", price: 10, ...body });
+  request(app).post("/api/products").set("Authorization", auth).send({ name: "Prod", price: 10, cost: 6, ...body });
 const lowStock = async () =>
   (await request(app).get("/api/kpis/low-stock").set("Authorization", auth).expect(200)).body;
 
