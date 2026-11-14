@@ -12,6 +12,8 @@ type LowStockProduct = {
   name: string;
   productCode: string;
   stock: number;
+  minStock: number;
+  missing: number;
 };
 
 interface LowStockTableProps {
@@ -19,7 +21,7 @@ interface LowStockTableProps {
 }
 
 export function LowStockTable({ items }: LowStockTableProps) {
-  const sorted = [...items].sort((a, b) => a.stock - b.stock);
+  // La API ya ordena por faltante (minStock - stock).
 
   return (
     <div className="rounded-2xl bg-card px-5 py-3 shadow-soft">
@@ -34,12 +36,13 @@ export function LowStockTable({ items }: LowStockTableProps) {
           <TableHeader>
             <TableRow className="text-[11px] text-muted-foreground">
               <TableHead className="w-1/4">Código</TableHead>
-              <TableHead className="w-2/4">Nombre</TableHead>
+              <TableHead className="w-1/4">Nombre</TableHead>
               <TableHead className="w-1/4 text-right">Stock actual</TableHead>
+              <TableHead className="w-1/4 text-right">Mínimo</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sorted.map((item) => (
+            {items.map((item) => (
               <TableRow
                 key={item.id}
                 className="border-b border-border/40 text-xs last:border-0"
@@ -53,13 +56,16 @@ export function LowStockTable({ items }: LowStockTableProps) {
                 <TableCell className="py-2 text-right font-semibold text-destructive">
                   {item.stock}
                 </TableCell>
+                <TableCell className="py-2 text-right text-muted-foreground">
+                  {item.minStock}
+                </TableCell>
               </TableRow>
             ))}
 
-            {sorted.length === 0 && (
+            {items.length === 0 && (
               <TableRow>
                 <TableCell
-                  colSpan={3}
+                  colSpan={4}
                   className="py-6 text-center text-[11px] text-muted-foreground"
                 >
                   No hay productos con stock bajo 🎉

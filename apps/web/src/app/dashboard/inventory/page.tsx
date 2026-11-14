@@ -18,8 +18,9 @@ import { productsClient } from "@/features/inventory/api";
 import { StockEntry } from "@/features/inventory/stock-entry";
 import type { Product } from "@/types/api";
 
-// Umbral para “bajo stock”, igual que en el backend
-const LOW_STOCK_THRESHOLD = 5;
+// Umbral por defecto de productos sin minStock, igual que en el backend
+const DEFAULT_MIN_STOCK = 5;
+const minStockOf = (p: Product) => p.minStock ?? DEFAULT_MIN_STOCK;
 
 function StatusBadge({
   type,
@@ -38,12 +39,12 @@ function StatusBadge({
   return <span className={`text-xs font-semibold ${colors}`}>{children}</span>;
 }
 
-function getStatusFromStock(stock: number): {
+function getStatusFromStock(stock: number, minStock: number): {
   label: string;
   type: "success" | "danger" | "warning";
 } {
   if (stock <= 0) return { label: "Sin stock", type: "danger" };
-  if (stock <= LOW_STOCK_THRESHOLD) return { label: "Bajo stock", type: "warning" };
+  if (stock <= minStock) return { label: "Bajo stock", type: "warning" };
   return { label: "En stock", type: "success" };
 }
 
@@ -93,7 +94,7 @@ export default function InventoryPage() {
   );
 
   const lowStockCount = activeProducts.filter(
-    (p) => p.stock > 0 && p.stock <= LOW_STOCK_THRESHOLD
+    (p) => p.stock > 0 && p.stock <= minStockOf(p)
   ).length;
 
   const lastUpdated = (() => {
@@ -196,7 +197,7 @@ export default function InventoryPage() {
             </span>
           </div>
           <p className="mt-3 text-[11px] text-muted-foreground">
-            Stock &le; {LOW_STOCK_THRESHOLD} unidades
+            Stock &le; mínimo del producto
           </p>
         </div>
       </section>
@@ -259,7 +260,7 @@ export default function InventoryPage() {
               </TableHeader>
               <TableBody>
                 {activeProducts.map((p, index) => {
-                  const status = getStatusFromStock(p.stock);
+                  const status = getStatusFromStock(p.stock, minStockOf(p));
                   return (
                     <TableRow key={p.id} className="text-[11px]">
                       <TableCell className="font-semibold text-muted-foreground">

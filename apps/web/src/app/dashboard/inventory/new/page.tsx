@@ -28,6 +28,7 @@ export default function AddProductPage() {
   const [unitPrice, setUnitPrice] = useState<string>("");
   const [quantity, setQuantity] = useState<string>("");
   const [supplier, setSupplier] = useState("");
+  const [minStock, setMinStock] = useState("5");
 
   // Estado UI
   const [loading, setLoading] = useState(false);
@@ -61,6 +62,11 @@ export default function AddProductPage() {
       setError("Ingresa una cantidad adquirida válida.");
       return;
     }
+    const minStockNum = Number(minStock);
+    if (!Number.isInteger(minStockNum) || minStockNum < 0) {
+      setError("Ingresa un stock mínimo entero mayor o igual a 0.");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -72,6 +78,7 @@ export default function AddProductPage() {
         price: priceNum,
         stock: Math.round(qtyNum),
         provider: supplier || null,
+        minStock: minStockNum,
         imageUrl: null, // TODO: conectar con ProductImageUploadCard cuando esté listo
       });
 
@@ -193,7 +200,7 @@ export default function AddProductPage() {
               </div>
             </div>
 
-            {/* Fila 4: Proveedor */}
+            {/* Fila 4: Proveedor / Stock mínimo */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <LabeledInput
                 name="supplier"
@@ -201,7 +208,14 @@ export default function AddProductPage() {
                 placeholder="Ingresa el Nombre del Proveedor"
                 value={supplier}
                 onChange={(e) => setSupplier(e.target.value)}
-                className="md:col-span-2"
+              />
+              <LabeledInput
+                name="minStock"
+                label="Stock mínimo"
+                placeholder="Avisar con este stock o menos"
+                value={minStock}
+                onChange={(e) => setMinStock(e.target.value)}
+                inputMode="numeric"
               />
             </div>
 
