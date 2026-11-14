@@ -6,25 +6,40 @@ import { AuthResponseDto } from "./auth.dto";
 
 const SALT_ROUNDS = 10;
 
+export class AuthError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+  }
+}
+
+const EMAIL_TAKEN = "El correo ya está registrado";
+// Mismo mensaje para correo inexistente y contraseña incorrecta: no revela qué cuentas existen.
+const BAD_CREDENTIALS = "Correo o contraseña incorrectos";
+
 export const registerUser = async (data: RegisterInput): Promise<AuthResponseDto> => {
   const existingUser = await prisma.user.findUnique({
     where: { email: data.email },
   });
 
   if (existingUser) {
-    throw new Error("El correo ya está registrado");
+    throw new AuthError(409, EMAIL_TAKEN);
   }
 
   const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
 
-  const user = await prisma.user.create({
-    data: {
-      name: data.name,
-      lastname: data.lastname,
-      email: data.email,
-      password: hashedPassword,
-    },
-  });
+  // P2002: alta simultánea con el mismo correo; el índice único decide.
+  const user = await prisma.user
+    .create({
+      data: {
+        name: data.name,
+        lastname: data.lastname,
+        email: data.email,
+        password: hashedPassword,
+      },
+    })
+    .catch((error) => {
+      throw error?.code === "P2002" ? new AuthError(409, EMAIL_TAKEN) : error;
+    });
 
   const token = signToken({ userId: user.id });
 
@@ -46,14 +61,8 @@ export const loginUser = async (data: LoginInput): Promise<AuthResponseDto> => {
     where: { email: data.email },
   });
 
-  if (!user) {
-    throw new Error("Credenciales inválidas");
-  }
-
-  const isValidPassword = await bcrypt.compare(data.password, user.password);
-
-  if (!isValidPassword) {
-    throw new Error("Credenciales inválidas");
+  if (!user || !(await bcrypt.compare(data.password, user.password))) {
+    throw new AuthError(401, BAD_CREDENTIALS);
   }
 
   const token = signToken({ userId: user.id });
