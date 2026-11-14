@@ -2,6 +2,7 @@ version: 2
 updates:
   - package-ecosystem: npm
     directory: /apps/api
+    target-branch: stage
     schedule:
       interval: weekly
     # Majors que exigen migración propia (TS 7 rompe ts-node-dev). @types/node sigue al runtime (Node 22).
@@ -25,6 +26,7 @@ updates:
       include: scope
   - package-ecosystem: npm
     directory: /apps/web
+    target-branch: stage
     schedule:
       interval: weekly
     # Majors que exigen migración propia. @types/node sigue al runtime (Node 22).
@@ -44,6 +46,7 @@ updates:
       include: scope
   - package-ecosystem: github-actions
     directory: /
+    target-branch: stage
     schedule:
       interval: weekly
     labels: [dependencies, github_actions, "type:chore", "area:ci-cd"]
