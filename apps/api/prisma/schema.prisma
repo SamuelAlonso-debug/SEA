@@ -124,3 +124,9 @@ model Client {
 
   sales     Sale[]
 }
+
+// Secuencias atómicas (p. ej. número de ticket): `seq` se incrementa dentro de la transacción.
+model Counter {
+  id  String @id @map("_id")
+  seq Int
+}

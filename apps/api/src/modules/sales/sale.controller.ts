@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { createSaleSchema } from "./sale.schema";
-import { createSale, listSales, getSaleById } from "./sale.service";
+import { createSale, listSales, getSaleById, SaleError } from "./sale.service";
 
 export const createSaleHandler = async (req: Request, res: Response) => {
   try {
@@ -16,6 +16,10 @@ export const createSaleHandler = async (req: Request, res: Response) => {
         message: "Datos inválidos",
         errors: error.errors,
       });
+    }
+
+    if (error instanceof SaleError) {
+      return res.status(error.status).json({ message: error.message });
     }
 
     return res
