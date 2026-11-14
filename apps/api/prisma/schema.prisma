@@ -31,6 +31,7 @@ model Product {
   productCode String   @unique
   category    String?
   price       Float
+  cost        Float?   // costo unitario sin IVA; null en productos previos hasta capturarlo
   stock       Int
   minStock    Int?     @default(5) // umbral de stock bajo; null en productos previos = 5
   provider    String?
@@ -82,6 +83,7 @@ model SaleItem {
 
   quantity    Int
   unitPrice   Float   // precio del producto al momento de la venta
+  unitCost    Float?  // costo vigente al vender: el margen histórico no cambia
   subtotal    Float   // unitPrice * quantity
 }
 
