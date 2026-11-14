@@ -113,7 +113,9 @@ model Client {
   name      String
   lastname  String
   phone     String
-  email     String?  @unique
+  // Opcional y sin @unique: en Mongo el índice único cuenta null como valor y solo
+  // permitiría un cliente sin correo. La unicidad se valida en client.service.
+  email     String?
   street    String?  // calle
   neighborhood String? // colonia
   city      String?
