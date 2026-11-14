@@ -1,5 +1,5 @@
 export interface HeaderKpisDto {
-  month: number; // 0-11
+  month: number; // 1-12
   year: number;
   totalTransactions: number;
   totalSalesAmount: number;
@@ -29,7 +29,7 @@ export interface TopProductDto {
 }
 
 export interface SummaryKpisDto {
-  month: number;
+  month: number; // 1-12
   year: number;
   averageTicketAmount: number;
   averageProductsPerTicket: number;
