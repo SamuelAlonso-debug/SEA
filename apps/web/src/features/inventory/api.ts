@@ -56,6 +56,13 @@ export const productsClient = {
       body: data,
     }),
 
+  // POST /api/products/:id/stock: entrada de stock (incremento atómico)
+  addStock: (id: string, quantity: number) =>
+    apiClient.post<Product>(`/products/${id}/stock`, {
+      ...withToken(),
+      body: { quantity },
+    }),
+
   // DELETE lógico /api/products/:id
   delete: (id: string) =>
     apiClient.delete<Product>(`/products/${id}`, {

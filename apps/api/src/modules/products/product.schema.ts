@@ -79,6 +79,14 @@ export const updateProductSchema = createProductSchema
   }),
 });
 
+const STOCK_QTY_MSG = "La cantidad debe ser un entero mayor a 0";
+
+export const stockEntrySchema = z.object({
+  quantity: z.number(STOCK_QTY_MSG).int(STOCK_QTY_MSG).min(1, STOCK_QTY_MSG),
+  reason: z.string().max(255, "El motivo no puede tener más de 255 caracteres").optional(),
+});
+
 export type ActivateProductInput = z.infer<typeof activateProductSchema>["params"];
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
+export type StockEntryInput = z.infer<typeof stockEntrySchema>;

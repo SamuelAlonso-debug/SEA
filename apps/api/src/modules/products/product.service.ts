@@ -2,49 +2,56 @@ import prisma from "../../shared/prisma";
 import {
   CreateProductInput,
   UpdateProductInput,
+  StockEntryInput,
 } from "./product.schema";
 import { ProductDto } from "./product.dto";
 import { Prisma } from "@prisma/client";
 
+export class ProductError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+  }
+}
+
+const codeTaken = (code: string) => new ProductError(409, `Ya existe un producto con el código ${code}`);
+
+// P2002: alta o edición simultánea con el mismo código; el índice único decide.
+const rethrowCodeTaken = (code: string | undefined) => (error: any) => {
+  throw error?.code === "P2002" && code ? codeTaken(code) : error;
+};
+
 export const createProduct = async (
   data: CreateProductInput
 ): Promise<ProductDto> => {
-  const existing = await prisma.product.findUnique({
-    where: { productCode: data.productCode },
-  });
-
-  if (existing) {
-    const updated = await prisma.product.update({
-      where: { productCode: data.productCode },
-      data: {
-        name: data.name ?? existing.name,
-        category: data.category ?? existing.category,
-        provider: data.provider ?? existing.provider,
-        imageUrl: data.imageUrl ?? existing.imageUrl,
-        price: data.price ?? existing.price,
-        stock: existing.stock + data.stock,  // 🔥 SUMA DE STOCK
-      },
-    });
-
-    return updated;
+  // Un alta duplicada no toca stock ni precio: la entrada de stock va por addStock.
+  if (await prisma.product.findUnique({ where: { productCode: data.productCode } })) {
+    throw codeTaken(data.productCode);
   }
 
-  // 🆕 Si NO existe → crear uno nuevo
-  const product = await prisma.product.create({
-    data: {
-      name: data.name,
-      productCode: data.productCode,
-      category: data.category ?? null,
-      price: data.price,
-      stock: data.stock,
-      provider: data.provider ?? null,
-      imageUrl: data.imageUrl ?? null,
-    },
-  });
-
-  return product;
+  return prisma.product
+    .create({
+      data: {
+        name: data.name,
+        productCode: data.productCode,
+        category: data.category ?? null,
+        price: data.price,
+        stock: data.stock,
+        provider: data.provider ?? null,
+        imageUrl: data.imageUrl ?? null,
+      },
+    })
+    .catch(rethrowCodeTaken(data.productCode));
 };
 
+// Incremento atómico ($inc): entradas simultáneas no se pisan.
+export const addStock = async (id: string, data: StockEntryInput): Promise<ProductDto> => {
+  const { count } = await prisma.product.updateMany({
+    where: { id },
+    data: { stock: { increment: data.quantity } },
+  });
+  if (count === 0) throw new ProductError(404, "Producto no encontrado");
+  return getProductById(id);
+};
 
 export const listProducts = async (): Promise<ProductDto[]> => {
   const products = await prisma.product.findMany({
@@ -70,6 +77,11 @@ export const updateProduct = async (
   data: UpdateProductInput
 ): Promise<ProductDto> => {
   await getProductById(id);
+
+  if (data.productCode !== undefined) {
+    const other = await prisma.product.findUnique({ where: { productCode: data.productCode } });
+    if (other && other.id !== id) throw codeTaken(data.productCode);
+  }
 
   const updateData: Prisma.ProductUpdateInput = {};
 
@@ -108,7 +120,7 @@ export const updateProduct = async (
   const updated = await prisma.product.update({
     where: { id },
     data: updateData,
-  });
+  }).catch(rethrowCodeTaken(data.productCode));
 
   return updated;
 };

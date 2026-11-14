@@ -7,6 +7,7 @@ import {
   deleteProductHandler,
   activateProductHandler,
   getProductByCodeHandler,
+  addStockHandler,
 } from "./product.controller";
 import { authMiddleware } from "../../shared/auth.middleware";
 
@@ -21,6 +22,7 @@ router.post("/", createProductHandler);
 router.put("/:id", updateProductHandler);
 router.delete("/:id", deleteProductHandler);
 router.patch("/:id/activate", activateProductHandler);
+router.post("/:id/stock", addStockHandler);
 router.get("/code/:productCode", getProductByCodeHandler);
 
 export default router;

@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 
 import { productsClient } from "@/features/inventory/api";
+import { StockEntry } from "@/features/inventory/stock-entry";
 import type { Product } from "@/types/api";
 
 // Umbral para “bajo stock”, igual que en el backend
@@ -253,6 +254,7 @@ export default function InventoryPage() {
                   <TableHead>En-stock</TableHead>
                   <TableHead>Proveedor</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -294,6 +296,14 @@ export default function InventoryPage() {
                         <StatusBadge type={status.type}>
                           {status.label}
                         </StatusBadge>
+                      </TableCell>
+                      <TableCell>
+                        <StockEntry
+                          product={p}
+                          onDone={(updated) =>
+                            setProducts((list) => list.map((x) => (x.id === updated.id ? updated : x)))
+                          }
+                        />
                       </TableCell>
                     </TableRow>
                   );
