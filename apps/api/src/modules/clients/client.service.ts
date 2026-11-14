@@ -9,6 +9,27 @@ import {
   ClientSalesSummaryDto,
 } from "./client.dto";
 
+export class ClientError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+  }
+}
+
+const EMAIL_TAKEN = "Ya existe un cliente con ese correo";
+
+async function assertEmailFree(email: string | null | undefined, exceptId?: string) {
+  if (!email) return;
+  const other = await prisma.client.findFirst({
+    where: { email, ...(exceptId && { id: { not: exceptId } }) },
+  });
+  if (other) throw new ClientError(409, EMAIL_TAKEN);
+}
+
+// P2002: el índice único parcial creado al desplegar #75 cubre altas simultáneas.
+const emailTaken = (error: any) => {
+  throw error?.code === "P2002" ? new ClientError(409, EMAIL_TAKEN) : error;
+};
+
 export const listClients = async (
   search: string | undefined,
   page: number,
@@ -58,6 +79,8 @@ export const getClientById = async (id: string): Promise<ClientDto> => {
 export const createClient = async (
   data: CreateClientInput
 ): Promise<ClientDto> => {
+  await assertEmailFree(data.email);
+
   const client = await prisma.client.create({
     data: {
       name: data.name,
@@ -69,7 +92,7 @@ export const createClient = async (
       city: data.city ?? null,
       state: data.state ?? null,
     },
-  });
+  }).catch(emailTaken);
 
   return client;
 };
@@ -83,6 +106,8 @@ export const updateClient = async (
   if (!existing) {
     throw new Error("Cliente no encontrado");
   }
+
+  await assertEmailFree(data.email, id);
 
   const updated = await prisma.client.update({
     where: { id },
@@ -111,7 +136,7 @@ export const updateClient = async (
           ? data.state
           : existing.state,
     },
-  });
+  }).catch(emailTaken);
 
   return updated;
 };
