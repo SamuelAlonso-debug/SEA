@@ -6,6 +6,7 @@ import {
   createClientHandler,
   updateClientHandler,
   deleteClientHandler,
+  activateClientHandler,
   getClientSalesHandler,
 } from "./client.controller";
 
@@ -26,8 +27,11 @@ router.post("/", createClientHandler);
 // PUT /api/clients/:id
 router.put("/:id", updateClientHandler);
 
-// DELETE /api/clients/:id
+// DELETE /api/clients/:id (baja lógica)
 router.delete("/:id", deleteClientHandler);
+
+// PATCH /api/clients/:id/activate
+router.patch("/:id/activate", activateClientHandler);
 
 // (Opcional / futuro) GET /api/clients/:id/sales
 router.get("/:id/sales", getClientSalesHandler);

@@ -4,7 +4,7 @@ const RAW_API_BASE_URL =
 
 const API_BASE_URL = RAW_API_BASE_URL.replace(/\/$/, ""); // sin / al final
 
-type Method = "GET" | "POST" | "PUT" | "DELETE";
+type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 interface RequestOptions {
   method?: Method;
@@ -61,6 +61,8 @@ export const apiClient = {
     request<T>(path, { ...options, method: "POST" }),
   put:  <T>(path: string, options?: Omit<RequestOptions, "method">) =>
     request<T>(path, { ...options, method: "PUT" }),
+  patch: <T>(path: string, options?: Omit<RequestOptions, "method">) =>
+    request<T>(path, { ...options, method: "PATCH" }),
   delete: <T>(path: string, options?: Omit<RequestOptions, "method">) =>
     request<T>(path, { ...options, method: "DELETE" }),
 };
