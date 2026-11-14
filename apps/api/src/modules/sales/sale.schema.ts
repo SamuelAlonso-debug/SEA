@@ -14,6 +14,7 @@ export const createSaleSchema = z.object({
     .min(1, "Debe haber al menos un producto en la venta"),
   paymentMethod: z.enum(["CASH", "CARD"]),
   notes: z.string().max(255, "Notas demasiado largas").optional().nullable(),
+  clientId: z.string().regex(/^[a-f\d]{24}$/i, "ID inválido").optional(),
 });
 
 export type CreateSaleInput = z.infer<typeof createSaleSchema>;
