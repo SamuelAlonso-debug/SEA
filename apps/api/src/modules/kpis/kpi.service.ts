@@ -1,4 +1,5 @@
 import prisma from "../../shared/prisma";
+import { businessRanges } from "../../shared/business-time";
 import {
   HeaderKpisDto,
   PaymentMethodKpiDto,
@@ -7,44 +8,9 @@ import {
   SummaryKpisDto,
 } from "./kpi.dto";
 
-// Helpers de fechas
-function getMonthRange() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth(); // 0-11
-
-  const startOfMonth = new Date(year, month, 1, 0, 0, 0, 0);
-  const startOfNextMonth = new Date(year, month + 1, 1, 0, 0, 0, 0);
-
-  return { startOfMonth, startOfNextMonth, month, year };
-}
-
-function getTodayRange() {
-  const now = new Date();
-  const startOfToday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    0,
-    0,
-    0,
-    0
-  );
-  const startOfTomorrow = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate() + 1,
-    0,
-    0,
-    0,
-    0
-  );
-  return { startOfToday, startOfTomorrow };
-}
-
 // 1) KPIs del header: transacciones, ventas, tickets, productos vendidos del mes
 export const getHeaderKpis = async (): Promise<HeaderKpisDto> => {
-  const { startOfMonth, startOfNextMonth, month, year } = getMonthRange();
+  const { startOfMonth, startOfNextMonth, month, year } = businessRanges(new Date());
 
   const sales = await prisma.sale.findMany({
     where: {
@@ -86,7 +52,7 @@ export const getHeaderKpis = async (): Promise<HeaderKpisDto> => {
 export const getPaymentMethodKpis = async (): Promise<
   PaymentMethodKpiDto[]
 > => {
-  const { startOfMonth, startOfNextMonth } = getMonthRange();
+  const { startOfMonth, startOfNextMonth } = businessRanges(new Date());
 
   const sales = await prisma.sale.findMany({
     where: {
@@ -146,7 +112,7 @@ export const getLowStockProducts = async (
 export const getTopProducts = async (
   limit: number = 5
 ): Promise<TopProductDto[]> => {
-  const { startOfMonth, startOfNextMonth } = getMonthRange();
+  const { startOfMonth, startOfNextMonth } = businessRanges(new Date());
 
   const saleItems = await prisma.saleItem.findMany({
     where: {
@@ -200,8 +166,8 @@ export const getTopProducts = async (
 
 // 5) Resumen: ticket promedio, productos por ticket promedio, ingresos de hoy
 export const getSummaryKpis = async (): Promise<SummaryKpisDto> => {
-  const { startOfMonth, startOfNextMonth, month, year } = getMonthRange();
-  const { startOfToday, startOfTomorrow } = getTodayRange();
+  const { startOfMonth, startOfNextMonth, month, year, startOfToday, startOfTomorrow } =
+    businessRanges(new Date());
 
   // Ventas del mes (para promedios)
   const monthSales = await prisma.sale.findMany({
