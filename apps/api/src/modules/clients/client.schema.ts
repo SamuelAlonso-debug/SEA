@@ -23,9 +23,17 @@ export const createClientSchema = z.object({
 
 export const updateClientSchema = createClientSchema.partial();
 
+export const clientIdParamsSchema = z.object({
+  id: z.string().regex(/^[a-f\d]{24}$/i, "ID inválido"),
+});
+
 // Query params para listar
 export const listClientsQuerySchema = z.object({
   search: z.string().optional(),
+  includeInactive: z
+    .enum(["true", "false"], { error: () => `Opción inválida: se esperaba una de "true"|"false"` })
+    .optional()
+    .transform((v) => v === "true"),
   page: z
     .string()
     .optional()
