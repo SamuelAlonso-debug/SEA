@@ -14,7 +14,7 @@ export const createSaleHandler = async (req: Request, res: Response) => {
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
-        errors: error.errors,
+        errors: error.issues,
       });
     }
 

@@ -2,8 +2,7 @@ import prisma from "../../shared/prisma";
 import { CreateSaleInput } from "./sale.schema";
 import { SaleDto, SaleItemDto } from "./sale.dto";
 import { PaymentMethod } from "@prisma/client";
-
-const IVA_RATE = 0.16; // 16%
+import { computeTotals } from "./sale.totals";
 
 // Mapea el objeto de Prisma (con items + product) a nuestro DTO
 function mapSaleToDto(sale: any): SaleDto {
@@ -43,8 +42,6 @@ export const createSale = async (
   userId?: string
 ): Promise<SaleDto> => {
   return prisma.$transaction(async (tx) => {
-    let subtotal = 0;
-
     const saleItemsToCreate: any[] = [];
 
     for (const item of data.items) {
@@ -65,8 +62,7 @@ export const createSale = async (
       }
 
       const unitPrice = product.price;
-      const itemSubtotal = unitPrice * item.quantity;
-      subtotal += itemSubtotal * 0.84;
+      const itemSubtotal = computeTotals([{ unitPrice, quantity: item.quantity }]).subtotal;
 
       // Relación correcta: usamos "product" en vez de "productId"
       saleItemsToCreate.push({
@@ -83,8 +79,7 @@ export const createSale = async (
       });
     }
 
-    const tax = subtotal * IVA_RATE;
-    const total = subtotal;
+    const { subtotal, tax, total } = computeTotals(saleItemsToCreate);
     const ticketNumber = await generateNextTicketNumber(tx);
 
     // Construimos el data aparte para evitar problemas con exactOptionalPropertyTypes
