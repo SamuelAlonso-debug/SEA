@@ -1,7 +1,11 @@
 // src/schemas/expense.schema.ts
 
 import { z } from "zod";
+import { PaymentMethod } from "@prisma/client";
 import { ExpenseCategoryEnum } from "./expense.enums";
+
+// Mismo catálogo que ventas: el enum de Prisma es la única fuente.
+export const PAYMENT_METHODS = Object.values(PaymentMethod);
 
 export const createExpenseSchema = z.object({
   concept: z
@@ -27,7 +31,12 @@ export const createExpenseSchema = z.object({
     .optional()
     .or(z.date().optional()),
 
-  paymentMethod: z.string().max(100).optional().nullable(),
+  paymentMethod: z.enum(PaymentMethod, {
+    error: (issue) =>
+      issue.input === undefined
+        ? "El método de pago es obligatorio"
+        : `Opción inválida: se esperaba una de ${PAYMENT_METHODS.map((m) => `"${m}"`).join("|")}`,
+  }),
   vendor: z.string().max(150).optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
 });

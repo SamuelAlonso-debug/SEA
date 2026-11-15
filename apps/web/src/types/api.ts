@@ -106,13 +106,15 @@ export type ExpenseCategory =
   | "tax"
   | "other";
 
+export type ExpensePaymentMethod = "CASH" | "CARD" | "TRANSFER";
+
 export interface ExpenseDto {
   id: string;
   concept: string;
   category: ExpenseCategory; // valores que espera el backend
   amount: number;
   date: string;              // ISO 8601
-  paymentMethod: string;
+  paymentMethod: ExpensePaymentMethod;
   vendor?: string | null;
   notes?: string | null;
 }
@@ -133,6 +135,10 @@ export interface ExpensesKpisResponse {
     category: ExpenseCategory;
     totalAmount: number;
   }[];
+  totalByPaymentMethod: {
+    paymentMethod: ExpensePaymentMethod;
+    amount: number;
+  }[];
 }
 
 export interface CreateExpenseRequest {
@@ -140,7 +146,7 @@ export interface CreateExpenseRequest {
   category: ExpenseCategory;
   amount: number;
   date: string; // ISO 8601
-  paymentMethod: string;
+  paymentMethod: ExpensePaymentMethod;
   vendor?: string;
   notes?: string;
 }
