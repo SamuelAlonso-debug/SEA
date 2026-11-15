@@ -14,7 +14,7 @@ export const createClientSchema = z.object({
     .string()
     .min(7, "El teléfono es demasiado corto")
     .max(20, "El teléfono es demasiado largo"),
-  email: z.string().email("Email inválido").optional().nullable(),
+  email: z.string().trim().toLowerCase().email("Correo inválido").optional().nullable(),
   street: z.string().max(200).optional().nullable(),
   neighborhood: z.string().max(200).optional().nullable(),
   city: z.string().max(100).optional().nullable(),

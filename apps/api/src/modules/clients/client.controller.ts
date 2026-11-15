@@ -11,8 +11,7 @@ import {
   updateClient,
   deleteClient,
   getClientSales,
-  // asegúrate de tener esto si ya existe el servicio
-  // getClientSales,
+  ClientError,
 } from "./client.service";
 
 export const listClientsHandler = async (req: Request, res: Response) => {
@@ -30,7 +29,7 @@ export const listClientsHandler = async (req: Request, res: Response) => {
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
-        errors: error.errors,
+        errors: error.issues,
       });
     }
     return res
@@ -64,8 +63,11 @@ export const createClientHandler = async (req: Request, res: Response) => {
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
-        errors: error.errors,
+        errors: error.issues,
       });
+    }
+    if (error instanceof ClientError) {
+      return res.status(error.status).json({ message: error.message });
     }
     return res
       .status(400)
@@ -86,8 +88,11 @@ export const updateClientHandler = async (
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
-        errors: error.errors,
+        errors: error.issues,
       });
+    }
+    if (error instanceof ClientError) {
+      return res.status(error.status).json({ message: error.message });
     }
     return res
       .status(400)
