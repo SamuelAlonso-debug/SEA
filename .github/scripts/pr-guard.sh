@@ -57,10 +57,10 @@ if ! $promotion; then
   [ -n "$answers" ] || err "'Dudas y hallazgos' vacío: responde las dudas de la issue o escribe 'Ninguno'."
 fi
 
-# 5. Commits sin trailers.
-if [ -n "$(git log --format='%(trailers:only)' "$BASE_SHA..$HEAD_SHA" | tr -d '[:space:]')" ]; then
-  err "Hay commits con trailers. Reescribe los mensajes sin ellos."
-fi
+# 5. Commits sin trailers. Dependabot firma los suyos: se excluyen.
+trailers=$(git log --format='%an%x09%(trailers:only,unfold,separator=%x20)' "$BASE_SHA..$HEAD_SHA" \
+  | awk -F'\t' '$1 != "dependabot[bot]" { printf "%s", $2 }')
+[ -z "$trailers" ] || err "Hay commits con trailers. Reescribe los mensajes sin ellos."
 
 # 6. Solo código en el repo: la documentación vive en la wiki.
 docs=$(git diff --name-only --diff-filter=A "$BASE_SHA...$HEAD_SHA" \
