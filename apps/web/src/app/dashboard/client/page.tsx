@@ -12,6 +12,7 @@ import {
   type ClientRow,
 } from "@/features/clients/clients-table";
 import {
+  activateClient,
   getClients,
   type ClientDto,
   type ClientsListResponse,
@@ -29,6 +30,8 @@ export default function ClientsPage() {
   const [errorList, setErrorList] = useState<string | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [showInactive, setShowInactive] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     const loadClients = async () => {
@@ -40,6 +43,7 @@ export default function ClientsPage() {
           page,
           pageSize,
           search: searchTerm || undefined,
+          includeInactive: showInactive || undefined,
         });
 
         const rows: ClientRow[] = resp.data.map((c: ClientDto) => ({
@@ -49,6 +53,7 @@ export default function ClientsPage() {
           email: c.email ?? undefined,
           city: c.city ?? undefined,
           state: c.state ?? undefined,
+          isActive: c.isActive !== false,
         }));
 
         setClients(rows);
@@ -63,7 +68,17 @@ export default function ClientsPage() {
     loadClients();
     // Nota: si quieres que el search dispare el backend en tiempo real,
     // mete searchTerm en el array de dependencias.
-  }, [page, pageSize, searchTerm]);
+  }, [page, pageSize, searchTerm, showInactive, reloadKey]);
+
+  const handleActivate = async (id: string) => {
+    try {
+      setErrorList(null);
+      await activateClient(id);
+      setReloadKey((k) => k + 1);
+    } catch (err) {
+      setErrorList(errorMessage(err, "Error al reactivar el cliente"));
+    }
+  };
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -117,6 +132,18 @@ export default function ClientsPage() {
             Clientes recientes
           </h2>
 
+          <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={showInactive}
+              onChange={(e) => {
+                setShowInactive(e.target.checked);
+                setPage(1);
+              }}
+            />
+            Mostrar inactivos
+          </label>
+
           <div className="relative w-full max-w-xs">
             <Search className="pointer-events-none absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
@@ -143,7 +170,7 @@ export default function ClientsPage() {
             Cargando clientes...
           </div>
         ) : (
-          <ClientsTable clients={filteredClients} />
+          <ClientsTable clients={filteredClients} onActivate={handleActivate} />
         )}
 
         {/* Paginación */}
