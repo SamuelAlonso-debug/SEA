@@ -31,6 +31,7 @@ export const productsClient = {
     stock: number;
     provider?: string | null;
     imageUrl?: string | null;
+    minStock?: number;
   }) =>
     apiClient.post<Product>("/products", {
       ...withToken(),

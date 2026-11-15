@@ -18,6 +18,8 @@ export interface LowStockProductDto {
   name: string;
   productCode: string;
   stock: number;
+  minStock: number;
+  missing: number; // minStock - stock
 }
 
 export interface TopProductDto {
