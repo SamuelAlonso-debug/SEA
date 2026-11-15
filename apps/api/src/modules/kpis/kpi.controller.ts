@@ -28,11 +28,8 @@ export const getPaymentMethodKpisHandler = comparedKpi(
   "Error al obtener KPIs por método de pago"
 );
 
-export const getTopProductsHandler = comparedKpi(
-  (range) => getTopProducts(range),
-  changeBy((p) => p.productId, (p) => p.totalQuantity),
-  "Error al obtener top productos"
-);
+// Sin variación: el top anterior puede omitir un producto que sí se vendió.
+export const getTopProductsHandler = comparedKpi((range) => getTopProducts(range), undefined, "Error al obtener top productos");
 
 export const getSummaryKpisHandler = comparedKpi(getSummaryKpis, numericChange, "Error al obtener resumen de KPIs");
 

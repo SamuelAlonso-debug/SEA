@@ -26,8 +26,11 @@ const OCT = "?from=2026-10-01&to=2026-10-31";
 
 describe("KPIs por rango con periodo anterior", () => {
   beforeEach(async () => {
-    await sale("2026-10-15T12:00:00-06:00", 1000);
-    await sale("2026-09-30T23:00:00-06:00", 800, "CARD"); // último día de septiembre, hora local
+    const oct = await sale("2026-10-15T12:00:00-06:00", 1000);
+    const sep = await sale("2026-09-30T23:00:00-06:00", 800, "CARD"); // último día de septiembre, hora local
+    const p = await db.prisma.product.create({ data: { name: "P", productCode: "P", price: 10, stock: 0 } });
+    const item = (saleId: string, quantity: number) => ({ saleId, productId: p.id, quantity, unitPrice: 10, subtotal: 10 * quantity });
+    await db.prisma.saleItem.createMany({ data: [item(oct.id, 2), item(sep.id, 1)] });
     await db.prisma.expense.create({
       data: { concept: "Luz", category: "service", amount: 200, paymentMethod: "CASH", date: new Date("2026-10-02T10:00:00-06:00") },
     });
@@ -49,7 +52,10 @@ describe("KPIs por rango con periodo anterior", () => {
     expect(pm.body.current).toEqual([{ paymentMethod: "CASH", totalSalesAmount: 1000, count: 1 }]);
     expect(pm.body.change).toEqual({ CASH: null });
 
-    expect((await get(`/api/kpis/top-products${OCT}`).expect(200)).body.current).toEqual([]);
+    const top = await get(`/api/kpis/top-products${OCT}`).expect(200);
+    expect(top.body.current).toMatchObject([{ totalQuantity: 2 }]);
+    expect(top.body.previous).toMatchObject([{ totalQuantity: 1 }]);
+    expect(top.body).not.toHaveProperty("change");
     expect((await get(`/api/kpis/summary${OCT}`).expect(200)).body.current).toMatchObject({ averageTicketAmount: 1000 });
 
     const exp = await get(`/api/expenses/kpis${OCT}`).expect(200);
@@ -72,7 +78,7 @@ describe("KPIs por rango con periodo anterior", () => {
   ])("400 con %s", async (query, path, message) => {
     for (const url of ["/api/kpis/header", "/api/expenses/kpis"]) {
       const res = await get(`${url}${query}`).expect(400);
-      expect(res.body.errors).toContainEqual(expect.objectContaining({ path: [path], message }));
+      expect(res.body.errors).toEqual([expect.objectContaining({ path: [path], message })]);
     }
   });
 });

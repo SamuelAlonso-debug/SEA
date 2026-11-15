@@ -39,7 +39,7 @@ describe("KPIs en hora del negocio", () => {
   it("venta y gasto del 30-nov 23:00 cuentan en noviembre", async () => {
     await sale("2026-11-30T23:00:00-06:00", 50);
     await db.prisma.expense.create({
-      data: { concept: "Luz", category: "service", amount: 30, date: new Date("2026-11-30T23:00:00-06:00") },
+      data: { concept: "Luz", category: "service", amount: 30, paymentMethod: "CASH", date: new Date("2026-11-30T23:00:00-06:00") },
     });
     at("2026-11-30T23:30:00-06:00");
 
