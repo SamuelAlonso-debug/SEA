@@ -30,6 +30,12 @@ describe("productos: código duplicado y entrada de stock", () => {
     expect(await find("A1")).toMatchObject({ stock: 5, price: 10 });
   });
 
+  it("altas simultáneas con el mismo código → un 201 y un 409", async () => {
+    const res = await Promise.all([create(a1), create(a1)]);
+    expect(res.map((r) => r.status).sort()).toEqual([201, 409]);
+    expect(await db.prisma.product.count()).toBe(1);
+  });
+
   it("edición con el código de otro producto → 409", async () => {
     await create(a1).expect(201);
     const b = await create({ ...a1, productCode: "B1" }).expect(201);

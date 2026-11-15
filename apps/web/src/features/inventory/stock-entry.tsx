@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { errorMessage } from "@/lib/utils";
 import { productsClient } from "@/features/inventory/api";
 import type { Product } from "@/types/api";
+
+// Misma regla que `stockEntrySchema` en la API.
+const quantitySchema = z.coerce.number().int().min(1);
 
 // Entrada de stock en la fila: suma unidades sin pasar por el alta del producto.
 export function StockEntry({ product, onDone }: { product: Product; onDone: (p: Product) => void }) {
@@ -24,9 +28,11 @@ export function StockEntry({ product, onDone }: { product: Product; onDone: (p: 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    const parsed = quantitySchema.safeParse(quantity);
+    if (!parsed.success) return setError("La cantidad debe ser un entero mayor a 0");
     try {
       setSaving(true);
-      onDone(await productsClient.addStock(product.id, Number(quantity)));
+      onDone(await productsClient.addStock(product.id, parsed.data));
       setOpen(false);
       setQuantity("");
     } catch (err) {
