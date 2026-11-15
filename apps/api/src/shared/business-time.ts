@@ -51,3 +51,47 @@ export function businessRanges(now: Date, timeZone: string = BUSINESS_TIMEZONE) 
     startOfNextMonth: midnight(year, month + 1, 1, timeZone),
   };
 }
+
+// Periodo de fechas del negocio, inclusivo: "AAAA-MM-DD".
+export interface Period {
+  from: string;
+  to: string;
+}
+
+const DAY_MS = 86_400_000;
+const utcDay = (date: string) => {
+  const [y, m, d] = date.split("-").map(Number);
+  return Date.UTC(y!, m! - 1, d!);
+};
+const formatDay = (t: number) => new Date(t).toISOString().slice(0, 10);
+
+export const periodDays = ({ from, to }: Period) => (utcDay(to) - utcDay(from)) / DAY_MS + 1;
+
+// [start, end) en UTC; year y month (1-12) del inicio.
+export function rangeOf({ from, to }: Period, timeZone: string = BUSINESS_TIMEZONE) {
+  const [y, m, d] = from.split("-").map(Number) as [number, number, number];
+  const [ty, tm, td] = to.split("-").map(Number) as [number, number, number];
+  return { start: midnight(y, m, d, timeZone), end: midnight(ty, tm, td + 1, timeZone), year: y, month: m };
+}
+export type Range = ReturnType<typeof rangeOf>;
+
+export function currentMonth(now: Date = new Date(), timeZone: string = BUSINESS_TIMEZONE): Period {
+  const { year, month } = businessRanges(now, timeZone);
+  return { from: formatDay(Date.UTC(year, month - 1, 1)), to: formatDay(Date.UTC(year, month, 0)) };
+}
+
+// Periodo anterior de igual duración. Meses completos → mismos meses anteriores (oct → sep).
+export function previousPeriod(period: Period): Period {
+  const start = utcDay(period.from);
+  const next = new Date(utcDay(period.to) + DAY_MS);
+  const first = new Date(start);
+  if (first.getUTCDate() === 1 && next.getUTCDate() === 1) {
+    const months = (next.getUTCFullYear() - first.getUTCFullYear()) * 12 + next.getUTCMonth() - first.getUTCMonth();
+    return { from: formatDay(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() - months, 1)), to: formatDay(start - DAY_MS) };
+  }
+  return { from: formatDay(start - periodDays(period) * DAY_MS), to: formatDay(start - DAY_MS) };
+}
+
+// Variación porcentual a 2 decimales; null si el periodo anterior es 0.
+export const percentChange = (current: number, previous: number) =>
+  previous === 0 ? null : Math.round(((current - previous) / previous) * 10_000) / 100;

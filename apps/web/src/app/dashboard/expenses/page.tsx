@@ -94,7 +94,7 @@ export default function ExpensesPage() {
         setErrorKpis(null);
 
         const data = await getExpensesKpis();
-        setKpis(data);
+        setKpis(data.current);
       } catch (err) {
         setErrorKpis(errorMessage(err, "Error al obtener los KPIs de gastos"));
       } finally {
