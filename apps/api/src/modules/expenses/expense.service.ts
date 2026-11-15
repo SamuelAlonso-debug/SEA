@@ -148,6 +148,9 @@ export const getMonthlyExpenseKpis = async (): Promise<ExpenseKpisDto> => {
     totalAmountMonth,
     totalCountMonth: expenses.length,
     totalByCategory,
-    totalByPaymentMethod: Array.from(byPaymentMethod, ([paymentMethod, amount]) => ({ paymentMethod, amount })),
+    totalByPaymentMethod: Array.from(byPaymentMethod, ([paymentMethod, amount]) => ({
+      paymentMethod,
+      amount: Math.round(amount * 100) / 100,
+    })),
   };
 };

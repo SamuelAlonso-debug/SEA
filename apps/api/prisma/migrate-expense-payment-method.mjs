@@ -1,9 +1,9 @@
 // Migra Expense.paymentMethod (texto libre) al catálogo CASH | CARD | TRANSFER. Idempotente.
 // Uso: node prisma/migrate-expense-payment-method.mjs [--dry-run] [--fallback=CASH]
 // Sin --fallback, valores no reconocidos (incluido vacío) se listan y no se migra nada.
-import { PrismaClient } from "@prisma/client";
+import { PaymentMethod, PrismaClient } from "@prisma/client";
 
-const CATALOG = ["CASH", "CARD", "TRANSFER"];
+const CATALOG = Object.values(PaymentMethod);
 const KNOWN = {
   efectivo: "CASH",
   cash: "CASH",
@@ -17,18 +17,17 @@ const KNOWN = {
 };
 
 const normalize = (v) =>
-  String(v).trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  String(v).trim().toLowerCase().normalize("NFD").replace(/p{M}/gu, "");
 
 export async function migrate(prisma, { dryRun = false, fallback } = {}) {
-  const { cursor } = await prisma.$runCommandRaw({
-    aggregate: "Expense",
+  // aggregateRaw agota el cursor; $runCommandRaw solo devolvería el primer lote (101 grupos).
+  const groups = await prisma.expense.aggregateRaw({
     pipeline: [{ $group: { _id: "$paymentMethod", count: { $sum: 1 } } }],
-    cursor: {},
   });
 
   const plan = [];
   const unknown = [];
-  for (const { _id: value, count } of cursor.firstBatch) {
+  for (const { _id: value, count } of groups) {
     if (CATALOG.includes(value)) continue;
     const target = (value != null && value !== "" && KNOWN[normalize(value)]) || fallback;
     (target ? plan : unknown).push({ value: value ?? null, count, target });
