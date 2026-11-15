@@ -17,6 +17,7 @@ DATABASE_URL="mongodb+srv://usuario:password@cluster.mongodb.net/sea"
 JWT_SECRET="cadena-larga-aleatoria"
 PORT=4000
 CORS_ORIGIN="http://localhost:3000"
+BUSINESS_TIMEZONE="America/Mexico_City"  # IANA; día y mes de los KPIs
 ```
 
 ```bash
