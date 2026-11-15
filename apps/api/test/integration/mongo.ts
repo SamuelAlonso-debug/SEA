@@ -1,5 +1,5 @@
 import { execSync } from "node:child_process";
-import { MongoMemoryReplSet } from "mongodb-memory-server";
+import { MongoMemoryReplSet } from "mongodb-memory-server-core";
 
 // Mongo real en memoria: las transacciones exigen replica set.
 // La app se importa después de fijar DATABASE_URL.

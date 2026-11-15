@@ -1,57 +1,38 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
-import app from "../../src/app";
 import { signToken } from "../../src/shared/jwt";
+import { startMongo } from "./mongo";
 
-// Base en memoria: Mongo con transacciones exige replica set, fuera del alcance de CI.
-const db = vi.hoisted(() => ({ products: [] as any[], sales: [] as any[] }));
+let db: Awaited<ReturnType<typeof startMongo>>;
+let auth: string;
 
-vi.mock("../../src/shared/prisma", () => {
-  const client: any = {
-    product: {
-      findUnique: async ({ where }: any) => db.products.find((p) => p.productCode === where.productCode) ?? null,
-      update: async ({ where, data }: any) => Object.assign(db.products.find((p) => p.id === where.id), data),
-    },
-    sale: {
-      count: async () => db.sales.length,
-      findMany: async () => db.sales,
-      create: async ({ data }: any) => {
-        const sale = {
-          ...data,
-          id: `s${db.sales.length + 1}`,
-          createdAt: new Date(),
-          items: data.items.create.map((i: any, n: number) => {
-            const product = db.products.find((p) => p.id === i.product.connect.id);
-            return { ...i, id: `i${n}`, productId: product.id, product };
-          }),
-        };
-        db.sales.push(sale);
-        return sale;
-      },
-    },
-  };
-  client.$transaction = (fn: any) => fn(client);
-  return { default: client };
+beforeAll(async () => {
+  db = await startMongo();
+}, 300_000);
+
+afterAll(() => db?.stop());
+
+beforeEach(async () => {
+  await db.reset();
+  const user = await db.prisma.user.create({ data: { name: "C", lastname: "C", email: "c@c.mx", password: "x" } });
+  auth = `Bearer ${signToken({ userId: user.id })}`;
+  await db.prisma.product.createMany({
+    data: [
+      { name: "A", productCode: "A", price: 100, stock: 5 },
+      { name: "B", productCode: "B", price: 33.33, stock: 5 },
+    ],
+  });
 });
 
-const auth = `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011" })}`;
-const sell = (body: object) => request(app).post("/api/sales").set("Authorization", auth).send(body);
+const sell = (body: object) => request(db.app).post("/api/sales").set("Authorization", auth).send(body);
 
 describe("POST /api/sales", () => {
-  beforeEach(() => {
-    db.sales = [];
-    db.products = [
-      { id: "p1", productCode: "A", name: "A", price: 100, stock: 5, isActive: true },
-      { id: "p2", productCode: "B", name: "B", price: 33.33, stock: 5, isActive: true },
-    ];
-  });
-
   it("guarda subtotal, IVA y total; los KPIs suman el total", async () => {
     const res = await sell({ items: [{ productCode: "A", quantity: 1 }], paymentMethod: "CASH" }).expect(201);
     expect(res.body).toMatchObject({ subtotal: 100, tax: 16, total: 116 });
-    expect(db.sales[0]).toMatchObject({ subtotal: 100, tax: 16, total: 116 });
+    expect(await db.prisma.sale.findFirst()).toMatchObject({ subtotal: 100, tax: 16, total: 116 });
 
-    const kpis = await request(app).get("/api/kpis/header").set("Authorization", auth).expect(200);
+    const kpis = await request(db.app).get("/api/kpis/header").set("Authorization", auth).expect(200);
     expect(kpis.body.totalSalesAmount).toBe(116);
   });
 

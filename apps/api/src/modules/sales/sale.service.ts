@@ -3,6 +3,7 @@ import { CreateSaleInput } from "./sale.schema";
 import { SaleDto, SaleItemDto } from "./sale.dto";
 import { PaymentMethod } from "@prisma/client";
 import { computeTotals } from "./sale.totals";
+import { withRetry } from "../../shared/with-retry";
 
 // Mapea el objeto de Prisma (con items + product) a nuestro DTO
 function mapSaleToDto(sale: any): SaleDto {
@@ -38,26 +39,11 @@ export class SaleError extends Error {
 
 // Número de ticket tipo 0000001. El contador arranca tras las ventas ya existentes.
 async function generateNextTicketNumber(tx: any): Promise<string> {
-  const { seq } = await tx.counter.upsert({
-    where: { id: "ticket" },
-    create: { id: "ticket", seq: (await tx.sale.count()) + 1 },
-    update: { seq: { increment: 1 } },
-  });
+  const counter = await tx.counter.findUnique({ where: { id: "ticket" } });
+  const { seq } = counter
+    ? await tx.counter.update({ where: { id: "ticket" }, data: { seq: { increment: 1 } } })
+    : await tx.counter.create({ data: { id: "ticket", seq: (await tx.sale.count()) + 1 } });
   return seq.toString().padStart(7, "0");
-}
-
-// Mongo aborta la transacción ante un conflicto de escritura (P2034) o un alta
-// simultánea del contador (P2002): se reintenta con espera aleatoria creciente.
-const MAX_ATTEMPTS = 50;
-async function withRetry<T>(fn: () => Promise<T>): Promise<T> {
-  for (let attempt = 1; ; attempt++) {
-    try {
-      return await fn();
-    } catch (error: any) {
-      if (!["P2034", "P2002"].includes(error?.code) || attempt >= MAX_ATTEMPTS) throw error;
-      await new Promise((r) => setTimeout(r, Math.random() * 10 * attempt));
-    }
-  }
 }
 
 export const createSale = async (
