@@ -3,6 +3,7 @@ import { CreateSaleInput } from "./sale.schema";
 import { SaleDto, SaleItemDto } from "./sale.dto";
 import { PaymentMethod } from "@prisma/client";
 import { computeTotals } from "./sale.totals";
+import { withRetry } from "../../shared/with-retry";
 
 // Mapea el objeto de Prisma (con items + product) a nuestro DTO
 function mapSaleToDto(sale: any): SaleDto {
@@ -30,18 +31,26 @@ function mapSaleToDto(sale: any): SaleDto {
   };
 }
 
-// Generar número de ticket tipo 0000001
+export class SaleError extends Error {
+  constructor(public status: number, message: string) {
+    super(message);
+  }
+}
+
+// Número de ticket tipo 0000001. El contador arranca tras las ventas ya existentes.
 async function generateNextTicketNumber(tx: any): Promise<string> {
-  const count = await tx.sale.count();
-  const next = count + 1;
-  return next.toString().padStart(7, "0");
+  const counter = await tx.counter.findUnique({ where: { id: "ticket" } });
+  const { seq } = counter
+    ? await tx.counter.update({ where: { id: "ticket" }, data: { seq: { increment: 1 } } })
+    : await tx.counter.create({ data: { id: "ticket", seq: (await tx.sale.count()) + 1 } });
+  return seq.toString().padStart(7, "0");
 }
 
 export const createSale = async (
   data: CreateSaleInput,
   userId?: string
 ): Promise<SaleDto> => {
-  return prisma.$transaction(async (tx) => {
+  return withRetry(() => prisma.$transaction(async (tx) => {
     const saleItemsToCreate: any[] = [];
 
     for (const item of data.items) {
@@ -49,14 +58,23 @@ export const createSale = async (
         where: { productCode: item.productCode },
       });
 
-      if (!product || !product.isActive) {
-        throw new Error(
-          `Producto ${item.productCode} no encontrado o inactivo`
-        );
+      if (!product) {
+        throw new SaleError(404, `Producto ${item.productCode} no encontrado`);
       }
 
-      if (product.stock < item.quantity) {
-        throw new Error(
+      if (!product.isActive) {
+        throw new SaleError(409, `El producto ${item.productCode} está inactivo`);
+      }
+
+      // Descuento condicional: nunca deja stock negativo aunque haya ventas simultáneas.
+      const { count } = await tx.product.updateMany({
+        where: { id: product.id, stock: { gte: item.quantity } },
+        data: { stock: { decrement: item.quantity } },
+      });
+
+      if (count === 0) {
+        throw new SaleError(
+          409,
           `Stock insuficiente para ${product.name}. Disponible: ${product.stock}`
         );
       }
@@ -70,12 +88,6 @@ export const createSale = async (
         quantity: item.quantity,
         unitPrice,
         subtotal: itemSubtotal,
-      });
-
-      // Descontar stock
-      await tx.product.update({
-        where: { id: product.id },
-        data: { stock: product.stock - item.quantity },
       });
     }
 
@@ -109,7 +121,7 @@ export const createSale = async (
     });
 
     return mapSaleToDto(sale);
-  });
+  }));
 };
 
 export const listSales = async (): Promise<SaleDto[]> => {
