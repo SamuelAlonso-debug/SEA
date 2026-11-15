@@ -10,6 +10,11 @@ const auth = `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011" })}`;
 beforeAll(async () => {
   db = await startMongo();
   app = db.app;
+  // Índice del despliegue de #75: `db push` no crea índices parciales.
+  await db.prisma.$runCommandRaw({
+    createIndexes: "Client",
+    indexes: [{ key: { email: 1 }, name: "Client_email_key", unique: true, partialFilterExpression: { email: { $type: "string" } } }],
+  });
 }, 300_000);
 
 afterAll(() => db?.stop());
@@ -29,6 +34,12 @@ describe("correo de clientes", () => {
     await create({ ...base, email: "ana@x.com" }).expect(201);
     const res = await create({ ...base, email: "ana@x.com" }).expect(409);
     expect(res.body.message).toBe("Ya existe un cliente con ese correo");
+    expect(await db.prisma.client.count()).toBe(1);
+  });
+
+  it("altas simultáneas con el mismo correo → un 201 y un 409", async () => {
+    const res = await Promise.all([create({ ...base, email: "ana@x.com" }), create({ ...base, email: "ana@x.com" })]);
+    expect(res.map((r) => r.status).sort()).toEqual([201, 409]);
     expect(await db.prisma.client.count()).toBe(1);
   });
 
