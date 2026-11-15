@@ -62,8 +62,9 @@ export default function AddProductPage() {
       setError("Ingresa una cantidad adquirida válida.");
       return;
     }
-    const minStockNum = Number(minStock);
-    if (!Number.isInteger(minStockNum) || minStockNum < 0) {
+    // Vacío: no se envía y aplica el valor por defecto de la API.
+    const minStockNum = minStock.trim() === "" ? undefined : Number(minStock);
+    if (minStockNum !== undefined && (!Number.isInteger(minStockNum) || minStockNum < 0)) {
       setError("Ingresa un stock mínimo entero mayor o igual a 0.");
       return;
     }

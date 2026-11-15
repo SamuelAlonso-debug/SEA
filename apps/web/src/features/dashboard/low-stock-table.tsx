@@ -6,15 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-type LowStockProduct = {
-  id: string;
-  name: string;
-  productCode: string;
-  stock: number;
-  minStock: number;
-  missing: number;
-};
+import type { LowStockProduct } from "@/types/api";
 
 interface LowStockTableProps {
   items: LowStockProduct[];
