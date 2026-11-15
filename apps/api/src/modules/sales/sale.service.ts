@@ -93,6 +93,7 @@ export const createSale = async (
         product: { connect: { id: product.id } },
         quantity: item.quantity,
         unitPrice,
+        unitCost: product.cost ?? null,
         subtotal: itemSubtotal,
       });
     }

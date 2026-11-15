@@ -16,7 +16,7 @@ beforeAll(async () => {
 afterAll(() => db?.stop());
 beforeEach(() => db.reset());
 
-const a1 = { name: "Arroz", productCode: "A1", price: 10, stock: 5 };
+const a1 = { name: "Arroz", productCode: "A1", price: 10, cost: 6, stock: 5 };
 const create = (body: object) => request(app).post("/api/products").set("Authorization", auth).send(body);
 const entry = (id: string, body: object) =>
   request(app).post(`/api/products/${id}/stock`).set("Authorization", auth).send(body);
