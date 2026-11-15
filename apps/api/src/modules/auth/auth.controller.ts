@@ -4,6 +4,7 @@ import {
   registerUser,
   loginUser,
   getUserProfile,
+  AuthError,
 } from "./auth.service";
 import { AuthRequest } from "../../shared/auth.middleware";
 
@@ -17,8 +18,12 @@ export const registerHandler = async (req: Request, res: Response) => {
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
-        errors: error.errors,
+        errors: error.issues,
       });
+    }
+
+    if (error instanceof AuthError) {
+      return res.status(error.status).json({ message: error.message });
     }
 
     return res.status(400).json({ message: error.message || "Error al registrar" });
@@ -34,8 +39,12 @@ export const loginHandler = async (req: Request, res: Response) => {
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
-        errors: error.errors,
+        errors: error.issues,
       });
+    }
+
+    if (error instanceof AuthError) {
+      return res.status(error.status).json({ message: error.message });
     }
 
     return res.status(400).json({ message: error.message || "Error al iniciar sesión" });
