@@ -17,7 +17,7 @@ const KNOWN = {
 };
 
 const normalize = (v) =>
-  String(v).trim().toLowerCase().normalize("NFD").replace(/p{M}/gu, "");
+  String(v).trim().toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
 
 export async function migrate(prisma, { dryRun = false, fallback } = {}) {
   // aggregateRaw agota el cursor; $runCommandRaw solo devolvería el primer lote (101 grupos).
