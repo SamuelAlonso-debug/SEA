@@ -75,7 +75,7 @@ export const updateClient = (id: string, input: UpdateClientRequest) =>
   clientsClient.update(id, input);
 
 export const deleteClient = (id: string) => clientsClient.remove(id);
+export const activateClient = (id: string) => clientsClient.activate(id);
 
 // Re-export de tipos por conveniencia
 export type { ClientDto, ClientsListResponse, CreateClientRequest, UpdateClientRequest };
-export const activateClient = (id: string) => clientsClient.activate(id);

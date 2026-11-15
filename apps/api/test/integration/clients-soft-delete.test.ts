@@ -35,6 +35,7 @@ describe("baja lógica de clientes", () => {
 
     await api("delete", `/clients/${clientId}`).expect(204);
     expect(await listedIds()).toEqual([]);
+    expect(await listedIds("?search=Ana")).toEqual([]);
     expect(await listedIds("?includeInactive=true")).toEqual([clientId]);
     expect((await api("get", `/clients/${clientId}/sales`).expect(200)).body).toHaveLength(3);
 

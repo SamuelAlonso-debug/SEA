@@ -152,10 +152,11 @@ export const deactivateClient = async (id: string): Promise<boolean> => {
 };
 
 // Reactivación; null si el cliente no existe.
-export const activateClient = async (id: string): Promise<ClientDto | null> => {
-  const { count } = await prisma.client.updateMany({ where: { id }, data: { isActive: true } });
-  return count > 0 ? prisma.client.findUnique({ where: { id } }) : null;
-};
+// P2025: el cliente no existe.
+export const activateClient = (id: string): Promise<ClientDto | null> =>
+  prisma.client
+    .update({ where: { id }, data: { isActive: true } })
+    .catch((error) => (error?.code === "P2025" ? null : Promise.reject(error)));
 
 // Ventas de un cliente; null si el cliente no existe.
 export const getClientSales = async (

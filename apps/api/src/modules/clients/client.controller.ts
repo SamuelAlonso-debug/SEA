@@ -3,7 +3,6 @@ import {
   createClientSchema,
   updateClientSchema,
   listClientsQuerySchema,
-  clientIdParamsSchema,
 } from "./client.schema";
 import {
   listClients,
@@ -106,31 +105,23 @@ export const updateClientHandler = async (
 const NOT_FOUND = { message: "Cliente no encontrado" };
 
 export const deleteClientHandler = async (req: Request<{ id: string }>, res: Response) => {
-  const params = clientIdParamsSchema.safeParse(req.params);
-  if (!params.success) {
-    return res.status(400).json({ message: "Errores de validación", errors: params.error.issues });
-  }
   try {
-    return (await deactivateClient(params.data.id)) ? res.status(204).send() : res.status(404).json(NOT_FOUND);
+    return (await deactivateClient(req.params.id)) ? res.status(204).send() : res.status(404).json(NOT_FOUND);
   } catch {
     return res.status(500).json({ message: "Error al dar de baja al cliente" });
   }
 };
 
 export const activateClientHandler = async (req: Request<{ id: string }>, res: Response) => {
-  const params = clientIdParamsSchema.safeParse(req.params);
-  if (!params.success) {
-    return res.status(400).json({ message: "Errores de validación", errors: params.error.issues });
-  }
   try {
-    const client = await activateClient(params.data.id);
+    const client = await activateClient(req.params.id);
     return client ? res.status(200).json(client) : res.status(404).json(NOT_FOUND);
   } catch {
     return res.status(500).json({ message: "Error al reactivar al cliente" });
   }
 };
 
-// (Opcional / futuro) ventas de un cliente
+// Ventas de un cliente
 export const getClientSalesHandler = async (
   req: Request<{ id: string }>,
   res: Response

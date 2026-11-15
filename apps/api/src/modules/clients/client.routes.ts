@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../../shared/auth.middleware";
+import { clientIdParamsSchema } from "./client.schema";
 import {
   listClientsHandler,
   getClientHandler,
@@ -14,6 +15,15 @@ const router = Router();
 
 // Proteger todas las rutas de clientes
 router.use(authMiddleware);
+
+// Un id que no es ObjectId responde 400 antes de llegar a Prisma.
+router.param("id", (req, res, next, id) => {
+  const parsed = clientIdParamsSchema.safeParse({ id });
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Errores de validación", errors: parsed.error.issues });
+  }
+  next();
+});
 
 // GET /api/clients?search=&page=&pageSize=
 router.get("/", listClientsHandler);
@@ -33,7 +43,7 @@ router.delete("/:id", deleteClientHandler);
 // PATCH /api/clients/:id/activate
 router.patch("/:id/activate", activateClientHandler);
 
-// (Opcional / futuro) GET /api/clients/:id/sales
+// GET /api/clients/:id/sales
 router.get("/:id/sales", getClientSalesHandler);
 
 export default router;
