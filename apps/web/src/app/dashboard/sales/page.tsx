@@ -1,6 +1,7 @@
 "use client";
 
 import { errorMessage } from "@/lib/utils";
+import Link from "next/link";
 import { useState, KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ export default function SalesPage() {
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
 
   const [sale, setSale] = useState<Sale | null>(null);
+  const [confirmedSaleId, setConfirmedSaleId] = useState<string | null>(null);
 
   const [loadingScan, setLoadingScan] = useState(false);
   const [loadingSale, setLoadingSale] = useState(false);
@@ -136,6 +138,7 @@ export default function SalesPage() {
     // empezamos un armado de ticket nuevo (no venta ya guardada)
     setError(null);
     setSale(null);
+    setConfirmedSaleId(null);
 
     if (!code) {
       setError("Ingresa el ID del producto.");
@@ -224,7 +227,7 @@ export default function SalesPage() {
       setError(null);
 
       // Creamos la venta en el backend con todos los productos del ticket
-      await salesClient.create({
+      const created = await salesClient.create({
         paymentMethod: pendingMethod,
         items: items.map((i) => ({
           productCode: i.productCode,
@@ -237,6 +240,7 @@ export default function SalesPage() {
 
       // ✅ Después de registrar la venta, limpiamos el ticket COMPLETO
       handleCancelTicket();
+      setConfirmedSaleId(created.id);
     } catch (err) {
       setError(errorMessage(err, "Error al registrar la venta."));
     } finally {
@@ -348,6 +352,12 @@ export default function SalesPage() {
                 <p className="pt-1 text-sm font-extrabold text-foreground">
                   Total: {totalLabel}
                 </p>
+
+                {confirmedSaleId && (
+                  <Button asChild className="h-8 rounded-full text-[11px] font-semibold">
+                    <Link href={`/dashboard/sales/${confirmedSaleId}/ticket`}>Imprimir ticket</Link>
+                  </Button>
+                )}
 
                 <div className="pt-2">
                   <Button
