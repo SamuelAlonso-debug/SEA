@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { PaymentMethod } from "@prisma/client";
 import { ExpenseCategoryEnum } from "./expense.enums";
+import { periodQuerySchema } from "../kpis/kpi.schema";
 
 // Mismo catálogo que ventas: el enum de Prisma es la única fuente.
 export const PAYMENT_METHODS = Object.values(PaymentMethod);
@@ -68,3 +69,6 @@ export const exportCategorySchema = z.object({
     })
     .optional(),
 });
+
+// /kpis solo acepta el periodo (?from=&to=); cualquier otra clave se rechaza.
+export const expenseKpisQuerySchema = periodQuerySchema.strict();

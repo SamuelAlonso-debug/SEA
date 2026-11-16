@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ClientSortByEnum } from "./client.enums";
 
 // Campos obligatorios para crear
 export const createClientSchema = z.object({
@@ -23,10 +24,6 @@ export const createClientSchema = z.object({
 
 export const updateClientSchema = createClientSchema.partial();
 
-export const clientIdParamsSchema = z.object({
-  id: z.string().regex(/^[a-f\d]{24}$/i, "ID inválido"),
-});
-
 // Query params para listar
 export const listClientsQuerySchema = z.object({
   search: z.string().optional(),
@@ -34,6 +31,9 @@ export const listClientsQuerySchema = z.object({
     .enum(["true", "false"], { error: () => `Opción inválida: se esperaba una de "true"|"false"` })
     .optional()
     .transform((v) => v === "true"),
+  sortBy: z
+    .enum(ClientSortByEnum, { error: () => 'Opción inválida: se esperaba una de "CREATED_AT" o "NAME"' })
+    .default(ClientSortByEnum.CREATED_AT),
   page: z
     .string()
     .optional()

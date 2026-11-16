@@ -6,6 +6,7 @@ import {
   getLowStockProductsHandler,
   getTopProductsHandler,
   getSummaryKpisHandler,
+  getProfitKpisHandler,
 } from "./kpi.controller";
 
 const router = Router();
@@ -26,5 +27,8 @@ router.get("/top-products", getTopProductsHandler);
 
 // Ticket promedio, productos por ticket, ingresos de hoy
 router.get("/summary", getSummaryKpisHandler);
+
+// Utilidad del periodo (ventas − costo de lo vendido − gastos)
+router.get("/profit", getProfitKpisHandler);
 
 export default router;

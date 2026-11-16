@@ -80,6 +80,13 @@ export function currentMonth(now: Date = new Date(), timeZone: string = BUSINESS
   return { from: formatDay(Date.UTC(year, month - 1, 1)), to: formatDay(Date.UTC(year, month, 0)) };
 }
 
+// Día en curso del negocio como periodo de un solo día.
+export function currentDay(now: Date = new Date(), timeZone: string = BUSINESS_TIMEZONE): Period {
+  const { year, month, day } = wallClock(now.getTime(), timeZone);
+  const date = formatDay(Date.UTC(year, month - 1, day));
+  return { from: date, to: date };
+}
+
 // Periodo anterior de igual duración. Meses completos → mismos meses anteriores (oct → sep).
 export function previousPeriod(period: Period): Period {
   const start = utcDay(period.from);

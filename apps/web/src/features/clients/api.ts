@@ -15,6 +15,7 @@ export type GetClientsParams = {
   page?: number;
   pageSize?: number;
   includeInactive?: boolean;
+  sortBy?: "CREATED_AT" | "NAME";
 };
 
 function withToken() {

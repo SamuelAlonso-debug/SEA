@@ -23,6 +23,7 @@ model User {
   updatedAt   DateTime @updatedAt
 
   sales       Sale[]
+  stockMovements StockMovement[]
 }
 
 model Product {
@@ -43,6 +44,32 @@ model Product {
   updatedAt   DateTime @updatedAt
 
   saleItems   SaleItem[]
+  movements   StockMovement[]
+}
+
+enum StockMovementType {
+  SALE
+  REFUND
+  PURCHASE
+  WASTE
+  ADJUSTMENT
+}
+
+// Historial de stock: todo cambio de Product.stock crea uno en la misma transacción.
+model StockMovement {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  productId   String   @db.ObjectId
+  product     Product  @relation(fields: [productId], references: [id])
+  type        StockMovementType
+  quantity    Int      // con signo: + entra, − sale
+  stockAfter  Int      // stock del producto tras aplicar el movimiento
+  reason      String?
+  userId      String?  @db.ObjectId // null solo en el stock inicial migrado
+  user        User?    @relation(fields: [userId], references: [id])
+  saleId      String?  @db.ObjectId
+  createdAt   DateTime @default(now())
+
+  @@index([productId, createdAt])
 }
 
 enum PaymentMethod {
@@ -72,6 +99,16 @@ model Sale {
   clientId    String?    @db.ObjectId
   client      Client?    @relation(fields: [clientId], references: [id])
 
+  // Opcional: las ventas previas no lo tienen (= COMPLETED).
+  status        SaleStatus? @default(COMPLETED)
+  cancelReason  String?
+  cancelledAt   DateTime?
+  cancelledById String?     @db.ObjectId // quién canceló; sin relación para no tocar la de User
+}
+
+enum SaleStatus {
+  COMPLETED
+  CANCELLED
 }
 
 model SaleItem {

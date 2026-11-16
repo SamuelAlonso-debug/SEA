@@ -3,7 +3,7 @@
 
 import { apiClient } from "@/lib/api-client";
 import { getToken } from "@/features/auth/api";
-import type { Sale, PaymentMethod, Period } from "@/types/api";
+import type { Sale, PaymentMethod, PeriodQuery } from "@/types/api";
 
 function withToken() {
   return { token: getToken() };
@@ -28,12 +28,19 @@ export const salesClient = {
     }),
 
   // GET /api/sales/export: descarga el CSV (sin periodo = mes en curso)
-  exportCsv: (period?: Period | null) =>
+  exportCsv: (period?: PeriodQuery | null) =>
     apiClient.download("/sales/export", { ...withToken(), query: { ...period } }),
 
   // GET /api/sales/:id
   getById: (id: string) =>
     apiClient.get<Sale>(`/sales/${id}`, {
       ...withToken(),
+    }),
+
+  // POST /api/sales/:id/cancel
+  cancel: (id: string, reason: string) =>
+    apiClient.post<Sale>(`/sales/${id}/cancel`, {
+      ...withToken(),
+      body: { reason },
     }),
 };

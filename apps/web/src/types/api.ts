@@ -49,6 +49,9 @@ export interface Sale {
   total: number;
   paymentMethod: PaymentMethod;
   notes: string | null;
+  status: "COMPLETED" | "CANCELLED";
+  cancelReason: string | null;
+  cancelledAt: string | null;
   items: SaleItem[];
 }
 
@@ -62,6 +65,9 @@ export interface Period {
   from: string; // AAAA-MM-DD
   to: string;
 }
+
+// Selección de periodo de los KPIs: rango libre o preset (?period=).
+export type PeriodQuery = Period | { period: "TODAY" | "MONTH" };
 
 // KPI de un periodo comparado con el anterior de igual duración (fechas AAAA-MM-DD).
 export interface Compared<T, C = Record<string, number | null>> {
@@ -115,6 +121,18 @@ export interface SummaryKpis {
   averageProductsPerTicket: number;
   todayRevenue: number;
   todaySalesCount: number;
+}
+
+// Utilidad del periodo; montos sin IVA
+export interface ProfitKpis {
+  netSales: number;
+  costOfGoodsSold: number;
+  grossProfit: number;
+  expenses: number;
+  netProfit: number;
+  marginPct: number | null;
+  itemsWithoutCost: number;
+  warnings: string[];
 }
 
 export type ExpenseCategory =
@@ -211,3 +229,12 @@ export interface CreateClientRequest {
 export type UpdateClientRequest = Partial<CreateClientRequest>;
 
 export type UpdateExpenseRequest = Partial<CreateExpenseRequest>;
+export interface CatalogOption<T extends string> {
+  value: T;
+  label: string;
+}
+
+export interface CatalogsResponse {
+  expenseCategories: CatalogOption<ExpenseCategory>[];
+  paymentMethods: CatalogOption<ExpensePaymentMethod>[];
+}
