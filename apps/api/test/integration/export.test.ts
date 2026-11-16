@@ -63,6 +63,21 @@ describe("GET /api/sales/export", () => {
     expect(totals.reduce((a, b) => a + b, 0)).toBe(1931);
   });
 
+  it("venta cancelada: fuera del CSV y del total de KPIs del mismo rango", async () => {
+    const a = await db.prisma.product.findFirstOrThrow({ where: { productCode: "A" } });
+    const cancelled = await db.prisma.sale.create({
+      data: { ticketNumber: "0000009", subtotal: 10, tax: 1.6, total: 11.6, paymentMethod: "CASH", status: "CANCELLED", createdAt: new Date("2026-10-20T12:00:00-06:00") },
+    });
+    await db.prisma.saleItem.create({ data: { saleId: cancelled.id, productId: a.id, quantity: 1, unitPrice: 10, subtotal: 10 } });
+
+    const rows = lines((await get(`/api/sales/export${OCT}`).expect(200)).text);
+    expect(rows).toHaveLength(4);
+    expect(rows.some((r) => r.startsWith("0000009,"))).toBe(false);
+    // La suma del CSV (1931 centavos, test anterior) es el ingreso del periodo en KPIs.
+    const kpis = await get(`/api/kpis/header${OCT}`).expect(200);
+    expect(kpis.body.current.totalSalesAmount).toBe(19.31);
+  });
+
   it("escapa fórmulas y comillas", async () => {
     const text = (await get(`/api/sales/export${OCT}`)).text;
     expect(text).toContain("'=CMD()");
