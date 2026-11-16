@@ -16,8 +16,8 @@ afterAll(() => db?.stop());
 
 beforeEach(async () => {
   await db.reset();
-  const user = await db.prisma.user.create({ data: { name: "C", lastname: "C", email: "c@c.mx", password: "x" } });
-  auth = `Bearer ${signToken({ userId: user.id })}`;
+  const user = await db.prisma.user.create({ data: { name: "C", lastname: "C", email: "c@c.mx", password: "x", role: "ADMIN" } });
+  auth = `Bearer ${signToken({ userId: user.id, role: "ADMIN" })}`;
 });
 
 const base = { name: "Café", productCode: "CAFE", price: 100, stock: 10 };

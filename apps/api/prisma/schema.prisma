@@ -19,11 +19,18 @@ model User {
   lastname    String
   email       String   @unique
   password    String   // hash
+  role        Role
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   sales       Sale[]
   stockMovements StockMovement[]
+}
+
+// Sin valor por defecto: cada alta elige su rol (POST /api/users o prisma/seed-admin.mjs).
+enum Role {
+  ADMIN
+  CASHIER
 }
 
 model Product {

@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { Role } from "@prisma/client";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -9,6 +10,7 @@ if (!JWT_SECRET) {
 
 export interface JwtPayload {
   userId: string;
+  role: Role;
 }
 
 export const signToken = (
@@ -16,5 +18,6 @@ export const signToken = (
   expiresIn: jwt.SignOptions["expiresIn"] = "7d"
 ) => jwt.sign(payload, JWT_SECRET, { algorithm: "HS256", expiresIn });
 
-export const verifyToken = (token: string): JwtPayload =>
-  jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }) as JwtPayload;
+// Tokens anteriores a los roles llegan sin `role`: el tipo lo admite para que el middleware los rechace.
+export const verifyToken = (token: string): Partial<JwtPayload> =>
+  jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }) as Partial<JwtPayload>;

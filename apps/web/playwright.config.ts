@@ -1,4 +1,5 @@
 import { defineConfig } from "@playwright/test";
+import { USER } from "./e2e/fixtures";
 
 // Puertos propios: no chocan con los dev servers (3000/4000) ni reutilizan su BD.
 const WEB_PORT = 3100;
@@ -29,6 +30,10 @@ export default defineConfig({
         BUSINESS_TIMEZONE: "America/Mexico_City",
         // http://localhost: la cookie de sesión sin Secure, igual que en desarrollo.
         COOKIE_SECURE: "false",
+        ADMIN_EMAIL: USER.email,
+        ADMIN_PASSWORD: USER.password,
+        ADMIN_NAME: USER.name,
+        ADMIN_LASTNAME: USER.lastname,
       },
       timeout: 180_000,
     },

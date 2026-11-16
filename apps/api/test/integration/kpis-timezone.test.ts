@@ -7,7 +7,7 @@ import { startMongo } from "./mongo";
 let db: Awaited<ReturnType<typeof startMongo>>;
 let app: any;
 // Token firmado con el reloj simulado: uno de hoy vencería en fechas futuras.
-const auth = () => `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011" })}`;
+const auth = () => `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011", role: "ADMIN" })}`;
 const get = (url: string) => request(app).get(url).set("Authorization", auth()).expect(200);
 const sale = (createdAt: string, total: number) =>
   db.prisma.sale.create({

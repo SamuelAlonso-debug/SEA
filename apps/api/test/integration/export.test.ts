@@ -5,7 +5,7 @@ import { startMongo } from "./mongo";
 
 let db: Awaited<ReturnType<typeof startMongo>>;
 let app: any;
-const auth = `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011" })}`;
+const auth = `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011", role: "ADMIN" })}`;
 const get = (url: string) => request(app).get(url).set("Authorization", auth);
 
 // Texto del CSV sin BOM, en líneas.

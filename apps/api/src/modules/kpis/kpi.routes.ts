@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../../shared/auth.middleware";
+import { authMiddleware, requireRole } from "../../shared/auth.middleware";
 import {
   getHeaderKpisHandler,
   getPaymentMethodKpisHandler,
@@ -11,7 +11,8 @@ import {
 
 const router = Router();
 
-router.use(authMiddleware);
+// KPIs: solo ADMIN (incluye los que se añadan a este router, p. ej. /profit de #87).
+router.use(authMiddleware, requireRole("ADMIN"));
 
 // Header: transacciones, ventas, tickets, productos vendidos del mes
 router.get("/header", getHeaderKpisHandler);

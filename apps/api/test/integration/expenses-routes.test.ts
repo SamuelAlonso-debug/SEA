@@ -4,7 +4,7 @@ import { signToken } from "../../src/shared/jwt";
 import { startMongo } from "./mongo";
 
 let db: Awaited<ReturnType<typeof startMongo>>;
-const auth = `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011" })}`;
+const auth = `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011", role: "ADMIN" })}`;
 
 beforeAll(async () => {
   db = await startMongo();

@@ -9,7 +9,7 @@ describe("jwt", () => {
   });
 
   it("verifica un token propio", () => {
-    expect(verifyToken(signToken({ userId: "u1" })).userId).toBe("u1");
+    expect(verifyToken(signToken({ userId: "u1", role: "CASHIER" })).userId).toBe("u1");
   });
 
   it("rechaza un token firmado con otro secreto", () => {

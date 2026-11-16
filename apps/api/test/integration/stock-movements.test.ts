@@ -20,9 +20,9 @@ afterAll(() => db?.stop());
 
 beforeEach(async () => {
   await db.reset();
-  const user = await prisma.user.create({ data: { name: "Ana", lastname: "Pérez", email: "a@a.mx", password: "x" } });
+  const user = await prisma.user.create({ data: { name: "Ana", lastname: "Pérez", email: "a@a.mx", password: "x", role: "ADMIN" } });
   userId = user.id;
-  auth = `Bearer ${signToken({ userId })}`;
+  auth = `Bearer ${signToken({ userId, role: "ADMIN" })}`;
 });
 
 const api = () => ({
