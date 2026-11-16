@@ -16,6 +16,7 @@ import {
 
 import { productsClient } from "@/features/inventory/api";
 import { StockEntry } from "@/features/inventory/stock-entry";
+import { StockMovements } from "@/features/inventory/stock-movements";
 import type { Product } from "@/types/api";
 
 // Umbral por defecto de productos sin minStock, igual que en el backend
@@ -59,6 +60,9 @@ export default function InventoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [movementsOf, setMovementsOf] = useState<string | null>(null);
+  const replaceProduct = (updated: Product) =>
+    setProducts((list) => list.map((x) => (x.id === updated.id ? updated : x)));
 
   useEffect(() => {
     const load = async () => {
@@ -79,6 +83,7 @@ export default function InventoryPage() {
 
   // Solo productos activos (puedes quitar el filtro si quieres ver todos)
   const activeProducts = products.filter((p) => p.isActive);
+  const selected = activeProducts.find((p) => p.id === movementsOf);
 
   const categoriesCount = new Set(
     activeProducts
@@ -307,12 +312,12 @@ export default function InventoryPage() {
                         </StatusBadge>
                       </TableCell>
                       <TableCell>
-                        <StockEntry
-                          product={p}
-                          onDone={(updated) =>
-                            setProducts((list) => list.map((x) => (x.id === updated.id ? updated : x)))
-                          }
-                        />
+                        <div className="flex flex-col items-start gap-1">
+                          <StockEntry product={p} onDone={replaceProduct} />
+                          <Button variant="outline" size="sm" className="h-7 text-[11px]" onClick={() => setMovementsOf(p.id)}>
+                            Movimientos
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -322,6 +327,11 @@ export default function InventoryPage() {
           </div>
         )}
       </section>
+
+      {/* Historial de stock del producto elegido; merma y ajuste se registran aquí */}
+      {selected && (
+        <StockMovements product={selected} onChange={replaceProduct} onClose={() => setMovementsOf(null)} />
+      )}
     </div>
   );
 }
