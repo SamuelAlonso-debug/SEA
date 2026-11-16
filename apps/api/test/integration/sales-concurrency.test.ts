@@ -31,7 +31,8 @@ const stockOf = async (productCode: string) =>
   (await prisma.product.findUnique({ where: { productCode } })).stock;
 const statuses = (res: { status: number }[]) => res.map((r) => r.status).sort();
 
-describe("POST /api/sales concurrente", () => {
+// 20 ventas simultáneas con transacción y reintentos (#162) superan los 5 s por defecto.
+describe("POST /api/sales concurrente", { timeout: 30_000 }, () => {
   it("stock 1 y dos ventas → un 201 y un 409", async () => {
     await product("A", 1);
     const res = await sellMany(2, "A");

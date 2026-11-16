@@ -23,6 +23,12 @@ BUSINESS_TIMEZONE="America/Mexico_City"  # IANA; día y mes de los KPIs
 ```bash
 # apps/web/.env.local
 NEXT_PUBLIC_API_URL="http://localhost:4000/api"
+# Datos del ticket (opcionales; se fijan al compilar)
+NEXT_PUBLIC_BUSINESS_NAME="Mi Negocio"
+NEXT_PUBLIC_BUSINESS_ADDRESS="Calle 1, Col. Centro, CDMX"
+NEXT_PUBLIC_BUSINESS_RFC="XAXX010101000"
+NEXT_PUBLIC_BUSINESS_PHONE="55 0000 0000"
+NEXT_PUBLIC_BUSINESS_FOOTER="Gracias por su compra"
 ```
 
 ```bash
