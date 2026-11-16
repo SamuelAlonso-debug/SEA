@@ -15,9 +15,11 @@ import {
   activateProduct,
   getProductByCode,
   addStock,
+  productExportRows,
   createMovement,
   listMovements,
 } from "./product.service";
+import { csvExport } from "../../shared/csv";
 import { present } from "./product.margin";
 import { z } from "zod";
 import multer from "multer";
@@ -98,3 +100,11 @@ export const importProductsHandler = (req: Request, res: Response) => {
     }
   });
 };
+
+// Catálogo con costo: sin filtros de rango, siempre el estado actual.
+export const exportProductsHandler = csvExport({
+  schema: z.object({}),
+  filename: () => "inventario.csv",
+  header: ["Código", "Producto", "Categoría", "Proveedor", "Precio", "Costo", "Stock", "Stock mínimo", "Activo"],
+  rows: () => productExportRows(),
+});

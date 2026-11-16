@@ -102,3 +102,7 @@ export function previousPeriod(period: Period): Period {
 // Variación porcentual a 2 decimales; null si el periodo anterior es 0.
 export const percentChange = (current: number, previous: number) =>
   previous === 0 ? null : Math.round(((current - previous) / previous) * 10_000) / 100;
+
+// "AAAA-MM-DD HH:mm" en hora del negocio (sv-SE ya usa ese orden), para CSV y reportes.
+const stampFormat = new Intl.DateTimeFormat("sv-SE", { timeZone: BUSINESS_TIMEZONE, dateStyle: "short", timeStyle: "short" });
+export const businessStamp = (date: Date) => stampFormat.format(date);

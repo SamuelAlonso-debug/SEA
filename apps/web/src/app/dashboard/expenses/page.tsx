@@ -9,6 +9,7 @@ import { KpiCard } from "@/features/dashboard/kpi-card";
 import { RangePicker, periodLabel } from "@/features/dashboard/range-picker";
 import type { PeriodQuery } from "@/types/api";
 import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/export-button";
 import {
   ExpensesTable,
   type ExpenseRow,
@@ -16,6 +17,7 @@ import {
 import {
   getExpenses,
   getExpensesKpis,
+  expensesClient,
   type ExpensesKpisResponse,
   type ExpenseDto,
 } from "@/features/expenses/api";
@@ -141,7 +143,10 @@ export default function ExpensesPage() {
         </p>
       </section>
 
-      <RangePicker value={period} onChange={setPeriod} />
+      <div className="flex flex-wrap items-end gap-3">
+        <RangePicker value={period} onChange={setPeriod} />
+        <ExportButton onExport={() => expensesClient.exportCsv(period)} />
+      </div>
 
       {/* KPIs superiores */}
       <section className="grid gap-4 md:grid-cols-2">

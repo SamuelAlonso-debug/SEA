@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import { cancelSaleSchema, createSaleSchema } from "./sale.schema";
-import { createSale, listSales, getSaleById, cancelSale, SaleError } from "./sale.service";
+import { createSale, listSales, getSaleById, cancelSale, SaleError, saleExportRows } from "./sale.service";
+import { csvExport } from "../../shared/csv";
+import { currentMonth } from "../../shared/business-time";
+import { periodQuerySchema } from "../kpis/kpi.schema";
 
 export const createSaleHandler = async (req: Request, res: Response) => {
   try {
@@ -52,6 +55,17 @@ export const getSaleHandler = async (req: Request, res: Response) => {
       .json({ message: error.message || "Venta no encontrada" });
   }
 };
+
+// Una fila por ítem. Sin ?from&to: mes en curso, igual que los KPIs.
+export const exportSalesHandler = csvExport({
+  schema: periodQuerySchema,
+  filename: (q) => {
+    const { from, to } = q.from && q.to ? { from: q.from, to: q.to } : currentMonth();
+    return `ventas_${from}_${to}.csv`;
+  },
+  header: ["Ticket", "Fecha", "Código", "Producto", "Cantidad", "Precio", "Subtotal", "IVA", "Total", "Método de pago", "Cliente", "Cajero"],
+  rows: (q) => saleExportRows(q.from && q.to ? { from: q.from, to: q.to } : currentMonth()),
+});
 
 export const cancelSaleHandler = async (req: Request, res: Response) => {
   const parsed = cancelSaleSchema.safeParse(req.body ?? {});
