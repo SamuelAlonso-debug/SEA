@@ -106,13 +106,15 @@ export default function SalesPage() {
   })();
 
   // --------- Totales (borrador vs venta confirmada) ----------
-  // Mismo cálculo que computeTotals en la API: precio sin IVA, centavos enteros.
-  const draftCents = items.reduce((acc, item) => acc + Math.round(item.unitPrice * 100) * item.quantity, 0);
-  const draftTaxCents = Math.round(draftCents * 0.16);
+  const draftSubtotal = items.reduce(
+    (acc, item) => acc + item.unitPrice * item.quantity * 0.84,
+    0
+  );
+  const draftTax = draftSubtotal * 0.16;
 
-  const subtotal = sale ? sale.subtotal : draftCents / 100;
-  const tax = sale ? sale.tax : draftTaxCents / 100;
-  const total = sale ? sale.total : (draftCents + draftTaxCents) / 100;
+  const subtotal = sale ? sale.subtotal : draftSubtotal;
+  const tax = sale ? sale.tax : draftTax;
+  const total = sale ? sale.total : subtotal;
 
   const subtotalLabel = formatCurrency(subtotal || 0);
   const taxLabel = formatCurrency(tax || 0);
