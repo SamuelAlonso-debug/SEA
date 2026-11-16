@@ -26,7 +26,7 @@ beforeEach(async () => {
 const api = (method: "get" | "post" | "delete" | "patch", url: string) =>
   request(app)[method](`/api${url}`).set("Authorization", auth);
 const sell = () =>
-  api("post", "/sales").send({ items: [{ productCode: "AA", quantity: 1 }], paymentMethod: "CASH", clientId });
+  api("post", "/sales").send({ items: [{ productCode: "AA", quantity: 1 }], payments: [{ method: "CASH", amount: 11.6 }], clientId });
 const listedIds = async (query = "") => (await api("get", `/clients${query}`).expect(200)).body.data.map((c: any) => c.id);
 
 describe("baja lógica de clientes", () => {

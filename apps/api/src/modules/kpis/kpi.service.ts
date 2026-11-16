@@ -1,5 +1,6 @@
 import prisma from "../../shared/prisma";
 import { businessRanges, Range } from "../../shared/business-time";
+import { salePayments, toCents } from "../sales/sale.payments";
 import {
   HeaderKpisDto,
   PaymentMethodKpiDto,
@@ -61,22 +62,23 @@ export const getPaymentMethodKpis = async (range: Range): Promise<
         lt: startOfNextMonth,
       },
     },
+    select: { paymentMethod: true, total: true, payments: true },
   });
 
-  const map = new Map<string, { total: number; count: number }>();
+  // Se suma por pago (una venta mixta aporta a varios métodos), en centavos enteros.
+  const map = new Map<string, { cents: number; count: number }>();
 
-  for (const sale of sales) {
-    const key = sale.paymentMethod; // CASH, CARD, etc
-    const current = map.get(key) ?? { total: 0, count: 0 };
-    current.total += sale.total;
+  for (const payment of sales.flatMap(salePayments)) {
+    const current = map.get(payment.method) ?? { cents: 0, count: 0 };
+    current.cents += toCents(payment.amount);
     current.count += 1;
-    map.set(key, current);
+    map.set(payment.method, current);
   }
 
   const result: PaymentMethodKpiDto[] = Array.from(map.entries()).map(
     ([paymentMethod, value]) => ({
       paymentMethod,
-      totalSalesAmount: value.total,
+      totalSalesAmount: value.cents / 100,
       count: value.count,
     })
   );

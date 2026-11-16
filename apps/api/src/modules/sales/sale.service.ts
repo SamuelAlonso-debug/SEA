@@ -1,8 +1,8 @@
 import prisma from "../../shared/prisma";
 import { CreateSaleInput } from "./sale.schema";
 import { SaleDto, SaleItemDto } from "./sale.dto";
-import { PaymentMethod } from "@prisma/client";
 import { computeTotals } from "./sale.totals";
+import { mainPaymentMethod, salePayments, settlePayments, toCents } from "./sale.payments";
 import { withRetry } from "../../shared/with-retry";
 
 // Mapea el objeto de Prisma (con items + product) a nuestro DTO
@@ -16,6 +16,7 @@ function mapSaleToDto(sale: any): SaleDto {
     unitPrice: i.unitPrice,
     subtotal: i.subtotal,
   }));
+  const payments = salePayments(sale);
 
   return {
     id: sale.id,
@@ -26,6 +27,8 @@ function mapSaleToDto(sale: any): SaleDto {
     tax: sale.tax,
     total: sale.total,
     paymentMethod: sale.paymentMethod,
+    payments,
+    change: payments.reduce((sum, p) => sum + toCents(p.change ?? 0), 0) / 100,
     notes: sale.notes,
     clientId: sale.clientId ?? null,
     clientName: sale.client ? `${sale.client.name} ${sale.client.lastname}` : null,
@@ -101,6 +104,8 @@ export const createSale = async (
     }
 
     const { subtotal, tax, total } = computeTotals(saleItemsToCreate);
+    // Si no cuadra, la transacción se aborta y el stock descontado vuelve.
+    const payments = settlePayments(data.payments, total);
     const ticketNumber = await generateNextTicketNumber(tx);
 
     // Construimos el data aparte para evitar problemas con exactOptionalPropertyTypes
@@ -109,7 +114,8 @@ export const createSale = async (
       subtotal,
       tax,
       total,
-      paymentMethod: data.paymentMethod as PaymentMethod,
+      paymentMethod: mainPaymentMethod(payments),
+      payments,
       notes: data.notes ?? null,
       items: {
         create: saleItemsToCreate,

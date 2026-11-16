@@ -24,7 +24,7 @@ beforeEach(async () => {
 const product = (productCode: string, stock: number, isActive = true) =>
   prisma.product.create({ data: { name: `Prod ${productCode}`, productCode, price: 10, stock, isActive } });
 const sell = (items: object[]) =>
-  request(app).post("/api/sales").set("Authorization", auth).send({ items, paymentMethod: "CASH" });
+  request(app).post("/api/sales").set("Authorization", auth).send({ items, payments: [{ method: "CASH", amount: 11.6 }] });
 const sellMany = (n: number, productCode: string) =>
   Promise.all(Array.from({ length: n }, () => sell([{ productCode, quantity: 1 }])));
 const stockOf = async (productCode: string) =>

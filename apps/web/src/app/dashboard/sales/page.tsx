@@ -6,19 +6,9 @@ import { useState, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { salesClient } from "@/features/sales/api";
+import { PaymentDialog } from "@/features/sales/payment-dialog";
 import { productsClient } from "@/features/inventory/api";
-import type { Sale, PaymentMethod } from "@/types/api";
-
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import type { Sale, PaymentMethod, SalePaymentInput } from "@/types/api";
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("es-MX", {
@@ -56,7 +46,6 @@ export default function SalesPage() {
   const [loadingSale, setLoadingSale] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingMethod, setPendingMethod] = useState<PaymentMethod | null>(
     null
   );
@@ -207,20 +196,17 @@ export default function SalesPage() {
     }
 
     setPendingMethod(method);
-    setConfirmOpen(true);
   };
 
   // --------- Confirmar venta (llamar API) ----------
-  const handleConfirmSale = async () => {
-    if (!pendingMethod) return;
-
+  const handleConfirmSale = async (payments: SalePaymentInput[]) => {
     try {
       setLoadingSale(true);
       setError(null);
 
       // Creamos la venta en el backend con todos los productos del ticket
       await salesClient.create({
-        paymentMethod: pendingMethod,
+        payments,
         items: items.map((i) => ({
           productCode: i.productCode,
           quantity: i.quantity,
@@ -234,7 +220,6 @@ export default function SalesPage() {
       setError(errorMessage(err, "Error al registrar la venta."));
     } finally {
       setLoadingSale(false);
-      setConfirmOpen(false);
       setPendingMethod(null);
     }
   };
@@ -420,40 +405,30 @@ export default function SalesPage() {
                 >
                   Pago Tarjeta
                 </Button>
+                <Button
+                  variant="outline"
+                  className="h-11 rounded-lg text-xs font-semibold"
+                  onClick={() => handleOpenConfirm("TRANSFER")}
+                  disabled={loadingScan || loadingSale || items.length === 0}
+                >
+                  Pago Transferencia
+                </Button>
               </div>
             </div>
           </div>
         </section>
       </div>
 
-      {/* Ventana emergente de confirmación */}
-      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar venta</AlertDialogTitle>
-            <AlertDialogDescription>
-              ¿Deseas registrar esta venta{" "}
-              {pendingMethod === "CASH" ? "en efectivo" : "con tarjeta"} por un
-              total de{" "}
-              <span className="font-semibold">
-                {totalLabel}
-              </span>
-              ?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={loadingSale}>
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={loadingSale}
-              onClick={handleConfirmSale}
-            >
-              {loadingSale ? "Guardando..." : "Confirmar venta"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Captura de pagos: uno o varios métodos y cambio en efectivo */}
+      {pendingMethod && (
+        <PaymentDialog
+          total={total}
+          initialMethod={pendingMethod}
+          loading={loadingSale}
+          onCancel={() => setPendingMethod(null)}
+          onConfirm={handleConfirmSale}
+        />
+      )}
     </>
   );
 }

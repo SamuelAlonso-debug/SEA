@@ -9,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { EXPENSE_PAYMENT_METHOD_LABELS } from "@/features/expenses/expense-categories";
 
 type PaymentMethodKpi = {
   paymentMethod: string;
@@ -23,17 +24,15 @@ interface PaymentMethodsChartProps {
 const COLORS: Record<string, string> = {
   CASH: "#17C964", // Efectivo
   CARD: "#1A2D4D", // Tarjeta
+  TRANSFER: "#F5A524", // Transferencia
 };
 
 export function PaymentMethodsChart({ data }: PaymentMethodsChartProps) {
   const formatted = data.map((item) => ({
     ...item,
     label:
-      item.paymentMethod === "CASH"
-        ? "Efectivo"
-        : item.paymentMethod === "CARD"
-        ? "Tarjeta"
-        : item.paymentMethod,
+      EXPENSE_PAYMENT_METHOD_LABELS[item.paymentMethod as keyof typeof EXPENSE_PAYMENT_METHOD_LABELS] ??
+      item.paymentMethod,
   }));
 
   return (

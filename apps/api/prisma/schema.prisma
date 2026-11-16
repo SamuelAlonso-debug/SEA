@@ -48,7 +48,16 @@ model Product {
 enum PaymentMethod {
   CASH     // Pago Efectivo
   CARD     // Pago Tarjeta
-  TRANSFER // Transferencia (gastos; ventas en #82)
+  TRANSFER // Transferencia
+}
+
+// Un pago de la venta; received y change solo en efectivo.
+type SalePayment {
+  method    PaymentMethod
+  amount    Float
+  received  Float?  // efectivo entregado por el cliente
+  change    Float?  // received - amount
+  reference String? // folio de transferencia o voucher
 }
 
 model Sale {
@@ -61,7 +70,8 @@ model Sale {
   tax          Float          // IVA calculado
   total        Float          // subtotal + tax
 
-  paymentMethod PaymentMethod // efectivo / tarjeta
+  paymentMethod PaymentMethod // método del pago mayor: resumen para lecturas previas a #82
+  payments     SalePayment[]  // vacío en ventas previas a #82: cuentan como un pago de paymentMethod por el total
 
   userId       String?        @db.ObjectId
   user         User?          @relation(fields: [userId], references: [id])

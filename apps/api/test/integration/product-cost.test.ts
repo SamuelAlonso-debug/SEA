@@ -33,7 +33,7 @@ describe("costo y margen", () => {
     await request(app)
       .post("/api/sales")
       .set("Authorization", auth)
-      .send({ items: [{ productCode: "CAFE", quantity: 1 }], paymentMethod: "CASH" })
+      .send({ items: [{ productCode: "CAFE", quantity: 1 }], payments: [{ method: "CASH", amount: 116 }] })
       .expect(201);
 
     expect((await update(p.body.id, { cost: 70 }).expect(200)).body).toMatchObject({ margin: 30 });

@@ -3,7 +3,7 @@
 
 import { apiClient } from "@/lib/api-client";
 import { getToken } from "@/features/auth/api";
-import type { Sale, PaymentMethod } from "@/types/api";
+import type { Sale, SalePaymentInput } from "@/types/api";
 
 function withToken() {
   return { token: getToken() };
@@ -12,7 +12,7 @@ function withToken() {
 export const salesClient = {
   // POST /api/sales
   create: (data: {
-    paymentMethod: PaymentMethod;
+    payments: SalePaymentInput[];
     items: { productCode: string; quantity: number }[];
     notes?: string | null;
   }) =>
