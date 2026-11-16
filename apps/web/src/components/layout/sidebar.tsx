@@ -2,11 +2,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { mainNav } from "@/config/navigation";
+import { canAccess, mainNav } from "@/config/navigation";
+import { useSession } from "@/features/auth/auth-guard";
 import { cn } from "@/lib/utils";
 
 export function Sidebar() {
     const pathname = usePathname();
+    const { user } = useSession();
+    // Solo las secciones que el rol puede abrir.
+    const nav = mainNav.filter((item) => user && canAccess(item.href, user.role));
 
     return (
         <aside className="flex h-screen w-64 flex-col border-r border-border bg-secondary">
@@ -31,7 +35,7 @@ export function Sidebar() {
 
             {/* Navegación */}
             <nav className="mt-4 flex flex-1 flex-col gap-1 px-3">
-                {mainNav.map((item) => {
+                {nav.map((item) => {
                     const isActive =
                         item.active && pathname.startsWith(item.href) && item.href !== "#";
 

@@ -13,6 +13,7 @@ import { productsClient } from "@/features/inventory/api";
 import { ExportButton } from "@/components/export-button";
 import { RangePicker } from "@/features/dashboard/range-picker";
 import { useCatalogs } from "@/features/catalogs/use-catalogs";
+import { useSession } from "@/features/auth/auth-guard";
 import type { Sale, PaymentMethod, SalePaymentInput, PeriodQuery } from "@/types/api";
 
 const formatCurrency = (value: number) =>
@@ -39,6 +40,8 @@ type DetailItem = {
 export default function SalesPage() {
   const [exportPeriod, setExportPeriod] = useState<PeriodQuery | null>(null);
   const { paymentMethodLabel } = useCatalogs();
+  // Exportar y cancelar ventas son de ADMIN (la API responde 403 a CASHIER).
+  const isAdmin = useSession().user?.role === "ADMIN";
   const [productCode, setProductCode] = useState("");
   const [quantity, setQuantity] = useState<string>("1");
 
@@ -258,10 +261,12 @@ export default function SalesPage() {
             <h1 className="text-2xl font-extrabold text-foreground">Ventas</h1>
             <p className="text-xs text-muted-foreground">Venta de productos</p>
           </div>
-          <div className="flex flex-wrap items-end gap-3">
-            <RangePicker value={exportPeriod} onChange={setExportPeriod} />
-            <ExportButton onExport={() => salesClient.exportCsv(exportPeriod)} />
-          </div>
+          {isAdmin && (
+            <div className="flex flex-wrap items-end gap-3">
+              <RangePicker value={exportPeriod} onChange={setExportPeriod} />
+              <ExportButton onExport={() => salesClient.exportCsv(exportPeriod)} />
+            </div>
+          )}
         </section>
 
         {/* Contenedor principal */}

@@ -107,15 +107,9 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        {/* Link a registro */}
+        {/* Sin registro público: las cuentas las da de alta un administrador */}
         <p className="text-[11px] text-muted-foreground">
-          ¿Aún no tienes cuenta?{" "}
-          <Link
-            href="/auth/register"
-            className="font-semibold text-primary hover:text-primary/80"
-          >
-            Crear cuenta
-          </Link>
+          ¿No tienes cuenta? Pídela al administrador del negocio.
         </p>
       </div>
     </AuthLayout>

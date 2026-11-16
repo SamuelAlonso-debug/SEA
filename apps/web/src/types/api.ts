@@ -11,11 +11,14 @@ export interface SalePayment {
 
 export type SalePaymentInput = Pick<SalePayment, "method" | "amount"> & { received?: number; reference?: string };
 
+export type Role = "ADMIN" | "CASHIER";
+
 export interface User {
   id: string;
   name: string;
   lastname: string;
   email: string;
+  role: Role;
   createdAt: string;
   updatedAt: string;
 }
