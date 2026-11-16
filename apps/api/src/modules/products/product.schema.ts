@@ -86,10 +86,6 @@ export const updateProductSchema = createProductSchema
     isActive: z.boolean().optional(),
   }) satisfies z.ZodType<UpdateProductDto>;
 
-export const activateProductSchema = z.object({
-  params: z.object({ id: z.string().regex(/^[a-f0-9]{24}$/i, "ID inválido") }),
-});
-
 const STOCK_QTY_MSG = "La cantidad debe ser un entero mayor a 0";
 
 export const stockEntrySchema = z.object({
@@ -98,7 +94,6 @@ export const stockEntrySchema = z.object({
 });
 
 // Los servicios reciben los DTOs de product.dto; estos tipos son los del controlador.
-export type ActivateProductInput = z.infer<typeof activateProductSchema>["params"];
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type StockEntryInput = z.infer<typeof stockEntrySchema>;

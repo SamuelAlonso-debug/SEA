@@ -10,8 +10,11 @@ import {
   addStockHandler,
 } from "./product.controller";
 import { authMiddleware } from "../../shared/auth.middleware";
+import { validateId } from "../../shared/error-handler";
 
 const router = Router();
+
+router.param("id", validateId);
 
 // Todas las rutas protegidas
 router.use(authMiddleware);

@@ -62,7 +62,7 @@ describe("correo de clientes", () => {
     [{ ...base, phone: "123" }, "phone", "El teléfono es demasiado corto"],
   ])("400 en %j", async (body, path, message) => {
     const res = await create(body).expect(400);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path: [path], message }));
+    expect(res.body.issues).toContainEqual(expect.objectContaining({ path, message }));
     expect(JSON.stringify(res.body)).not.toMatch(/prisma/i);
   });
 });
