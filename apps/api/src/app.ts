@@ -9,8 +9,10 @@ import saleRouter from "./modules/sales/sale.routes";
 import kpiRouter from "./modules/kpis/kpi.routes";
 import expenseRouter from "./modules/expenses/expense.routes";
 import clientRouter from "./modules/clients/client.routes";
+import catalogRouter from "./modules/catalogs/catalog.routes";
 import prisma from "./shared/prisma";
 import { SESSION_COOKIE } from "./shared/auth.middleware";
+import { errorHandler, routeNotFound } from "./shared/error-handler";
 
 const app = express();
 
@@ -59,5 +61,10 @@ app.use("/api/sales", saleRouter);
 app.use("/api/kpis", kpiRouter);
 app.use("/api/expenses", expenseRouter);
 app.use("/api/clients", clientRouter);
+app.use("/api/catalogs", catalogRouter);
+
+// Siempre al final: lo que ninguna ruta atendió y los errores de todas.
+app.use(routeNotFound);
+app.use(errorHandler);
 
 export default app;

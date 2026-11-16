@@ -22,4 +22,8 @@ export const salesClient = {
   // GET /api/sales/:id
   getById: (id: string) =>
     apiClient.get<Sale>(`/sales/${id}`),
+
+  // POST /api/sales/:id/cancel
+  cancel: (id: string, reason: string) =>
+    apiClient.post<Sale>(`/sales/${id}/cancel`, { body: { reason } }),
 };

@@ -1,17 +1,12 @@
 import prisma from "../../shared/prisma";
-import {
-  StockEntryInput,
-} from "./product.schema";
+import { MovementsQueryInput, StockEntryInput, StockMovementInput } from "./product.schema";
 import { CreateProductDto, ProductDto, UpdateProductDto } from "./product.dto";
-import { Prisma } from "@prisma/client";
+import { Prisma, StockMovementType } from "@prisma/client";
+import { withRetry } from "../../shared/with-retry";
+import { ConflictError, NotFoundError } from "../../shared/errors";
 
-export class ProductError extends Error {
-  constructor(public status: number, message: string) {
-    super(message);
-  }
-}
-
-const codeTaken = (code: string) => new ProductError(409, `Ya existe un producto con el código ${code}`);
+const NOT_FOUND = "Producto no encontrado";
+const codeTaken = (code: string) => new ConflictError(`Ya existe un producto con el código ${code}`);
 
 // P2002: alta o edición simultánea con el mismo código; el índice único decide.
 const rethrowCodeTaken = (code: string | undefined) => (error: any) => {
@@ -19,7 +14,8 @@ const rethrowCodeTaken = (code: string | undefined) => (error: any) => {
 };
 
 export const createProduct = async (
-  data: CreateProductDto
+  data: CreateProductDto,
+  userId?: string
 ): Promise<ProductDto> => {
   // Un alta duplicada no toca stock ni precio: la entrada de stock va por addStock.
   if (await prisma.product.findUnique({ where: { productCode: data.productCode } })) {
@@ -38,19 +34,62 @@ export const createProduct = async (
         provider: data.provider ?? null,
         imageUrl: data.imageUrl ?? null,
         ...(data.minStock !== undefined && { minStock: data.minStock }),
+        // El stock del alta también deja movimiento: la suma de movimientos = stock.
+        ...(data.stock > 0 && {
+          movements: {
+            create: { type: "ADJUSTMENT", quantity: data.stock, stockAfter: data.stock, reason: "Stock inicial", userId: userId ?? null },
+          },
+        }),
       },
     })
     .catch(rethrowCodeTaken(data.productCode));
 };
 
-// Incremento atómico ($inc): entradas simultáneas no se pisan.
-export const addStock = async (id: string, data: StockEntryInput): Promise<ProductDto> => {
-  const { count } = await prisma.product.updateMany({
-    where: { id },
-    data: { stock: { increment: data.quantity } },
-  });
-  if (count === 0) throw new ProductError(404, "Producto no encontrado");
-  return getProductById(id);
+type Movement = { type: StockMovementType; quantity: number; reason?: string | undefined; userId?: string | undefined };
+
+// Aplica la cantidad (con signo) y registra el movimiento en la misma transacción. El descuento
+// es condicional: nunca deja stock negativo. Cambios simultáneos chocan (P2034) y withRetry reintenta,
+// así cada movimiento guarda su propio stockAfter.
+const moveStock = (productId: string, { reason, userId, ...movement }: Movement) =>
+  withRetry(() =>
+    prisma.$transaction(async (tx) => {
+      const { count } = await tx.product.updateMany({
+        where: { id: productId, ...(movement.quantity < 0 && { stock: { gte: -movement.quantity } }) },
+        data: { stock: { increment: movement.quantity } },
+      });
+      const product = await tx.product.findUnique({ where: { id: productId } });
+      if (!product) throw new NotFoundError(NOT_FOUND);
+      if (count === 0) throw new ConflictError(`Stock insuficiente: disponible ${product.stock}`);
+      await tx.stockMovement.create({
+        data: { productId, ...movement, stockAfter: product.stock, reason: reason ?? null, userId: userId ?? null },
+      });
+      return product;
+    })
+  );
+
+export const addStock = (id: string, data: StockEntryInput, userId?: string): Promise<ProductDto> =>
+  moveStock(id, { type: "PURCHASE", ...data, userId });
+
+export const createMovement = (id: string, data: StockMovementInput, userId?: string): Promise<ProductDto> =>
+  moveStock(id, { ...data, userId });
+
+export const listMovements = async (productId: string, { page, pageSize }: MovementsQueryInput) => {
+  if (!(await prisma.product.findUnique({ where: { id: productId } }))) {
+    throw new NotFoundError(NOT_FOUND);
+  }
+  const where = { productId };
+  const [total, movements] = await Promise.all([
+    prisma.stockMovement.count({ where }),
+    prisma.stockMovement.findMany({
+      where,
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      include: { user: { select: { name: true, lastname: true } } },
+    }),
+  ]);
+  const data = movements.map(({ user, ...m }) => ({ ...m, userName: user ? `${user.name} ${user.lastname}` : null }));
+  return { data, total, page, pageSize };
 };
 
 export const listProducts = async (): Promise<ProductDto[]> => {
@@ -66,7 +105,7 @@ export const getProductById = async (id: string): Promise<ProductDto> => {
   });
 
   if (!product) {
-    throw new Error("Producto no encontrado");
+    throw new NotFoundError(NOT_FOUND);
   }
 
   return product;
@@ -105,10 +144,6 @@ export const updateProduct = async (
     updateData.cost = data.cost;
   }
 
-  if (data.stock !== undefined) {
-    updateData.stock = data.stock;
-  }
-
   if (data.provider !== undefined) {
     updateData.provider = data.provider ?? null;
   }
@@ -133,20 +168,17 @@ export const updateProduct = async (
   return updated;
 };
 
-export const deleteProduct = async (id: string): Promise<ProductDto> => {
-  const updated = await prisma.product.update({
-    where: { id },
-    data: { isActive: false },
+// P2025: el producto no existe.
+export const deleteProduct = (id: string): Promise<ProductDto> =>
+  prisma.product.update({ where: { id }, data: { isActive: false } }).catch((error) => {
+    throw error?.code === "P2025" ? new NotFoundError(NOT_FOUND) : error;
   });
-
-  return updated;
-};
 
 export const activateProduct = async (id: string): Promise<ProductDto> => {
   const product = await prisma.product.findUnique({ where: { id } });
 
   if (!product) {
-    throw new Error("Producto no encontrado");
+    throw new NotFoundError(NOT_FOUND);
   }
 
   if (product.isActive) {
@@ -171,7 +203,7 @@ export const getProductByCode = async (
   });
 
   if (!product) {
-    throw new Error("Producto no encontrado");
+    throw new NotFoundError(NOT_FOUND);
   }
 
   return product;

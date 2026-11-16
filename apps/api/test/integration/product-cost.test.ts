@@ -63,6 +63,6 @@ describe("costo y margen", () => {
     [{ ...base, cost: "diez" }, "El costo debe ser un número"],
   ])("400 con %j", async (body, message) => {
     const res = await create(body).expect(400);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path: ["cost"], message }));
+    expect(res.body.issues).toContainEqual(expect.objectContaining({ path: "cost", message }));
   });
 });

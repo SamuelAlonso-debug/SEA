@@ -15,7 +15,7 @@ export async function startMongo() {
     prisma,
     // Hijos antes que padres: Prisma emula las relaciones en Mongo.
     reset: async () => {
-      for (const model of ["saleItem", "sale", "counter", "product", "client", "expense", "user"]) {
+      for (const model of ["stockMovement", "saleItem", "sale", "counter", "product", "client", "expense", "user"]) {
         await (prisma as any)[model].deleteMany();
       }
     },
