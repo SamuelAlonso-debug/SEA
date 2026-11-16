@@ -7,7 +7,7 @@ import { Search } from "lucide-react";
 
 import { KpiCard } from "@/features/dashboard/kpi-card";
 import { RangePicker, periodLabel } from "@/features/dashboard/range-picker";
-import type { Period } from "@/types/api";
+import type { PeriodQuery } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import {
   ExpensesTable,
@@ -47,7 +47,7 @@ export default function ExpensesPage() {
   const [pageSize] = useState(10);
 
   const [kpis, setKpis] = useState<ExpensesKpisResponse | null>(null);
-  const [period, setPeriod] = useState<Period | null>(null);
+  const [period, setPeriod] = useState<PeriodQuery | null>(null);
   const [kpisChange, setKpisChange] = useState<Record<string, number | null>>({});
 
   const [loadingList, setLoadingList] = useState(true);

@@ -4,6 +4,7 @@ import {
   UpdateClientInput,
   ListClientsQueryInput,
 } from "./client.schema";
+import { ClientSortByEnum } from "./client.enums";
 import {
   ClientDto,
   ClientListResult,
@@ -31,6 +32,7 @@ export const listClients = async ({
   page,
   pageSize,
   includeInactive,
+  sortBy,
 }: ListClientsQueryInput): Promise<ClientListResult> => {
   const where: any = {};
 
@@ -51,7 +53,7 @@ export const listClients = async ({
 
   const data = await prisma.client.findMany({
     where,
-    orderBy: { createdAt: "desc" },
+    orderBy: sortBy === ClientSortByEnum.NAME ? [{ name: "asc" }, { lastname: "asc" }] : { createdAt: "desc" },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });

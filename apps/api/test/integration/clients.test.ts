@@ -66,3 +66,40 @@ describe("correo de clientes", () => {
     expect(JSON.stringify(res.body)).not.toMatch(/prisma/i);
   });
 });
+
+describe("orden del listado", () => {
+  const list = async (query = "") =>
+    (await request(app).get(`/api/clients${query}`).set("Authorization", auth).expect(200)).body.data.map(
+      (c: any) => `${c.name} ${c.lastname}`,
+    );
+
+  beforeEach(async () => {
+    // Altas en orden distinto al alfabético para distinguir ambos criterios.
+    for (const [name, lastname] of [["Luis", "Zamora"], ["Ana", "Soto"], ["Ana", "Pérez"]]) {
+      await db.prisma.client.create({ data: { name, lastname, phone: "4421234567" } });
+      await new Promise((r) => setTimeout(r, 5));
+    }
+  });
+
+  it("sin sortBy o CREATED_AT → más reciente primero", async () => {
+    const recent = ["Ana Pérez", "Ana Soto", "Luis Zamora"];
+    expect(await list()).toEqual(recent);
+    expect(await list("?sortBy=CREATED_AT")).toEqual(recent);
+  });
+
+  it("NAME → nombre y apellido ascendente, con search e includeInactive", async () => {
+    expect(await list("?sortBy=NAME")).toEqual(["Ana Pérez", "Ana Soto", "Luis Zamora"]);
+    expect(await list("?sortBy=NAME&search=ana")).toEqual(["Ana Pérez", "Ana Soto"]);
+    const luis = await db.prisma.client.findFirstOrThrow({ where: { name: "Luis" } });
+    await db.prisma.client.update({ where: { id: luis.id }, data: { isActive: false } });
+    expect(await list("?sortBy=NAME")).toEqual(["Ana Pérez", "Ana Soto"]);
+    expect(await list("?sortBy=NAME&includeInactive=true")).toEqual(["Ana Pérez", "Ana Soto", "Luis Zamora"]);
+  });
+
+  it("sortBy inválido → 400 con path y mensaje", async () => {
+    const res = await request(app).get("/api/clients?sortBy=PHONE").set("Authorization", auth).expect(400);
+    expect(res.body.errors).toContainEqual(
+      expect.objectContaining({ path: ["sortBy"], message: 'Opción inválida: se esperaba una de "CREATED_AT" o "NAME"' }),
+    );
+  });
+});
