@@ -19,10 +19,7 @@ import {
   type ExpensesKpisResponse,
   type ExpenseDto,
 } from "@/features/expenses/api";
-import {
-  EXPENSE_CATEGORY_LABELS,
-  EXPENSE_PAYMENT_METHOD_LABELS,
-} from "@/features/expenses/expense-categories";
+import { useCatalogs } from "@/features/catalogs/use-catalogs";
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -41,6 +38,7 @@ const formatCurrency = (value: number) =>
   }).format(value);
 
 export default function ExpensesPage() {
+  const { categoryLabel, paymentMethodLabel } = useCatalogs();
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -72,9 +70,9 @@ export default function ExpensesPage() {
         const rows: ExpenseRow[] = resp.data.map((e: ExpenseDto) => ({
           id: e.id,
           date: formatDate(e.date),
-          category: EXPENSE_CATEGORY_LABELS[e.category] ?? e.category,
+          category: e.category,
           concept: e.concept,
-          paymentMethod: EXPENSE_PAYMENT_METHOD_LABELS[e.paymentMethod] ?? e.paymentMethod,
+          paymentMethod: e.paymentMethod,
           amount: e.amount,
         }));
 
@@ -114,18 +112,24 @@ export default function ExpensesPage() {
 
   // Filtro de búsqueda (client-side sobre la página actual)
   const filteredExpenses = useMemo(() => {
-    if (!searchTerm.trim()) return expenses;
+    // Las filas guardan el valor del enum; la etiqueta se resuelve al pintar para no depender del orden de carga del catálogo.
+    const labeled = expenses.map((e) => ({
+      ...e,
+      category: categoryLabel(e.category),
+      paymentMethod: paymentMethodLabel(e.paymentMethod),
+    }));
+    if (!searchTerm.trim()) return labeled;
 
     const term = searchTerm.toLowerCase();
 
-    return expenses.filter((e) => {
+    return labeled.filter((e) => {
       return (
         e.concept.toLowerCase().includes(term) ||
         e.category.toLowerCase().includes(term) ||
         e.paymentMethod.toLowerCase().includes(term)
       );
     });
-  }, [expenses, searchTerm]);
+  }, [expenses, searchTerm, categoryLabel, paymentMethodLabel]);
 
   return (
     <div className="flex flex-col gap-6">
