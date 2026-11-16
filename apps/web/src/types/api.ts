@@ -123,6 +123,18 @@ export interface SummaryKpis {
   todaySalesCount: number;
 }
 
+// Utilidad del periodo; montos sin IVA
+export interface ProfitKpis {
+  netSales: number;
+  costOfGoodsSold: number;
+  grossProfit: number;
+  expenses: number;
+  netProfit: number;
+  marginPct: number | null;
+  itemsWithoutCost: number;
+  warnings: string[];
+}
+
 export type ExpenseCategory =
   | "service"
   | "merchandise"
