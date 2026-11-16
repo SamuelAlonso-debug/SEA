@@ -16,7 +16,8 @@ import {
   getMonthlyExpenseKpis,
   expenseExportRows,
 } from "./expense.service";
-import { comparedKpi, numericChange, periodOf } from "../../shared/period";
+import { comparedKpi, numericChange } from "../../shared/period";
+import { currentMonth } from "../../shared/business-time";
 import { periodQuerySchema } from "../kpis/kpi.schema";
 import { csvExport } from "../../shared/csv";
 import { z } from "zod";
@@ -142,11 +143,11 @@ export const deleteExpenseHandler = async (req: Request, res: Response) => {
 export const exportExpensesHandler = csvExport({
   schema: z.intersection(periodQuerySchema, exportCategorySchema),
   filename: (q) => {
-    const { from, to } = periodOf(q);
+    const { from, to } = q.from && q.to ? { from: q.from, to: q.to } : currentMonth();
     return `gastos_${from}_${to}.csv`;
   },
   header: ["Fecha", "Concepto", "Categoría", "Monto", "Método de pago", "Proveedor", "Notas"],
-  rows: (q) => expenseExportRows(periodOf(q), q.category as ExpenseCategory | undefined),
+  rows: (q) => expenseExportRows(q.from && q.to ? { from: q.from, to: q.to } : currentMonth(), q.category as ExpenseCategory | undefined),
 });
 
 // Mismo 400 que /api/kpis/*: Zod agrupa las claves desconocidas en una issue y la expandimos a una

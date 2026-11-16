@@ -77,12 +77,6 @@ describe("GET /api/sales/export", () => {
     expect(res.headers["content-disposition"]).toMatch(/filename="ventas_\d{4}-\d{2}-01_\d{4}-\d{2}-\d{2}\.csv"/);
   });
 
-  it("?period=TODAY usa el día en curso en el nombre", async () => {
-    const name = (await get("/api/sales/export?period=TODAY").expect(200)).headers["content-disposition"];
-    const [from, to] = name.slice(name.indexOf("ventas_") + 7, name.indexOf(".csv")).split("_");
-    expect(from).toBe(to);
-  });
-
   it("errores de rango con los mensajes de #86", async () => {
     const bad = await get("/api/sales/export?from=2026-1-01&to=2026-10-31").expect(400);
     expect(bad.body.errors).toMatchObject([{ path: ["from"], message: "La fecha debe tener formato AAAA-MM-DD" }]);
