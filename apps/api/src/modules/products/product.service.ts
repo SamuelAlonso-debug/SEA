@@ -3,14 +3,10 @@ import { MovementsQueryInput, StockEntryInput, StockMovementInput } from "./prod
 import { CreateProductDto, ProductDto, UpdateProductDto } from "./product.dto";
 import { Prisma, StockMovementType } from "@prisma/client";
 import { withRetry } from "../../shared/with-retry";
+import { ConflictError, NotFoundError } from "../../shared/errors";
 
-export class ProductError extends Error {
-  constructor(public status: number, message: string) {
-    super(message);
-  }
-}
-
-const codeTaken = (code: string) => new ProductError(409, `Ya existe un producto con el código ${code}`);
+const NOT_FOUND = "Producto no encontrado";
+const codeTaken = (code: string) => new ConflictError(`Ya existe un producto con el código ${code}`);
 
 // P2002: alta o edición simultánea con el mismo código; el índice único decide.
 const rethrowCodeTaken = (code: string | undefined) => (error: any) => {
@@ -62,8 +58,8 @@ const moveStock = (productId: string, { reason, userId, ...movement }: Movement)
         data: { stock: { increment: movement.quantity } },
       });
       const product = await tx.product.findUnique({ where: { id: productId } });
-      if (!product) throw new ProductError(404, "Producto no encontrado");
-      if (count === 0) throw new ProductError(409, `Stock insuficiente: disponible ${product.stock}`);
+      if (!product) throw new NotFoundError(NOT_FOUND);
+      if (count === 0) throw new ConflictError(`Stock insuficiente: disponible ${product.stock}`);
       await tx.stockMovement.create({
         data: { productId, ...movement, stockAfter: product.stock, reason: reason ?? null, userId: userId ?? null },
       });
@@ -79,7 +75,7 @@ export const createMovement = (id: string, data: StockMovementInput, userId?: st
 
 export const listMovements = async (productId: string, { page, pageSize }: MovementsQueryInput) => {
   if (!(await prisma.product.findUnique({ where: { id: productId } }))) {
-    throw new ProductError(404, "Producto no encontrado");
+    throw new NotFoundError(NOT_FOUND);
   }
   const where = { productId };
   const [total, movements] = await Promise.all([
@@ -109,7 +105,7 @@ export const getProductById = async (id: string): Promise<ProductDto> => {
   });
 
   if (!product) {
-    throw new Error("Producto no encontrado");
+    throw new NotFoundError(NOT_FOUND);
   }
 
   return product;
@@ -172,20 +168,17 @@ export const updateProduct = async (
   return updated;
 };
 
-export const deleteProduct = async (id: string): Promise<ProductDto> => {
-  const updated = await prisma.product.update({
-    where: { id },
-    data: { isActive: false },
+// P2025: el producto no existe.
+export const deleteProduct = (id: string): Promise<ProductDto> =>
+  prisma.product.update({ where: { id }, data: { isActive: false } }).catch((error) => {
+    throw error?.code === "P2025" ? new NotFoundError(NOT_FOUND) : error;
   });
-
-  return updated;
-};
 
 export const activateProduct = async (id: string): Promise<ProductDto> => {
   const product = await prisma.product.findUnique({ where: { id } });
 
   if (!product) {
-    throw new Error("Producto no encontrado");
+    throw new NotFoundError(NOT_FOUND);
   }
 
   if (product.isActive) {
@@ -210,7 +203,7 @@ export const getProductByCode = async (
   });
 
   if (!product) {
-    throw new Error("Producto no encontrado");
+    throw new NotFoundError(NOT_FOUND);
   }
 
   return product;
