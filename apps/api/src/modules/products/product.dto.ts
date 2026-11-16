@@ -17,7 +17,6 @@ export interface UpdateProductDto {
   category?: string | null | undefined;
   price?: number | undefined;
   cost?: number | undefined;
-  stock?: number | undefined;
   provider?: string | null | undefined;
   imageUrl?: string | null | undefined;
   minStock?: number | undefined;

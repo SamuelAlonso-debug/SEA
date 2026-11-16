@@ -1,7 +1,7 @@
 import prisma from "../../shared/prisma";
 import { CreateSaleInput } from "./sale.schema";
 import { SaleDto, SaleItemDto } from "./sale.dto";
-import { PaymentMethod } from "@prisma/client";
+import { PaymentMethod, Prisma } from "@prisma/client";
 import { computeTotals } from "./sale.totals";
 import { withRetry } from "../../shared/with-retry";
 
@@ -54,6 +54,7 @@ export const createSale = async (
 ): Promise<SaleDto> => {
   return withRetry(() => prisma.$transaction(async (tx) => {
     const saleItemsToCreate: any[] = [];
+    const movements: Prisma.StockMovementCreateManyInput[] = [];
 
     if (data.clientId) {
       const client = await tx.client.findUnique({ where: { id: data.clientId } });
@@ -86,6 +87,15 @@ export const createSale = async (
           `Stock insuficiente para ${product.name}. Disponible: ${product.stock}`
         );
       }
+
+      // Lectura y descuento en la misma transacción: un cambio concurrente aborta y se reintenta.
+      movements.push({
+        productId: product.id,
+        type: "SALE",
+        quantity: -item.quantity,
+        stockAfter: product.stock - item.quantity,
+        userId: userId ?? null,
+      });
 
       const unitPrice = product.price;
       const itemSubtotal = computeTotals([{ unitPrice, quantity: item.quantity }]).subtotal;
@@ -133,6 +143,8 @@ export const createSale = async (
         client: { select: { name: true, lastname: true } },
       },
     });
+
+    await tx.stockMovement.createMany({ data: movements.map((m) => ({ ...m, saleId: sale.id })) });
 
     return mapSaleToDto(sale);
   }));
