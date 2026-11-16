@@ -200,7 +200,8 @@ export async function* saleExportRows(period: Period): AsyncGenerator<Cell[]> {
   const { start, end } = rangeOf(period);
   const sales = paged((page) =>
     prisma.sale.findMany({
-      where: { createdAt: { gte: start, lt: end } },
+      // Las canceladas no son ingreso: mismo filtro que los KPIs.
+      where: { createdAt: { gte: start, lt: end }, ...notCancelled },
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
       include: {
         items: { include: { product: { select: { productCode: true, name: true } } }, orderBy: { id: "asc" } },
