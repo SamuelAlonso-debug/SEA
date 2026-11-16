@@ -8,6 +8,8 @@ import {
   activateProductHandler,
   getProductByCodeHandler,
   addStockHandler,
+  importProductsHandler,
+  importTemplateHandler,
   createMovementHandler,
   listMovementsHandler,
 } from "./product.controller";
@@ -22,6 +24,8 @@ router.param("id", validateId);
 router.use(authMiddleware);
 
 router.get("/", listProductsHandler);
+router.get("/import/template", importTemplateHandler);
+router.post("/import", importProductsHandler);
 router.get("/:id", getProductHandler);
 router.post("/", createProductHandler);
 router.put("/:id", updateProductHandler);
