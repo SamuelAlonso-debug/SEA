@@ -1,8 +1,9 @@
-import { Request, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
 import {
   createExpenseSchema,
   updateExpenseSchema,
   listExpensesQuerySchema,
+  expenseKpisQuerySchema,
 } from "./expense.schema";
 import {
   createExpense,
@@ -131,4 +132,18 @@ export const deleteExpenseHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const getExpenseKpisHandler = comparedKpi(getMonthlyExpenseKpis, numericChange, "Error al obtener KPIs de gastos");
+// Mismo 400 que /api/kpis/*: Zod agrupa las claves desconocidas en una issue y la expandimos a una
+// por clave (path ["foo"]). Equivalente mínimo al `validated` de kpis (#149); unificar al mergear ambos.
+const rejectUnknownQuery: RequestHandler = (req, res, next) => {
+  const parsed = expenseKpisQuerySchema.safeParse(req.query);
+  if (parsed.success) return next();
+  const errors = parsed.error.issues.flatMap((i): { path: PropertyKey[]; message: string }[] =>
+    i.code === "unrecognized_keys" ? i.keys.map((key) => ({ ...i, path: [key], message: "Parámetro no permitido" })) : [i]
+  );
+  return res.status(400).json({ message: "Errores de validación", errors });
+};
+
+export const getExpenseKpisHandler: RequestHandler[] = [
+  rejectUnknownQuery,
+  comparedKpi(getMonthlyExpenseKpis, numericChange, "Error al obtener KPIs de gastos"),
+];
