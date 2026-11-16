@@ -18,6 +18,7 @@ import {
 import { errorMessage } from "@/lib/utils";
 import type { Sale } from "@/types/api";
 import { salesClient } from "./api";
+import { useSession } from "@/features/auth/auth-guard";
 
 const RECENT_LIMIT = 10;
 
@@ -27,6 +28,7 @@ const dateTime = new Intl.DateTimeFormat("es-MX", { dateStyle: "short", timeStyl
 // `refreshKey` cambia al registrar una venta para que aparezca en la lista.
 export function RecentSales({ refreshKey }: { refreshKey: number }) {
   const [sales, setSales] = useState<Sale[]>([]);
+  const isAdmin = useSession().user?.role === "ADMIN";
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [target, setTarget] = useState<Sale | null>(null);
@@ -104,7 +106,7 @@ export function RecentSales({ refreshKey }: { refreshKey: number }) {
                     {cancelled ? <span className="font-semibold text-destructive">Cancelada</span> : "Completada"}
                   </td>
                   <td className="px-3 py-2 text-right">
-                    {!cancelled && (
+                    {isAdmin && !cancelled && (
                       <Button
                         type="button"
                         variant="outline"

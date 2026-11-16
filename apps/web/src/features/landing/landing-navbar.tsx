@@ -66,7 +66,7 @@ export function MarketingNavbar() {
           </Link>
 
           <Link
-            href="/auth/register"
+            href="/auth/login"
             className="inline-flex items-center gap-2 rounded-xl bg-[#1A2D4D] px-5 py-2 text-white hover:bg-[#13223a]"
           >
             <span>Empezar Gratis!</span>

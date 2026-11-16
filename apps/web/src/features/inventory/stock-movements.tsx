@@ -31,14 +31,15 @@ const movementSchema = z
 const EMPTY_FORM = { type: "WASTE", quantity: "", reason: "" };
 const dateTime = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" });
 
-// Historial de stock de un producto y alta de merma o ajuste. onChange recibe el producto con su stock nuevo.
+// Historial de stock de un producto y alta de merma o ajuste. onChange recibe el producto con su stock nuevo;
+// sin onChange (CASHIER) solo se muestra el historial.
 export function StockMovements({
   product,
   onChange,
   onClose,
 }: {
   product: Product;
-  onChange: (p: Product) => void;
+  onChange?: (p: Product) => void;
   onClose: () => void;
 }) {
   const [page, setPage] = useState(1);
@@ -71,7 +72,7 @@ export function StockMovements({
     if (!parsed.success) return setFormError(parsed.error.issues[0].message);
     try {
       setSaving(true);
-      onChange(await productsClient.addMovement(product.id, parsed.data));
+      onChange?.(await productsClient.addMovement(product.id, parsed.data));
       setForm(EMPTY_FORM);
       setPage(1);
     } catch (err) {
@@ -94,35 +95,37 @@ export function StockMovements({
         </Button>
       </div>
 
-      <form onSubmit={submit} className="grid grid-cols-[10rem_8rem_1fr_auto] items-end gap-3 pb-4">
-        <LabeledSelect
-          label="Tipo"
-          id="movement-type"
-          value={form.type}
-          onChange={(e) => setForm({ ...form, type: e.target.value })}
-        >
-          <option value="WASTE">Merma</option>
-          <option value="ADJUSTMENT">Ajuste</option>
-        </LabeledSelect>
-        <LabeledInput
-          label="Cantidad (+/−)"
-          id="movement-quantity"
-          inputMode="numeric"
-          placeholder="-1"
-          value={form.quantity}
-          onChange={(e) => setForm({ ...form, quantity: e.target.value })}
-        />
-        <LabeledInput
-          label="Motivo"
-          id="movement-reason"
-          maxLength={255}
-          value={form.reason}
-          onChange={(e) => setForm({ ...form, reason: e.target.value })}
-        />
-        <Button type="submit" size="sm" className="h-9 text-xs" disabled={saving}>
-          {saving ? "Guardando..." : "Registrar"}
-        </Button>
-      </form>
+      {onChange && (
+        <form onSubmit={submit} className="grid grid-cols-[10rem_8rem_1fr_auto] items-end gap-3 pb-4">
+          <LabeledSelect
+            label="Tipo"
+            id="movement-type"
+            value={form.type}
+            onChange={(e) => setForm({ ...form, type: e.target.value })}
+          >
+            <option value="WASTE">Merma</option>
+            <option value="ADJUSTMENT">Ajuste</option>
+          </LabeledSelect>
+          <LabeledInput
+            label="Cantidad (+/−)"
+            id="movement-quantity"
+            inputMode="numeric"
+            placeholder="-1"
+            value={form.quantity}
+            onChange={(e) => setForm({ ...form, quantity: e.target.value })}
+          />
+          <LabeledInput
+            label="Motivo"
+            id="movement-reason"
+            maxLength={255}
+            value={form.reason}
+            onChange={(e) => setForm({ ...form, reason: e.target.value })}
+          />
+          <Button type="submit" size="sm" className="h-9 text-xs" disabled={saving}>
+            {saving ? "Guardando..." : "Registrar"}
+          </Button>
+        </form>
+      )}
       {formError && <p role="alert" className="pb-3 text-[11px] text-destructive">{formError}</p>}
 
       {loadError ? (
