@@ -98,8 +98,8 @@ describe("orden del listado", () => {
 
   it("sortBy inválido → 400 con path y mensaje", async () => {
     const res = await request(app).get("/api/clients?sortBy=PHONE").set("Authorization", auth).expect(400);
-    expect(res.body.errors).toContainEqual(
-      expect.objectContaining({ path: ["sortBy"], message: 'Opción inválida: se esperaba una de "CREATED_AT" o "NAME"' }),
+    expect(res.body.issues).toContainEqual(
+      expect.objectContaining({ path: "sortBy", message: 'Opción inválida: se esperaba una de "CREATED_AT" o "NAME"' }),
     );
   });
 });

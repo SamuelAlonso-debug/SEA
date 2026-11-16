@@ -1,5 +1,11 @@
 import { Request, Response } from "express";
-import { createProductSchema, updateProductSchema, stockEntrySchema } from "./product.schema";
+import {
+  createProductSchema,
+  updateProductSchema,
+  stockEntrySchema,
+  stockMovementSchema,
+  movementsQuerySchema,
+} from "./product.schema";
 import {
   createProduct,
   listProducts,
@@ -9,14 +15,17 @@ import {
   activateProduct,
   getProductByCode,
   addStock,
+  createMovement,
+  listMovements,
 } from "./product.service";
 import { present } from "./product.margin";
+import { AuthRequest } from "../../shared/auth.middleware";
 
 // Sin try/catch: Express 5 lleva los errores (Zod, dominio, BD) al middleware central.
 // `req.params.id` llega validado como ObjectId por router.param.
 
 export const createProductHandler = async (req: Request, res: Response) => {
-  const product = await createProduct(createProductSchema.parse(req.body));
+  const product = await createProduct(createProductSchema.parse(req.body), (req as AuthRequest).userId);
   res.status(201).json(present(product, true));
 };
 
@@ -47,6 +56,15 @@ export const getProductByCodeHandler = async (req: Request<{ productCode: string
 };
 
 export const addStockHandler = async (req: Request<{ id: string }>, res: Response) => {
-  const product = await addStock(req.params.id, stockEntrySchema.parse(req.body));
+  const product = await addStock(req.params.id, stockEntrySchema.parse(req.body), (req as AuthRequest).userId);
   res.status(200).json(present(product));
+};
+
+export const createMovementHandler = async (req: Request<{ id: string }>, res: Response) => {
+  const product = await createMovement(req.params.id, stockMovementSchema.parse(req.body), (req as AuthRequest).userId);
+  res.status(201).json(present(product));
+};
+
+export const listMovementsHandler = async (req: Request<{ id: string }>, res: Response) => {
+  res.status(200).json(await listMovements(req.params.id, movementsQuerySchema.parse(req.query)));
 };
