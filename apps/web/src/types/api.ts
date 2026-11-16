@@ -214,3 +214,12 @@ export interface CreateClientRequest {
 export type UpdateClientRequest = Partial<CreateClientRequest>;
 
 export type UpdateExpenseRequest = Partial<CreateExpenseRequest>;
+export interface CatalogOption<T extends string> {
+  value: T;
+  label: string;
+}
+
+export interface CatalogsResponse {
+  expenseCategories: CatalogOption<ExpenseCategory>[];
+  paymentMethods: CatalogOption<ExpensePaymentMethod>[];
+}
