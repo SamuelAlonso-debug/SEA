@@ -39,7 +39,7 @@ export function PaymentMethodsChart({ data }: PaymentMethodsChartProps) {
   return (
     <div className="rounded-2xl bg-card px-5 py-3 shadow-soft">
       <h2 className="mb-2 text-sm font-extrabold text-foreground">
-        Ingresos por método de pago (mes actual)
+        Ingresos por método de pago
       </h2>
 
       <div className="h-32">
