@@ -2,14 +2,21 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { Period } from "@/types/api";
+import type { PeriodQuery } from "@/types/api";
 
 const MAX_DAYS = 366;
 
-// Rango de fechas de los KPIs. null = mes en curso (la API decide).
-export function RangePicker({ value, onChange }: { value: Period | null; onChange: (p: Period | null) => void }) {
-  const [from, setFrom] = useState(value?.from ?? "");
-  const [to, setTo] = useState(value?.to ?? "");
+// Constantes estables: la página compara la selección por referencia para saber si recarga.
+const TODAY: PeriodQuery = { period: "TODAY" };
+const MONTH: PeriodQuery = { period: "MONTH" };
+
+// Presets o rango de fechas de los KPIs. null = mes en curso (la API decide).
+export function RangePicker({ value, onChange }: { value: PeriodQuery | null; onChange: (p: PeriodQuery | null) => void }) {
+  const range = value && "from" in value ? value : null;
+  // Preset activo; null = mes en curso por defecto.
+  const active = range ? null : (value as { period: string } | null)?.period ?? "MONTH";
+  const [from, setFrom] = useState(range?.from ?? "");
+  const [to, setTo] = useState(range?.to ?? "");
 
   // Mismo límite que la API: evita una respuesta 400 que vacía el panel.
   const days = from && to ? (Date.parse(to) - Date.parse(from)) / 86_400_000 + 1 : 0;
@@ -20,10 +27,10 @@ export function RangePicker({ value, onChange }: { value: Period | null; onChang
     if (from && to && !tooLong) onChange({ from, to });
   };
 
-  const reset = () => {
+  const preset = (p: PeriodQuery) => {
     setFrom("");
     setTo("");
-    onChange(null);
+    onChange(p);
   };
 
   return (
@@ -40,15 +47,17 @@ export function RangePicker({ value, onChange }: { value: Period | null; onChang
         Aplicar
       </Button>
       {tooLong && <span role="alert" className="text-destructive">El rango máximo es de {MAX_DAYS} días</span>}
-      {value && (
-        <Button type="button" variant="ghost" size="sm" className="h-8 text-[11px]" onClick={reset}>
-          Mes actual
-        </Button>
-      )}
+      <Button type="button" variant="outline" size="sm" className="h-8 text-[11px]" aria-pressed={active === "TODAY"} onClick={() => preset(TODAY)}>
+        Hoy
+      </Button>
+      <Button type="button" variant="outline" size="sm" className="h-8 text-[11px]" aria-pressed={active === "MONTH"} onClick={() => preset(MONTH)}>
+        Mes actual
+      </Button>
     </form>
   );
 }
 
 const dayFmt = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeZone: "UTC" });
 const fmt = (day: string) => dayFmt.format(new Date(`${day}T00:00:00Z`));
-export const periodLabel = (p: Period | null) => (p ? `${fmt(p.from)} a ${fmt(p.to)}` : "Mes actual");
+export const periodLabel = (p: PeriodQuery | null) =>
+  p && "from" in p ? `${fmt(p.from)} a ${fmt(p.to)}` : p?.period === "TODAY" ? "Hoy" : "Mes actual";
