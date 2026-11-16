@@ -49,6 +49,9 @@ export interface Sale {
   total: number;
   paymentMethod: PaymentMethod;
   notes: string | null;
+  status: "COMPLETED" | "CANCELLED";
+  cancelReason: string | null;
+  cancelledAt: string | null;
   items: SaleItem[];
 }
 

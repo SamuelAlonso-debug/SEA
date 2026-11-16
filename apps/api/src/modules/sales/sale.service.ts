@@ -1,7 +1,7 @@
 import prisma from "../../shared/prisma";
 import { CreateSaleInput } from "./sale.schema";
 import { SaleDto, SaleItemDto } from "./sale.dto";
-import { PaymentMethod } from "@prisma/client";
+import { PaymentMethod, Prisma } from "@prisma/client";
 import { computeTotals } from "./sale.totals";
 import { withRetry } from "../../shared/with-retry";
 
@@ -29,6 +29,9 @@ function mapSaleToDto(sale: any): SaleDto {
     notes: sale.notes,
     clientId: sale.clientId ?? null,
     clientName: sale.client ? `${sale.client.name} ${sale.client.lastname}` : null,
+    status: sale.status ?? "COMPLETED",
+    cancelReason: sale.cancelReason ?? null,
+    cancelledAt: sale.cancelledAt ?? null,
     items,
   };
 }
@@ -38,6 +41,11 @@ export class SaleError extends Error {
     super(message);
   }
 }
+
+// Ventas que cuentan como ingreso. Las previas a `status` no tienen el campo.
+export const notCancelled = {
+  OR: [{ status: { not: "CANCELLED" } }, { status: { isSet: false } }],
+} satisfies Prisma.SaleWhereInput;
 
 // Número de ticket tipo 0000001. El contador arranca tras las ventas ya existentes.
 async function generateNextTicketNumber(tx: any): Promise<string> {
@@ -164,4 +172,41 @@ export const getSaleById = async (id: string): Promise<SaleDto> => {
   }
 
   return mapSaleToDto(sale);
+};
+
+// Cancela la venta completa y reintegra todo su stock en la misma transacción.
+export const cancelSale = async (id: string, reason: string, userId?: string): Promise<SaleDto> => {
+  return withRetry(() => prisma.$transaction(async (tx) => {
+    // Marcar antes de reintegrar: con dos cancelaciones simultáneas Mongo aborta una
+    // por conflicto de escritura; al reintentar ya no encuentra la venta sin cancelar.
+    const { count } = await tx.sale.updateMany({
+      where: { id, ...notCancelled },
+      data: { status: "CANCELLED", cancelReason: reason, cancelledAt: new Date(), cancelledById: userId ?? null },
+    });
+
+    if (count === 0) {
+      const exists = await tx.sale.findUnique({ where: { id }, select: { id: true } });
+      throw exists
+        ? new SaleError(409, "La venta ya está cancelada")
+        : new SaleError(404, "Venta no encontrada");
+    }
+
+    const items = await tx.saleItem.findMany({ where: { saleId: id } });
+    for (const item of items) {
+      await tx.product.update({
+        where: { id: item.productId },
+        data: { stock: { increment: item.quantity } },
+      });
+    }
+
+    const sale = await tx.sale.findUniqueOrThrow({
+      where: { id },
+      include: {
+        items: { include: { product: true } },
+        client: { select: { name: true, lastname: true } },
+      },
+    });
+
+    return mapSaleToDto(sale);
+  }));
 };
