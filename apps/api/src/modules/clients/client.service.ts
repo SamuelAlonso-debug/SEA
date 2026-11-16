@@ -32,6 +32,8 @@ const emailTaken = (error: any) => {
   throw error?.code === "P2002" ? new ClientError(409, EMAIL_TAKEN) : error;
 };
 
+const NAME_COLLATOR = new Intl.Collator("es", { sensitivity: "base" });
+
 export const listClients = async ({
   search,
   page,
@@ -54,11 +56,19 @@ export const listClients = async ({
     ];
   }
 
+  if (sortBy === ClientSortByEnum.NAME) {
+    // Prisma con Mongo no expone collation: se ordena en memoria con la misma regla
+    // (es, strength 1 equivale a sensitivity "base") y se pagina después.
+    const all = await prisma.client.findMany({ where });
+    all.sort((a, b) => NAME_COLLATOR.compare(a.name, b.name) || NAME_COLLATOR.compare(a.lastname, b.lastname));
+    return { data: all.slice((page - 1) * pageSize, page * pageSize), total: all.length, page, pageSize };
+  }
+
   const total = await prisma.client.count({ where });
 
   const data = await prisma.client.findMany({
     where,
-    orderBy: sortBy === ClientSortByEnum.NAME ? [{ name: "asc" }, { lastname: "asc" }] : { createdAt: "desc" },
+    orderBy: { createdAt: "desc" },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });

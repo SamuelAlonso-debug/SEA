@@ -96,6 +96,15 @@ describe("orden del listado", () => {
     expect(await list("?sortBy=NAME&includeInactive=true")).toEqual(["Ana Pérez", "Ana Soto", "Luis Zamora"]);
   });
 
+  it("NAME ignora mayúsculas y acentos y pagina sobre el orden completo", async () => {
+    await db.prisma.client.deleteMany();
+    for (const name of ["Zoe", "ana", "Óscar", "Bea"]) {
+      await db.prisma.client.create({ data: { name, lastname: "X", phone: "4421234567" } });
+    }
+    expect(await list("?sortBy=NAME")).toEqual(["ana X", "Bea X", "Óscar X", "Zoe X"]);
+    expect(await list("?sortBy=NAME&page=2&pageSize=2")).toEqual(["Óscar X", "Zoe X"]);
+  });
+
   it("sortBy inválido → 400 con path y mensaje", async () => {
     const res = await request(app).get("/api/clients?sortBy=PHONE").set("Authorization", auth).expect(400);
     expect(res.body.errors).toContainEqual(
