@@ -16,6 +16,7 @@ import {
 
 import { productsClient } from "@/features/inventory/api";
 import { StockEntry } from "@/features/inventory/stock-entry";
+import { useSession } from "@/features/auth/auth-guard";
 import type { Product } from "@/types/api";
 
 // Umbral por defecto de productos sin minStock, igual que en el backend
@@ -56,6 +57,7 @@ const currency = (v: number) =>
   }).format(v);
 
 export default function InventoryPage() {
+  const isAdmin = useSession().user?.role === "ADMIN";
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -202,22 +204,24 @@ export default function InventoryPage() {
         </div>
       </section>
 
-      {/* Actualizar inventario */}
-      <section className="rounded-2xl bg-card px-6 py-4 shadow-soft flex items-center justify-between">
-        <div>
-          <h2 className="text-sm font-extrabold text-foreground">
-            Actualizar Inventario
-          </h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Mantén los datos del stock siempre al día.
-          </p>
-        </div>
-        <Link href="/dashboard/inventory/new">
-          <Button className="rounded-full bg-accent px-6 text-xs font-semibold text-accent-foreground hover:bg-accent/90">
-            Actualizar Inventario
-          </Button>
-        </Link>
-      </section>
+      {/* Actualizar inventario: altas y entradas de stock son de ADMIN */}
+      {isAdmin && (
+        <section className="rounded-2xl bg-card px-6 py-4 shadow-soft flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-extrabold text-foreground">
+              Actualizar Inventario
+            </h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Mantén los datos del stock siempre al día.
+            </p>
+          </div>
+          <Link href="/dashboard/inventory/new">
+            <Button className="rounded-full bg-accent px-6 text-xs font-semibold text-accent-foreground hover:bg-accent/90">
+              Actualizar Inventario
+            </Button>
+          </Link>
+        </section>
+      )}
 
       {/* Tabla de stock */}
       <section className="rounded-2xl bg-card px-0 py-4 shadow-soft">
@@ -307,12 +311,14 @@ export default function InventoryPage() {
                         </StatusBadge>
                       </TableCell>
                       <TableCell>
-                        <StockEntry
-                          product={p}
-                          onDone={(updated) =>
-                            setProducts((list) => list.map((x) => (x.id === updated.id ? updated : x)))
-                          }
-                        />
+                        {isAdmin && (
+                          <StockEntry
+                            product={p}
+                            onDone={(updated) =>
+                              setProducts((list) => list.map((x) => (x.id === updated.id ? updated : x)))
+                            }
+                          />
+                        )}
                       </TableCell>
                     </TableRow>
                   );

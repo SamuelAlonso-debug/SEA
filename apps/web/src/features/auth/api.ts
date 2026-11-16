@@ -18,13 +18,3 @@ export function profileRequest() {
   return apiClient.get<User>("/auth/profile");
 }
 
-export function registerRequest(data: {
-  name: string;
-  lastname: string;
-  email: string;
-  password: string;
-}) {
-  return apiClient.post<AuthResponse>("/auth/register", {
-    body: data,
-  });
-}

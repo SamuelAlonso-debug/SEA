@@ -1,4 +1,5 @@
 import { LayoutDashboard, ShoppingCart, Boxes, Bell, Users, Wallet } from "lucide-react";
+import type { Role } from "@/types/api";
 // Si luego quieres Solar Icons, aquí es donde cambias los imports.
 
 export type NavItem = {
@@ -47,3 +48,12 @@ export const mainNav: NavItem[] = [
     active: false,
   },
 ];
+
+// Pantallas solo ADMIN. La API también las rechaza (403): ocultarlas evita vistas que solo fallarían.
+const ADMIN_ONLY = ["/dashboard/expenses", "/dashboard/inventory/new"];
+
+// El inicio del dashboard son KPIs, solo ADMIN.
+export const canAccess = (path: string, role: Role) =>
+  role === "ADMIN" || (path !== "/dashboard" && !ADMIN_ONLY.some((p) => path.startsWith(p)));
+
+export const homeFor = (role: Role) => (role === "ADMIN" ? "/dashboard" : "/dashboard/sales");
