@@ -10,6 +10,8 @@ const { MongoMemoryReplSet } = createRequire(apiDir)("mongodb-memory-server-core
 const replSet = await MongoMemoryReplSet.create({ replSet: { count: 1, storageEngine: "wiredTiger" } });
 const env = { ...process.env, DATABASE_URL: replSet.getUri("sea") };
 execSync("npx prisma db push --skip-generate", { cwd: apiDir, env, stdio: "inherit" });
+// Sin registro público (#8): el usuario de la suite es el primer ADMIN, como en un despliegue.
+execSync("node prisma/seed-admin.mjs", { cwd: apiDir, env, stdio: "inherit" });
 
 const api = spawn(process.execPath, ["node_modules/ts-node-dev/lib/bin.js", "--transpile-only", "src/server.ts"], {
   cwd: apiDir,

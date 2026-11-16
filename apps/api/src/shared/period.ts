@@ -3,6 +3,10 @@ import { currentDay, currentMonth, percentChange, Period, previousPeriod, Range,
 import { KpiPeriod } from "../modules/kpis/kpi.enums";
 import { periodQuerySchema } from "../modules/kpis/kpi.schema";
 
+// Periodo de un ?period= o ?from=&to= ya validado. Sin nada: mes en curso.
+export const periodOf = ({ from, to, period }: { from?: string | undefined; to?: string | undefined; period?: string | undefined }): Period =>
+  period === KpiPeriod.TODAY ? currentDay() : from && to ? { from, to } : currentMonth();
+
 // Handler de KPI: calcula el periodo pedido y el anterior y devuelve ambos con su variación.
 export const comparedKpi =
   <T>(compute: (range: Range) => Promise<T>, change: ((current: T, previous: T) => unknown) | undefined, failMessage: string) =>
@@ -12,8 +16,7 @@ export const comparedKpi =
       return res.status(400).json({ message: "Errores de validación", errors: parsed.error.issues });
     }
     try {
-      const { from, to, period: preset } = parsed.data;
-      const period: Period = preset === KpiPeriod.TODAY ? currentDay() : from && to ? { from, to } : currentMonth();
+      const period = periodOf(parsed.data);
       const before = previousPeriod(period);
       const [current, previous] = await Promise.all([compute(rangeOf(period)), compute(rangeOf(before))]);
       return res.status(200).json({ period, previousPeriod: before, current, previous, change: change?.(current, previous) });
