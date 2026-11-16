@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { CaughtError } from "../../shared/caught-error";
 import { registerSchema, loginSchema } from "./auth.schema";
 import {
   registerUser,
@@ -13,7 +14,8 @@ export const registerHandler = async (req: Request, res: Response) => {
     const parsed = registerSchema.parse(req.body);
     const result = await registerUser(parsed);
     return res.status(201).json(result);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     // Zod error
     if (error.name === "ZodError") {
       return res.status(400).json({
@@ -35,7 +37,8 @@ export const loginHandler = async (req: Request, res: Response) => {
     const parsed = loginSchema.parse(req.body);
     const result = await loginUser(parsed);
     return res.status(200).json(result);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
@@ -59,7 +62,8 @@ export const profileHandler = async (req: AuthRequest, res: Response) => {
 
     const user = await getUserProfile(req.userId);
     return res.status(200).json(user);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res.status(400).json({ message: error.message || "Error al obtener perfil" });
   }
 };

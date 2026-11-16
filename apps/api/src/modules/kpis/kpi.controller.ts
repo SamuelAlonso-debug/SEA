@@ -1,3 +1,4 @@
+import { CaughtError } from "../../shared/caught-error";
 import { Request, RequestHandler, Response } from "express";
 import { z } from "zod";
 import {
@@ -75,7 +76,8 @@ export const getLowStockProductsHandler = validated(lowStockKpisSchema, async (r
   try {
     const data = await getLowStockProducts();
     return res.status(200).json(data);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res.status(500).json({
       message: error.message || "Error al obtener productos con stock bajo",
     });

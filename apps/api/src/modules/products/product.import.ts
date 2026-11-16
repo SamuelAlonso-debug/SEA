@@ -25,7 +25,7 @@ const countMessage = (n: number) => `El archivo tiene ${n} ${n === 1 ? "error" :
 export function parseProductsCsv(buffer: Buffer): { products: CreateProductInput[]; errors: RowError[] } {
   const text = buffer.toString("utf8");
   // Excel en español exporta con ";" y coma decimal.
-  const header = text.replace(/^﻿/, "").split(/\r?\n/, 1)[0] ?? "";
+  const header = text.replace(/^\uFEFF/, "").split(/\r?\n/, 1)[0] ?? "";
   const semicolon = header.includes(";") && !header.includes(",");
 
   let records: string[][];
@@ -119,7 +119,7 @@ export async function importProducts(buffer: Buffer, dryRun: boolean) {
         imageUrl: null,
         ...(minStock !== undefined && { minStock }),
       })),
-    })).catch((error: any) => {
+    })).catch((error: { code?: string }) => {
     throw error?.code === "P2002" ? new ImportError(409, "Algún código ya existe") : error;
   });
   return { created: products.length };

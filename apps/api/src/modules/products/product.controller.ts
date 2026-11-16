@@ -1,3 +1,4 @@
+import { CaughtError } from "../../shared/caught-error";
 import { Request, Response } from "express";
 import {
   createProductSchema,
@@ -82,9 +83,9 @@ export const importTemplateHandler = (_req: Request, res: Response) => {
 };
 
 export const importProductsHandler = (req: Request, res: Response) => {
-  upload(req, res, async (uploadError: any) => {
+  upload(req, res, async (uploadError?: unknown) => {
     try {
-      if (uploadError?.code === "LIMIT_FILE_SIZE") throw new ImportError(413, "El archivo supera 1 MB");
+      if ((uploadError as CaughtError | undefined)?.code === "LIMIT_FILE_SIZE") throw new ImportError(413, "El archivo supera 1 MB");
       if (uploadError) throw new ImportError(400, "Selecciona un archivo CSV");
       if (!req.file) throw new ImportError(400, "Selecciona un archivo CSV");
       const dryRun = z.enum(["true", "false"]).default("false").safeParse(req.query.dryRun);
@@ -92,7 +93,8 @@ export const importProductsHandler = (req: Request, res: Response) => {
 
       const result = await importProducts(req.file.buffer, dryRun.data === "true");
       return res.status("created" in result ? 201 : 200).json(result);
-    } catch (error: any) {
+    } catch (caught) {
+    const error = caught as CaughtError;
       if (error instanceof ImportError) {
         return res.status(error.status).json({ message: error.message, ...(error.rows && { rows: error.rows }) });
       }
