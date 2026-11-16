@@ -1,5 +1,6 @@
-import express, { Request, Response } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import authRouter from "./modules/auth/auth.routes";
@@ -9,6 +10,7 @@ import kpiRouter from "./modules/kpis/kpi.routes";
 import expenseRouter from "./modules/expenses/expense.routes";
 import clientRouter from "./modules/clients/client.routes";
 import prisma from "./shared/prisma";
+import { SESSION_COOKIE } from "./shared/auth.middleware";
 
 const app = express();
 
@@ -20,6 +22,19 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 // Límite global holgado: el dashboard dispara varias peticiones por vista.
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 1000, standardHeaders: "draft-8", legacyHeaders: false }));
 app.use(express.json({ limit: "100kb" }));
+app.use(cookieParser());
+
+// CSRF: CORS no bloquea el envío de un POST de otro sitio, solo la lectura de la respuesta.
+// Toda petición que modifica datos debe venir de un origen permitido; sin Origin solo pasan
+// clientes sin navegador que no llevan la cookie de sesión.
+const SAFE_METHODS = ["GET", "HEAD", "OPTIONS"];
+app.use((req: Request, res: Response, next: NextFunction) => {
+  if (SAFE_METHODS.includes(req.method)) return next();
+  const origin = req.headers.origin;
+  const allowed = origin ? allowedOrigins.includes(origin) : !req.cookies[SESSION_COOKIE];
+  if (!allowed) return res.status(403).json({ message: "Origen no permitido" });
+  next();
+});
 
 // Liveness: el proceso vive. No toca la BD.
 app.get("/api/health", (req: Request, res: Response) => {

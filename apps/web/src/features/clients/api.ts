@@ -2,7 +2,6 @@
 "use client";
 
 import { apiClient } from "@/lib/api-client";
-import { getToken } from "@/features/auth/api";
 import type {
   ClientDto,
   ClientsListResponse,
@@ -17,49 +16,36 @@ export type GetClientsParams = {
   includeInactive?: boolean;
 };
 
-function withToken() {
-  return { token: getToken() };
-}
-
 export const clientsClient = {
   // GET /api/clients
   list: (params: GetClientsParams = {}) =>
     apiClient.get<ClientsListResponse>("/clients", {
-      ...withToken(),
       query: params,
     }),
 
   // GET /api/clients/:id
   getById: (id: string) =>
-    apiClient.get<ClientDto>(`/clients/${id}`, {
-      ...withToken(),
-    }),
+    apiClient.get<ClientDto>(`/clients/${id}`),
 
   // POST /api/clients
   create: (input: CreateClientRequest) =>
     apiClient.post<ClientDto>("/clients", {
-      ...withToken(),
       body: input,
     }),
 
   // PUT /api/clients/:id
   update: (id: string, input: UpdateClientRequest) =>
     apiClient.put<ClientDto>(`/clients/${id}`, {
-      ...withToken(),
       body: input,
     }),
 
   // PATCH /api/clients/:id/activate (reactiva tras la baja lógica)
   activate: (id: string) =>
-    apiClient.patch<ClientDto>(`/clients/${id}/activate`, {
-      ...withToken(),
-    }),
+    apiClient.patch<ClientDto>(`/clients/${id}/activate`),
 
   // DELETE /api/clients/:id (baja lógica)
   remove: (id: string) =>
-    apiClient.delete<void>(`/clients/${id}`, {
-      ...withToken(),
-    }),
+    apiClient.delete<void>(`/clients/${id}`),
 };
 
 // Wrappers con nombres cómodos, igual que en expenses-client

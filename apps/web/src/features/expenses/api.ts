@@ -2,7 +2,6 @@
 "use client";
 
 import { apiClient } from "@/lib/api-client";
-import { getToken } from "@/features/auth/api";
 import type {
   ExpenseCategory,
   ExpenseDto,
@@ -22,10 +21,6 @@ export type GetExpensesParams = {
   pageSize?: number;
 };
 
-function withToken() {
-  return { token: getToken() };
-}
-
 /**
  * Cliente principal de gastos, siguiendo el mismo patrón que kpisClient.
  */
@@ -33,42 +28,34 @@ export const expensesClient = {
   // GET /api/expenses
   list: (params: GetExpensesParams = {}) =>
     apiClient.get<ExpensesListResponse>("/expenses", {
-      ...withToken(),
       query: params,
     }),
 
   // GET /api/expenses/kpis
   getKpis: (period?: Period | null) =>
     apiClient.get<Compared<ExpensesKpisResponse>>("/expenses/kpis", {
-      ...withToken(),
       query: { ...period },
     }),
 
   // POST /api/expenses
   create: (input: CreateExpenseRequest) =>
     apiClient.post<ExpenseDto>("/expenses", {
-      ...withToken(),
       body: input, // 👈 el body va dentro de options
     }),
 
   // GET /api/expenses/:id
   getById: (id: string) =>
-    apiClient.get<ExpenseDto>(`/expenses/${id}`, {
-      ...withToken(),
-    }),
+    apiClient.get<ExpenseDto>(`/expenses/${id}`),
 
   // PUT /api/expenses/:id
   update: (id: string, input: UpdateExpenseRequest) =>
     apiClient.put<ExpenseDto>(`/expenses/${id}`, {
-      ...withToken(),
       body: input, // 👈 igual aquí
     }),
 
   // DELETE /api/expenses/:id
   remove: (id: string) =>
-    apiClient.delete<void>(`/expenses/${id}`, {
-      ...withToken(),
-    }),
+    apiClient.delete<void>(`/expenses/${id}`),
 };
 
 /**

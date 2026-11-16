@@ -9,7 +9,6 @@ type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 interface RequestOptions {
   method?: Method;
   body?: unknown;
-  token?: string | null;
   query?: Record<string, string | number | boolean | undefined>;
 }
 
@@ -27,25 +26,25 @@ function buildUrl(path: string, query?: RequestOptions["query"]) {
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, token, query } = options;
+  const { method = "GET", body, query } = options;
 
   const url = buildUrl(path, query);
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
   };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
 
+  // La sesión viaja en la cookie httpOnly de la API (otro origen): hay que pedir que se envíe.
   const res = await fetch(url, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
+    credentials: "include",
   });
 
-  // Token vencido o inválido: se borra la sesión y se vuelve al login en lugar de dejar el dashboard roto.
-  if (res.status === 401 && token && typeof window !== "undefined") {
-    localStorage.removeItem("sea_token");
-    localStorage.removeItem("sea_user");
+  // Sesión vencida o cerrada: al login en lugar de dejar el dashboard roto.
+  // Las rutas /auth/* (login, perfil del guard) resuelven su propio 401.
+  if (res.status === 401 && !path.startsWith("/auth/") && typeof window !== "undefined") {
     window.location.assign("/auth/login");
   }
 
@@ -58,7 +57,8 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     throw new Error(msg);
   }
 
-  return res.json();
+  // 204 (logout) no trae cuerpo.
+  return res.status === 204 ? (undefined as T) : res.json();
 }
 
 export const apiClient = {

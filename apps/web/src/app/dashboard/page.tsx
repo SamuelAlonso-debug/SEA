@@ -11,7 +11,7 @@ import { TopProductsDonut } from "@/features/dashboard/top-products-donut";
 import { RangePicker, periodLabel } from "@/features/dashboard/range-picker";
 
 import { kpisClient } from "@/features/dashboard/api";
-import { getUser } from "@/features/auth/api";
+import { useSession } from "@/features/auth/auth-guard";
 import type {
   HeaderKpis,
   PaymentMethodKpi,
@@ -49,17 +49,8 @@ export default function DashboardHomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [userName, setUserName] = useState("Empresa X");
-
-  // Nombre del usuario logueado
-  useEffect(() => {
-    const user = getUser();
-    if (user) {
-      // localStorage solo existe en cliente: leer tras montar evita mismatch de hidratación.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUserName(`${user.name} ${user.lastname}`);
-    }
-  }, []);
+  const { user } = useSession();
+  const userName = user ? `${user.name} ${user.lastname}` : "Empresa X";
 
   // Cargar KPIs. Una respuesta tardía de un periodo ya cambiado se descarta.
   useEffect(() => {

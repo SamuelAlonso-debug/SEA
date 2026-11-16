@@ -2,25 +2,16 @@
 "use client";
 
 import { apiClient } from "@/lib/api-client";
-import { getToken } from "@/features/auth/api";
 import type { Product } from "@/types/api";
-
-function withToken() {
-  return { token: getToken() };
-}
 
 export const productsClient = {
   // GET /api/products
   list: () =>
-    apiClient.get<Product[]>("/products", {
-      ...withToken(),
-    }),
+    apiClient.get<Product[]>("/products"),
 
   // GET /api/products/:id
   getById: (id: string) =>
-    apiClient.get<Product>(`/products/${id}`, {
-      ...withToken(),
-    }),
+    apiClient.get<Product>(`/products/${id}`),
 
   // POST /api/products
   create: (data: {
@@ -35,7 +26,6 @@ export const productsClient = {
     minStock?: number;
   }) =>
     apiClient.post<Product>("/products", {
-      ...withToken(),
       body: data,
     }),
 
@@ -54,27 +44,21 @@ export const productsClient = {
     }>
   ) =>
     apiClient.put<Product>(`/products/${id}`, {
-      ...withToken(),
       body: data,
     }),
 
   // POST /api/products/:id/stock: entrada de stock (incremento atómico)
   addStock: (id: string, quantity: number) =>
     apiClient.post<Product>(`/products/${id}/stock`, {
-      ...withToken(),
       body: { quantity },
     }),
 
   // DELETE lógico /api/products/:id
   delete: (id: string) =>
-    apiClient.delete<Product>(`/products/${id}`, {
-      ...withToken(),
-    }),
+    apiClient.delete<Product>(`/products/${id}`),
 
 
     getByCode: (code: string) =>
-  apiClient.get<Product>(`/products/code/${code}`, { ...withToken()
-
-   }),
+  apiClient.get<Product>(`/products/code/${code}`),
    
 };
