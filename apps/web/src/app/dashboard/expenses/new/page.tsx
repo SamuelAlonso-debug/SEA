@@ -9,15 +9,13 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LabeledInput } from "@/components/forms/labeled-input";
 import { LabeledSelect } from "@/components/forms/labeled-select";
-import {
-  EXPENSE_CATEGORIES,
-  EXPENSE_PAYMENT_METHODS,
-} from "@/features/expenses/expense-categories";
+import { useCatalogs } from "@/features/catalogs/use-catalogs";
 import { createExpense } from "@/features/expenses/api";
 import type { ExpenseCategory, ExpensePaymentMethod } from "@/types/api";
 
 export default function AddExpensePage() {
   const router = useRouter();
+  const { expenseCategories, paymentMethods } = useCatalogs();
 
   const [concept, setConcept] = useState("");
   const [category, setCategory] = useState<ExpenseCategory>("service");
@@ -110,7 +108,7 @@ export default function AddExpensePage() {
               value={category}
               onChange={(e) => setCategory(e.target.value as ExpenseCategory)}
             >
-              {EXPENSE_CATEGORIES.map((c) => (
+              {expenseCategories.map((c) => (
                 <option key={c.value} value={c.value}>
                   {c.label}
                 </option>
@@ -145,7 +143,7 @@ export default function AddExpensePage() {
               value={paymentMethod}
               onChange={(e) => setPaymentMethod(e.target.value as ExpensePaymentMethod)}
             >
-              {EXPENSE_PAYMENT_METHODS.map((m) => (
+              {paymentMethods.map((m) => (
                 <option key={m.value} value={m.value}>
                   {m.label}
                 </option>
