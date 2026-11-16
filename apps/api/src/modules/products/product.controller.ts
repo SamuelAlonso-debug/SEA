@@ -15,7 +15,10 @@ import {
   getProductByCode,
   addStock,
   ProductError,
+  productExportRows,
 } from "./product.service";
+import { csvExport } from "../../shared/csv";
+import { z } from "zod";
 import { present } from "./product.margin";
 
 export const createProductHandler = async (req: Request, res: Response) => {
@@ -157,3 +160,11 @@ export const addStockHandler = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Error al registrar la entrada de stock" });
   }
 };
+
+// Catálogo con costo: sin filtros de rango, siempre el estado actual.
+export const exportProductsHandler = csvExport({
+  schema: z.object({}),
+  filename: () => "inventario.csv",
+  header: ["Código", "Producto", "Categoría", "Proveedor", "Precio", "Costo", "Stock", "Stock mínimo", "Activo"],
+  rows: () => productExportRows(),
+});

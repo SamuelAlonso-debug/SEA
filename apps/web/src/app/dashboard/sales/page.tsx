@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { salesClient } from "@/features/sales/api";
 import { productsClient } from "@/features/inventory/api";
-import type { Sale, PaymentMethod } from "@/types/api";
+import { ExportButton } from "@/components/export-button";
+import { RangePicker } from "@/features/dashboard/range-picker";
+import type { Sale, PaymentMethod, Period } from "@/types/api";
 
 import {
   AlertDialog,
@@ -42,6 +44,7 @@ type DetailItem = {
 };
 
 export default function SalesPage() {
+  const [exportPeriod, setExportPeriod] = useState<Period | null>(null);
   const [productCode, setProductCode] = useState("");
   const [quantity, setQuantity] = useState<string>("1");
 
@@ -258,6 +261,10 @@ export default function SalesPage() {
           <div className="space-y-1">
             <h1 className="text-2xl font-extrabold text-foreground">Ventas</h1>
             <p className="text-xs text-muted-foreground">Venta de productos</p>
+          </div>
+          <div className="flex flex-wrap items-end gap-3">
+            <RangePicker value={exportPeriod} onChange={setExportPeriod} />
+            <ExportButton onExport={() => salesClient.exportCsv(exportPeriod)} />
           </div>
         </section>
 

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/export-button";
 import {
   Table,
   TableBody,
@@ -129,6 +130,7 @@ export default function InventoryPage() {
             Inventario
           </div>
         </div>
+        <ExportButton onExport={() => productsClient.exportCsv()} />
       </section>
 
       {/* Tarjetas de resumen */}

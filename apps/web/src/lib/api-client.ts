@@ -26,6 +26,15 @@ function buildUrl(path: string, query?: RequestOptions["query"]) {
   return url.toString();
 }
 
+// Token vencido o inválido: se borra la sesión y se vuelve al login en lugar de dejar el dashboard roto.
+function expireSession(res: Response, token?: string | null) {
+  if (res.status === 401 && token && typeof window !== "undefined") {
+    localStorage.removeItem("sea_token");
+    localStorage.removeItem("sea_user");
+    window.location.assign("/auth/login");
+  }
+}
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, token, query } = options;
 
@@ -42,12 +51,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  // Token vencido o inválido: se borra la sesión y se vuelve al login en lugar de dejar el dashboard roto.
-  if (res.status === 401 && token && typeof window !== "undefined") {
-    localStorage.removeItem("sea_token");
-    localStorage.removeItem("sea_user");
-    window.location.assign("/auth/login");
-  }
+  expireSession(res, token);
 
   if (!res.ok) {
     let msg = `Error ${res.status}`;
@@ -61,7 +65,32 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return res.json();
 }
 
+// Descarga un archivo (CSV) con el nombre que manda el servidor en Content-Disposition.
+async function download(path: string, options: Pick<RequestOptions, "token" | "query"> = {}): Promise<void> {
+  const headers: HeadersInit = {};
+  if (options.token) headers["Authorization"] = `Bearer ${options.token}`;
+  const res = await fetch(buildUrl(path, options.query), { headers });
+
+  expireSession(res, options.token);
+  if (!res.ok) {
+    let msg = `Error ${res.status}`;
+    try {
+      msg = ((await res.json()) as { message?: string }).message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? "exportacion.csv";
+  const url = URL.createObjectURL(await res.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export const apiClient = {
+  download,
   get:  <T>(path: string, options?: Omit<RequestOptions, "method">) =>
     request<T>(path, { ...options, method: "GET" }),
   post: <T>(path: string, options?: Omit<RequestOptions, "method">) =>

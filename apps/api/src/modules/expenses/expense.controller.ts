@@ -3,6 +3,7 @@ import {
   createExpenseSchema,
   updateExpenseSchema,
   listExpensesQuerySchema,
+  exportCategorySchema,
 } from "./expense.schema";
 import {
   createExpense,
@@ -11,8 +12,12 @@ import {
   listExpenses,
   updateExpense,
   getMonthlyExpenseKpis,
+  expenseExportRows,
 } from "./expense.service";
-import { comparedKpi, numericChange } from "../../shared/period";
+import { comparedKpi, numericChange, periodQuerySchema } from "../../shared/period";
+import { csvExport } from "../../shared/csv";
+import { currentMonth } from "../../shared/business-time";
+import { z } from "zod";
 import { ExpenseCategory } from "@prisma/client";
 import { ExpenseListFilters } from "./expense.dto";
 
@@ -132,3 +137,14 @@ export const deleteExpenseHandler = async (req: Request, res: Response) => {
 };
 
 export const getExpenseKpisHandler = comparedKpi(getMonthlyExpenseKpis, numericChange, "Error al obtener KPIs de gastos");
+
+// Mismo rango que los KPIs (hora del negocio) más ?category=. Sin ?from&to: mes en curso.
+export const exportExpensesHandler = csvExport({
+  schema: z.intersection(periodQuerySchema, exportCategorySchema),
+  filename: (q) => {
+    const { from, to } = q.from && q.to ? { from: q.from, to: q.to } : currentMonth();
+    return `gastos_${from}_${to}.csv`;
+  },
+  header: ["Fecha", "Concepto", "Categoría", "Monto", "Método de pago", "Proveedor", "Notas"],
+  rows: (q) => expenseExportRows(q.from && q.to ? { from: q.from, to: q.to } : currentMonth(), q.category as ExpenseCategory | undefined),
+});

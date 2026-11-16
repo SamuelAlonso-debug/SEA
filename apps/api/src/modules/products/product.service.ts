@@ -4,6 +4,7 @@ import {
 } from "./product.schema";
 import { CreateProductDto, ProductDto, UpdateProductDto } from "./product.dto";
 import { Prisma } from "@prisma/client";
+import { paged, Cell } from "../../shared/csv";
 
 export class ProductError extends Error {
   constructor(public status: number, message: string) {
@@ -176,3 +177,10 @@ export const getProductByCode = async (
 
   return product;
 };
+// Catálogo completo (activos e inactivos) para el CSV. `minStock` null = 5, el umbral por defecto.
+export async function* productExportRows(): AsyncGenerator<Cell[]> {
+  const products = paged((page) => prisma.product.findMany({ orderBy: { id: "asc" }, ...page }));
+  for await (const p of products) {
+    yield [p.productCode, p.name, p.category, p.provider, p.price.toFixed(2), p.cost?.toFixed(2), p.stock, p.minStock ?? 5, p.isActive ? "Sí" : "No"];
+  }
+}
