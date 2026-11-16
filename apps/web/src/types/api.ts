@@ -157,6 +157,26 @@ export interface ExpenseDto {
   notes?: string | null;
 }
 
+export type StockMovementType = "SALE" | "REFUND" | "PURCHASE" | "WASTE" | "ADJUSTMENT";
+
+export interface StockMovement {
+  id: string;
+  type: StockMovementType;
+  quantity: number; // con signo
+  stockAfter: number;
+  reason: string | null;
+  userName: string | null;
+  saleId: string | null;
+  createdAt: string;
+}
+
+export interface StockMovementsResponse {
+  data: StockMovement[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface ExpensesListResponse {
   data: ExpenseDto[];
   total: number;
