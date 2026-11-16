@@ -1,5 +1,6 @@
 import prisma from "../../shared/prisma";
-import { Range } from "../../shared/business-time";
+import { businessStamp, Period, Range, rangeOf } from "../../shared/business-time";
+import { paged, Cell } from "../../shared/csv";
 import {
   CreateExpenseInput,
   UpdateExpenseInput,
@@ -152,3 +153,17 @@ export const getMonthlyExpenseKpis = async (range: Range): Promise<ExpenseKpisDt
     })),
   };
 };
+
+export async function* expenseExportRows(period: Period, category?: ExpenseCategory): AsyncGenerator<Cell[]> {
+  const { start, end } = rangeOf(period);
+  const expenses = paged((page) =>
+    prisma.expense.findMany({
+      where: { date: { gte: start, lt: end }, ...(category ? { category } : {}) },
+      orderBy: [{ date: "asc" }, { id: "asc" }],
+      ...page,
+    })
+  );
+  for await (const e of expenses) {
+    yield [businessStamp(e.date), e.concept, e.category, e.amount.toFixed(2), e.paymentMethod, e.vendor, e.notes];
+  }
+}

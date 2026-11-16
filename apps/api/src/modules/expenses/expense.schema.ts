@@ -60,5 +60,15 @@ export const listExpensesQuerySchema = z.object({
     .transform((v) => (v ? parseInt(v, 10) : 10)),
 });
 
+// ?category= de la exportación: mismo formato de "opción inválida" que el método de pago.
+const CATEGORIES = Object.values(ExpenseCategoryEnum);
+export const exportCategorySchema = z.object({
+  category: z
+    .enum(ExpenseCategoryEnum, {
+      error: () => `Opción inválida: se esperaba una de ${CATEGORIES.map((c) => `"${c}"`).join("|")}`,
+    })
+    .optional(),
+});
+
 // /kpis solo acepta el periodo (?from=&to=); cualquier otra clave se rechaza.
 export const expenseKpisQuerySchema = periodQuerySchema.strict();
