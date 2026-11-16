@@ -19,12 +19,7 @@ export const listClientsHandler = async (req: Request, res: Response) => {
   try {
     const parsed = listClientsQuerySchema.parse(req.query);
 
-    const result = await listClients(
-      parsed.search,
-      parsed.page,
-      parsed.pageSize,
-      parsed.includeInactive
-    );
+    const result = await listClients(parsed);
 
     return res.status(200).json(result);
   } catch (error: any) {

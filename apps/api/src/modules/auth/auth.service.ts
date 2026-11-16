@@ -1,8 +1,7 @@
 import bcrypt from "bcrypt";
 import prisma from "../../shared/prisma";
-import { RegisterInput, LoginInput } from "./auth.schema";
 import { signToken } from "../../shared/jwt";
-import { AuthResponseDto } from "./auth.dto";
+import { AuthResponseDto, LoginDto, RegisterDto } from "./auth.dto";
 
 const SALT_ROUNDS = 10;
 
@@ -16,7 +15,7 @@ const EMAIL_TAKEN = "El correo ya está registrado";
 // Mismo mensaje para correo inexistente y contraseña incorrecta: no revela qué cuentas existen.
 const BAD_CREDENTIALS = "Correo o contraseña incorrectos";
 
-export const registerUser = async (data: RegisterInput): Promise<AuthResponseDto> => {
+export const registerUser = async (data: RegisterDto): Promise<AuthResponseDto> => {
   const existingUser = await prisma.user.findUnique({
     where: { email: data.email },
   });
@@ -56,7 +55,7 @@ export const registerUser = async (data: RegisterInput): Promise<AuthResponseDto
   };
 };
 
-export const loginUser = async (data: LoginInput): Promise<AuthResponseDto> => {
+export const loginUser = async (data: LoginDto): Promise<AuthResponseDto> => {
   const user = await prisma.user.findUnique({
     where: { email: data.email },
   });

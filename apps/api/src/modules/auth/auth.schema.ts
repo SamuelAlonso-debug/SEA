@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { LoginDto, RegisterDto } from "./auth.dto";
 import {
   UserNameLength,
   UserLastNameLength,
@@ -54,15 +55,15 @@ export const registerSchema = z.object({
       UserPasswordLength.MAX,
       `La contraseña no puede tener más de ${UserPasswordLength.MAX} caracteres`
     ),
-});
+}) satisfies z.ZodType<RegisterDto>;
 
 export const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email("Correo inválido"),
   password: z
     .string()
     .min(1, "La contraseña es obligatoria"),
-});
+}) satisfies z.ZodType<LoginDto>;
 
-// Tipos que usarán tus servicios
+// Tipos del controlador; los servicios reciben los DTOs de auth.dto.
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
