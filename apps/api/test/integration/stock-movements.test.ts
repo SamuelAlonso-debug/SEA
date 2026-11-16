@@ -42,8 +42,8 @@ describe("movimientos de stock", () => {
   it("PUT con stock → 400; ajuste -7 con motivo → stock 3 y movimiento con usuario y motivo", async () => {
     const id = await createA1();
     const put = await api().put(`/api/products/${id}`, { stock: 3 }).expect(400);
-    expect(put.body.errors).toContainEqual(
-      expect.objectContaining({ path: ["stock"], message: "El stock se modifica con movimientos" })
+    expect(put.body.issues).toContainEqual(
+      expect.objectContaining({ path: "stock", message: "El stock se modifica con movimientos" })
     );
     expect(await stockOf(id)).toBe(10);
 
@@ -83,7 +83,7 @@ describe("movimientos de stock", () => {
   ])("%j → %i sin cambiar stock", async (body, status, path, message) => {
     const id = await createA1();
     const res = await move(id, body).expect(status);
-    if (path) expect(res.body.errors).toContainEqual(expect.objectContaining({ path: [path], message }));
+    if (path) expect(res.body.issues).toContainEqual(expect.objectContaining({ path, message }));
     else expect(res.body.message).toBe(message);
     expect(await stockOf(id)).toBe(10);
     expect(await movementsOf(id)).toHaveLength(1);
