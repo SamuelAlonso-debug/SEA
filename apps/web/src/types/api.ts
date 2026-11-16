@@ -73,7 +73,7 @@ export interface Compared<T, C = Record<string, number | null>> {
 }
 
 export interface HeaderKpis {
-  month: number;   // 0-11
+  month: number;   // 1-12
   year: number;
   totalTransactions: number;
   totalSalesAmount: number;

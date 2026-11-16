@@ -34,12 +34,12 @@ export function RangePicker({ value, onChange }: { value: Period | null; onChang
       </label>
       <label className="flex flex-col gap-1 font-semibold text-muted-foreground">
         Hasta
-        <input type="date" value={to} min={from || undefined} onChange={(e) => setTo(e.target.value)} className="h-8 rounded-md border border-input bg-background px-2 text-foreground" />
+        <input type="date" value={to} min={from || undefined} aria-invalid={tooLong} onChange={(e) => setTo(e.target.value)} className="h-8 rounded-md border border-input bg-background px-2 text-foreground" />
       </label>
       <Button type="submit" size="sm" className="h-8 text-[11px]" disabled={!from || !to || tooLong}>
         Aplicar
       </Button>
-      {tooLong && <span className="text-destructive">El rango máximo es de {MAX_DAYS} días</span>}
+      {tooLong && <span role="alert" className="text-destructive">El rango máximo es de {MAX_DAYS} días</span>}
       {value && (
         <Button type="button" variant="ghost" size="sm" className="h-8 text-[11px]" onClick={reset}>
           Mes actual
@@ -49,4 +49,6 @@ export function RangePicker({ value, onChange }: { value: Period | null; onChang
   );
 }
 
-export const periodLabel = (p: Period | null) => (p ? `${p.from} a ${p.to}` : "Mes actual");
+const dayFmt = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeZone: "UTC" });
+const fmt = (day: string) => dayFmt.format(new Date(`${day}T00:00:00Z`));
+export const periodLabel = (p: Period | null) => (p ? `${fmt(p.from)} a ${fmt(p.to)}` : "Mes actual");

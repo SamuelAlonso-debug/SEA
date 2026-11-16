@@ -145,6 +145,7 @@ export default function ExpensesPage() {
           title="Gasto total"
           subtitle={periodLabel(period)}
           change={kpisChange.totalAmountMonth}
+          invert
           value={
             loadingKpis
               ? "Cargando..."
@@ -158,6 +159,7 @@ export default function ExpensesPage() {
           title="Número de gastos"
           subtitle={periodLabel(period)}
           change={kpisChange.totalCountMonth}
+          invert
           value={
             loadingKpis ? "Cargando..." : kpis ? String(kpis.totalCountMonth) : "--"
           }

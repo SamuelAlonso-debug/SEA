@@ -41,6 +41,9 @@ export default function DashboardHomePage() {
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [summary, setSummary] = useState<SummaryKpis | null>(null);
   const [period, setPeriod] = useState<Period | null>(null);
+  // Periodo de los datos en pantalla; distinto de `period` mientras se recarga.
+  const [loadedPeriod, setLoadedPeriod] = useState<Period | null | undefined>(undefined);
+  const refreshing = loadedPeriod !== period;
   const [headerChange, setHeaderChange] = useState<Record<string, number | null>>({});
 
   const [loading, setLoading] = useState(true);
@@ -58,38 +61,37 @@ export default function DashboardHomePage() {
     }
   }, []);
 
-  // Cargar KPIs
+  // Cargar KPIs. Una respuesta tardía de un periodo ya cambiado se descarta.
   useEffect(() => {
-    const fetchKpis = async () => {
-      try {
-        const [
-          header,
-          payment,
-          lowStock,
-          top,
-          summaryData,
-        ] = await Promise.all([
-          kpisClient.getHeader(period),
-          kpisClient.getPaymentMethods(period),
-          kpisClient.getLowStock(),
-          kpisClient.getTopProducts(period),
-          kpisClient.getSummary(period),
-        ]);
-
+    let cancelled = false;
+    Promise.all([
+      kpisClient.getHeader(period),
+      kpisClient.getPaymentMethods(period),
+      kpisClient.getLowStock(),
+      kpisClient.getTopProducts(period),
+      kpisClient.getSummary(period),
+    ])
+      .then(([header, payment, lowStock, top, summaryData]) => {
+        if (cancelled) return;
         setHeaderKpis(header.current);
         setHeaderChange(header.change);
         setPaymentMethods(payment.current);
         setLowStockProducts(lowStock);
         setTopProducts(top.current);
         setSummary(summaryData.current);
-      } catch (err) {
-        setError(errorMessage(err, "Error al cargar KPIs"));
-      } finally {
+        setError(null);
+      })
+      .catch((err) => {
+        if (!cancelled) setError(errorMessage(err, "Error al cargar KPIs"));
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoadedPeriod(period);
         setLoading(false);
-      }
+      });
+    return () => {
+      cancelled = true;
     };
-
-    fetchKpis();
   }, [period]);
 
   const todayLabel = (() => {
@@ -112,17 +114,9 @@ export default function DashboardHomePage() {
     );
   }
 
-  if (error || !headerKpis || !summary) {
-    return (
-      <div className="p-6 text-sm text-red-500">
-        {error ?? "No se pudieron cargar los datos del dashboard."}
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-5">
-      {/* Encabezado */}
+      {/* Encabezado: el selector sigue visible aunque falle la carga */}
       <section className="space-y-1">
         <h1 className="text-2xl font-extrabold text-foreground">
           Bienvenido, {userName} 👋
@@ -131,58 +125,70 @@ export default function DashboardHomePage() {
           Hoy es {todayLabel}.
         </p>
         <RangePicker value={period} onChange={setPeriod} />
+        {refreshing && (
+          <p role="status" className="text-[11px] text-muted-foreground">
+            Actualizando…
+          </p>
+        )}
       </section>
 
-      {/* 4 cards superiores */}
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <KpiCard
-          title="Ventas totales"
-          value={currency(headerKpis.totalSalesAmount)}
-          subtitle={periodLabel(period)}
-          change={headerChange.totalSalesAmount}
-        />
-        <KpiCard
-          title="Transacciones"
-          value={numberFmt(headerKpis.totalTransactions)}
-          subtitle={periodLabel(period)}
-          change={headerChange.totalTransactions}
-        />
-        <KpiCard
-          title="Tickets totales"
-          value={numberFmt(headerKpis.totalTickets)}
-          subtitle={periodLabel(period)}
-          change={headerChange.totalTickets}
-        />
-        <KpiCard
-          title="Productos vendidos"
-          value={numberFmt(headerKpis.totalProductsSold)}
-          subtitle={periodLabel(period)}
-          change={headerChange.totalProductsSold}
-        />
-      </section>
-
-      {/* Zona inferior: 4 bloques en 2 columnas */}
-      <section className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-        {/* Izquierda: gráfico + resumen */}
-        <div className="space-y-3">
-          <PaymentMethodsChart data={paymentMethods} />
-          <SummaryBlock
-            data={{
-              averageTicketAmount: summary.averageTicketAmount,
-              averageProductsPerTicket: summary.averageProductsPerTicket,
-              todayRevenue: summary.todayRevenue,
-              todaySalesCount: summary.todaySalesCount,
-            }}
-          />
+      {error || !headerKpis || !summary ? (
+        <div role="alert" className="p-6 text-sm text-red-500">
+          {error ?? "No se pudieron cargar los datos del dashboard."}
         </div>
+      ) : (
+        <div className={`flex flex-col gap-5 ${refreshing ? "opacity-60" : ""}`}>
+          {/* 4 cards superiores */}
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <KpiCard
+              title="Ventas totales"
+              value={currency(headerKpis.totalSalesAmount)}
+              subtitle={periodLabel(period)}
+              change={headerChange.totalSalesAmount}
+            />
+            <KpiCard
+              title="Transacciones"
+              value={numberFmt(headerKpis.totalTransactions)}
+              subtitle={periodLabel(period)}
+              change={headerChange.totalTransactions}
+            />
+            <KpiCard
+              title="Tickets totales"
+              value={numberFmt(headerKpis.totalTickets)}
+              subtitle={periodLabel(period)}
+              change={headerChange.totalTickets}
+            />
+            <KpiCard
+              title="Productos vendidos"
+              value={numberFmt(headerKpis.totalProductsSold)}
+              subtitle={periodLabel(period)}
+              change={headerChange.totalProductsSold}
+            />
+          </section>
 
-        {/* Derecha: stock bajo + top productos */}
-        <div className="space-y-3">
-          <LowStockTable items={lowStockProducts} />
-          <TopProductsDonut data={topProducts} />
+          {/* Zona inferior: 4 bloques en 2 columnas */}
+          <section className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+            {/* Izquierda: gráfico + resumen */}
+            <div className="space-y-3">
+              <PaymentMethodsChart data={paymentMethods} />
+              <SummaryBlock
+                data={{
+                  averageTicketAmount: summary.averageTicketAmount,
+                  averageProductsPerTicket: summary.averageProductsPerTicket,
+                  todayRevenue: summary.todayRevenue,
+                  todaySalesCount: summary.todaySalesCount,
+                }}
+              />
+            </div>
+
+            {/* Derecha: stock bajo + top productos */}
+            <div className="space-y-3">
+              <LowStockTable items={lowStockProducts} />
+              <TopProductsDonut data={topProducts} />
+            </div>
+          </section>
         </div>
-      </section>
+      )}
     </div>
   );
 }
-
