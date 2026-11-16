@@ -49,6 +49,7 @@ export interface Sale {
   total: number;
   paymentMethod: PaymentMethod;
   notes: string | null;
+  status?: "COMPLETED" | "CANCELLED" | "PARTIALLY_REFUNDED"; // lo añade #80; hasta entonces ausente
   items: SaleItem[];
 }
 
