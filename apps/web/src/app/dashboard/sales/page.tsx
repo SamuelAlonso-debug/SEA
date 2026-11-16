@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { salesClient } from "@/features/sales/api";
 import { RecentSales } from "@/features/sales/recent-sales";
 import { productsClient } from "@/features/inventory/api";
+import { useCatalogs } from "@/features/catalogs/use-catalogs";
 import type { Sale, PaymentMethod } from "@/types/api";
 
 import {
@@ -43,6 +44,7 @@ type DetailItem = {
 };
 
 export default function SalesPage() {
+  const { paymentMethodLabel } = useCatalogs();
   const [productCode, setProductCode] = useState("");
   const [quantity, setQuantity] = useState<string>("1");
 
@@ -416,14 +418,14 @@ export default function SalesPage() {
                   onClick={() => handleOpenConfirm("CASH")}
                   disabled={loadingScan || loadingSale || items.length === 0}
                 >
-                  Pago Efectivo
+                  Pago {paymentMethodLabel("CASH")}
                 </Button>
                 <Button
                   className="h-11 rounded-lg bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                   onClick={() => handleOpenConfirm("CARD")}
                   disabled={loadingScan || loadingSale || items.length === 0}
                 >
-                  Pago Tarjeta
+                  Pago {paymentMethodLabel("CARD")}
                 </Button>
               </div>
             </div>
