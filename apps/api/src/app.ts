@@ -9,6 +9,7 @@ import saleRouter from "./modules/sales/sale.routes";
 import kpiRouter from "./modules/kpis/kpi.routes";
 import expenseRouter from "./modules/expenses/expense.routes";
 import clientRouter from "./modules/clients/client.routes";
+import userRouter from "./modules/users/user.routes";
 import prisma from "./shared/prisma";
 import { SESSION_COOKIE } from "./shared/auth.middleware";
 
@@ -59,5 +60,11 @@ app.use("/api/sales", saleRouter);
 app.use("/api/kpis", kpiRouter);
 app.use("/api/expenses", expenseRouter);
 app.use("/api/clients", clientRouter);
+app.use("/api/users", userRouter);
+
+// JSON en lugar de la página HTML de Express (p. ej. el antiguo POST /api/auth/register).
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ message: "Ruta no encontrada" });
+});
 
 export default app;

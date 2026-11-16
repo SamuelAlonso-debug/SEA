@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "test:unit": "vitest run src",
     "test:integration": "vitest run test/integration",
-    "migrate:expense-payment-method": "node prisma/migrate-expense-payment-method.mjs"
+    "migrate:expense-payment-method": "node prisma/migrate-expense-payment-method.mjs",
+    "seed:admin": "node prisma/seed-admin.mjs"
   },
   "keywords": [],
   "author": "",

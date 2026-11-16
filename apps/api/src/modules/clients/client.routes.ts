@@ -13,7 +13,7 @@ import {
 
 const router = Router();
 
-// Proteger todas las rutas de clientes
+// ADMIN y CASHIER: caja registra y consulta clientes al cobrar.
 router.use(authMiddleware);
 
 // Un id que no es ObjectId responde 400 antes de llegar a Prisma.

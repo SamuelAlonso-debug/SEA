@@ -6,7 +6,7 @@ import { migrate } from "../../prisma/migrate-expense-payment-method.mjs";
 
 let db: Awaited<ReturnType<typeof startMongo>>;
 let app: any;
-const auth = `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011" })}`;
+const auth = `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011", role: "ADMIN" })}`;
 
 beforeAll(async () => {
   db = await startMongo();

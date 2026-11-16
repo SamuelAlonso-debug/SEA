@@ -1,11 +1,6 @@
 import { CookieOptions, Request, Response } from "express";
-import { registerSchema, loginSchema } from "./auth.schema";
-import {
-  registerUser,
-  loginUser,
-  getUserProfile,
-  AuthError,
-} from "./auth.service";
+import { loginSchema } from "./auth.schema";
+import { loginUser, getUserProfile, AuthError } from "./auth.service";
 import { AuthRequest, SESSION_COOKIE } from "../../shared/auth.middleware";
 
 // httpOnly: el token no es legible desde JavaScript. Strict: el navegador no la envía desde otros sitios.
@@ -17,29 +12,6 @@ const sessionCookie: CookieOptions = {
   path: "/",
 };
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // igual que la caducidad del JWT
-
-export const registerHandler = async (req: Request, res: Response) => {
-  try {
-    const parsed = registerSchema.parse(req.body);
-    // Sin sesión al registrarse: la web lleva al login. El token no sale en el cuerpo.
-    const { user } = await registerUser(parsed);
-    return res.status(201).json({ user });
-  } catch (error: any) {
-    // Zod error
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        message: "Datos inválidos",
-        errors: error.issues,
-      });
-    }
-
-    if (error instanceof AuthError) {
-      return res.status(error.status).json({ message: error.message });
-    }
-
-    return res.status(400).json({ message: error.message || "Error al registrar" });
-  }
-};
 
 export const loginHandler = async (req: Request, res: Response) => {
   try {

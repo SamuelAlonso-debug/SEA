@@ -1,8 +1,11 @@
-export interface RegisterDto {
+import { Role } from "@prisma/client";
+
+export interface CreateUserDto {
   name: string;
   lastname: string;
   email: string;
   password: string;
+  role: Role;
 }
 
 export interface LoginDto {
@@ -15,6 +18,7 @@ export interface AuthUserDto {
   name: string;
   lastname: string;
   email: string;
+  role: Role;
   createdAt: Date;
   updatedAt?: Date;
 }
