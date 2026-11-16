@@ -46,7 +46,7 @@ describe("método de pago de gastos", () => {
     await request(app).put(`/api/expenses/${cash.body.id}`).set("Authorization", auth).send({ paymentMethod: "TRANSFER" }).expect(200);
 
     const kpis = await request(app).get("/api/expenses/kpis").set("Authorization", auth).expect(200);
-    expect(kpis.body.totalByPaymentMethod).toEqual([
+    expect(kpis.body.current.totalByPaymentMethod).toEqual([
       { paymentMethod: "CASH", amount: 0 },
       { paymentMethod: "CARD", amount: 50 },
       { paymentMethod: "TRANSFER", amount: 100 },

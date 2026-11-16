@@ -33,7 +33,7 @@ describe("POST /api/sales", () => {
     expect(await db.prisma.sale.findFirst()).toMatchObject({ subtotal: 100, tax: 16, total: 116 });
 
     const kpis = await request(db.app).get("/api/kpis/header").set("Authorization", auth).expect(200);
-    expect(kpis.body.totalSalesAmount).toBe(116);
+    expect(kpis.body.current.totalSalesAmount).toBe(116);
   });
 
   it("redondea a centavos", async () => {
