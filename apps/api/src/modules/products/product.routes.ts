@@ -8,6 +8,8 @@ import {
   activateProductHandler,
   getProductByCodeHandler,
   addStockHandler,
+  exportProductsHandler,
+
   importProductsHandler,
   importTemplateHandler,
   createMovementHandler,
@@ -24,6 +26,8 @@ router.param("id", validateId);
 router.use(authMiddleware);
 
 router.get("/", listProductsHandler);
+router.get("/export", exportProductsHandler); // antes de /:id
+
 router.get("/import/template", importTemplateHandler);
 router.post("/import", importProductsHandler);
 router.get("/:id", getProductHandler);

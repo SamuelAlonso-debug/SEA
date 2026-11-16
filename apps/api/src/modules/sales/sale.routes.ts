@@ -3,6 +3,8 @@ import {
   createSaleHandler,
   listSalesHandler,
   getSaleHandler,
+  exportSalesHandler,
+
   cancelSaleHandler,
 } from "./sale.controller";
 import { saleIdParamsSchema } from "./sale.schema";
@@ -22,6 +24,7 @@ router.param("id", (req, res, next, id) => {
 
 router.post("/", createSaleHandler);
 router.get("/", listSalesHandler);
+router.get("/export", exportSalesHandler); // antes de /:id
 router.get("/:id", getSaleHandler);
 // Sin roles todavía (#8): cualquier usuario autenticado puede cancelar.
 router.post("/:id/cancel", cancelSaleHandler);

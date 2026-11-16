@@ -16,6 +16,9 @@ export const productsClient = {
       ...withToken(),
     }),
 
+  // GET /api/products/export: descarga el CSV del catálogo
+  exportCsv: () => apiClient.download("/products/export", { ...withToken() }),
+
   // GET /api/products/:id
   getById: (id: string) =>
     apiClient.get<Product>(`/products/${id}`, {
