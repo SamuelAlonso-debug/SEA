@@ -1,22 +1,27 @@
+// Contrato de los servicios; los schemas Zod lo satisfacen (satisfies).
 export interface CreateProductDto {
   name: string;
   productCode: string;
-  category?: string | null;
+  category?: string | null | undefined;
   price: number;
+  cost: number;
   stock: number;
-  provider?: string | null;
-  imageUrl?: string | null;
+  provider?: string | null | undefined;
+  imageUrl?: string | null | undefined;
+  minStock?: number | undefined;
 }
 
 export interface UpdateProductDto {
-  name?: string;
-  productCode?: string;
-  category?: string | null;
-  price?: number;
-  stock?: number;
-  provider?: string | null;
-  imageUrl?: string | null;
-  isActive?: boolean;
+  name?: string | undefined;
+  productCode?: string | undefined;
+  category?: string | null | undefined;
+  price?: number | undefined;
+  cost?: number | undefined;
+  stock?: number | undefined;
+  provider?: string | null | undefined;
+  imageUrl?: string | null | undefined;
+  minStock?: number | undefined;
+  isActive?: boolean | undefined;
 }
 
 export interface ProductDto {

@@ -1,5 +1,3 @@
-// src/schemas/expense.schema.ts
-
 import { z } from "zod";
 import { PaymentMethod } from "@prisma/client";
 import { ExpenseCategoryEnum } from "./expense.enums";

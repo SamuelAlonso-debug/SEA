@@ -1,5 +1,3 @@
-// src/controllers/expense.controller.ts
-
 import { Request, Response } from "express";
 import {
   createExpenseSchema,

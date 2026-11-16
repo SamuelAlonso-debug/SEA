@@ -1,10 +1,8 @@
 import prisma from "../../shared/prisma";
 import {
-  CreateProductInput,
-  UpdateProductInput,
   StockEntryInput,
 } from "./product.schema";
-import { ProductDto } from "./product.dto";
+import { CreateProductDto, ProductDto, UpdateProductDto } from "./product.dto";
 import { Prisma } from "@prisma/client";
 
 export class ProductError extends Error {
@@ -21,7 +19,7 @@ const rethrowCodeTaken = (code: string | undefined) => (error: any) => {
 };
 
 export const createProduct = async (
-  data: CreateProductInput
+  data: CreateProductDto
 ): Promise<ProductDto> => {
   // Un alta duplicada no toca stock ni precio: la entrada de stock va por addStock.
   if (await prisma.product.findUnique({ where: { productCode: data.productCode } })) {
@@ -76,7 +74,7 @@ export const getProductById = async (id: string): Promise<ProductDto> => {
 
 export const updateProduct = async (
   id: string,
-  data: UpdateProductInput
+  data: UpdateProductDto
 ): Promise<ProductDto> => {
   await getProductById(id);
 

@@ -36,6 +36,16 @@ describe("productos: código duplicado y entrada de stock", () => {
     expect(await db.prisma.product.count()).toBe(1);
   });
 
+  it("reactivar: id inválido → 400; producto dado de baja → 200 activo", async () => {
+    const p = await create(a1).expect(201);
+    await request(app).delete(`/api/products/${p.body.id}`).set("Authorization", auth).expect(200);
+    const bad = await request(app).patch("/api/products/abc/activate").set("Authorization", auth).expect(400);
+    expect(bad.body.errors).toContainEqual(expect.objectContaining({ path: ["params", "id"], message: "ID inválido" }));
+    const ok = await request(app).patch(`/api/products/${p.body.id}/activate`).set("Authorization", auth);
+    expect(ok.body).toMatchObject({ isActive: true });
+    expect(ok.status).toBe(200);
+  });
+
   it("edición con el código de otro producto → 409", async () => {
     await create(a1).expect(201);
     const b = await create({ ...a1, productCode: "B1" }).expect(201);

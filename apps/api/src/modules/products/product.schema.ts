@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CreateProductDto, UpdateProductDto } from "./product.dto";
 import {
   ProductNameLength,
   ProductCodeLength,
@@ -77,18 +78,16 @@ export const createProductSchema = z.object({
     .min(0, "El stock mínimo no puede ser negativo")
     .max(ProductStockLimits.MAX, "El stock mínimo es demasiado alto")
     .optional(),
-});
+}) satisfies z.ZodType<CreateProductDto>;
 
 export const updateProductSchema = createProductSchema
   .partial()
   .extend({
     isActive: z.boolean().optional(),
-  });
+  }) satisfies z.ZodType<UpdateProductDto>;
 
-  export const activateProductSchema = z.object({
-  params: z.object({
-    id: z.string().min(1, "El ID es requerido"),
-  }),
+export const activateProductSchema = z.object({
+  params: z.object({ id: z.string().regex(/^[a-f0-9]{24}$/i, "ID inválido") }),
 });
 
 const STOCK_QTY_MSG = "La cantidad debe ser un entero mayor a 0";
@@ -98,6 +97,7 @@ export const stockEntrySchema = z.object({
   reason: z.string().max(255, "El motivo no puede tener más de 255 caracteres").optional(),
 });
 
+// Los servicios reciben los DTOs de product.dto; estos tipos son los del controlador.
 export type ActivateProductInput = z.infer<typeof activateProductSchema>["params"];
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;

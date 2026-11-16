@@ -3,6 +3,7 @@ import {
   createProductSchema,
   updateProductSchema,
   stockEntrySchema,
+  activateProductSchema,
 } from "./product.schema";
 import {
   createProduct,
@@ -113,10 +114,12 @@ export const deleteProductHandler = async (req: Request, res: Response) => {
 };
 
 export const activateProductHandler = async (req: Request, res: Response) => {
+  const parsed = activateProductSchema.safeParse({ params: req.params });
+  if (!parsed.success) {
+    return res.status(400).json({ message: "Errores de validación", errors: parsed.error.issues });
+  }
   try {
-    const id = req.params.id as string;
-
-    const product = await activateProduct(id);
+    const product = await activateProduct(parsed.data.params.id);
     return res.status(200).json(present(product));
   } catch (error: any) {
     return res.status(400).json({ message: error.message });

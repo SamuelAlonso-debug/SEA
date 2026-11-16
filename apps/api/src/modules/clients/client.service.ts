@@ -2,6 +2,7 @@ import prisma from "../../shared/prisma";
 import {
   CreateClientInput,
   UpdateClientInput,
+  ListClientsQueryInput,
 } from "./client.schema";
 import {
   ClientDto,
@@ -30,12 +31,12 @@ const emailTaken = (error: any) => {
   throw error?.code === "P2002" ? new ClientError(409, EMAIL_TAKEN) : error;
 };
 
-export const listClients = async (
-  search: string | undefined,
-  page: number,
-  pageSize: number,
-  includeInactive = false
-): Promise<ClientListResult> => {
+export const listClients = async ({
+  search,
+  page,
+  pageSize,
+  includeInactive,
+}: ListClientsQueryInput): Promise<ClientListResult> => {
   const where: any = {};
 
   // Documentos previos sin el campo cuentan como activos (Prisma excluye los ausentes en `not`).
