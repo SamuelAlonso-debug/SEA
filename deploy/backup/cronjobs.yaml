@@ -1,0 +1,53 @@
+# Los Secret `sea-backup` y `sea-backup-test` los crea #57 (sin valores en git). Claves de `sea-backup`:
+#   MONGO_URI, AGE_RECIPIENT (llaves públicas age: la del owner, guardada fuera del clúster, y la de pruebas),
+#   BACKUP_DEST (p. ej. `backup:bucket/sea`), RCLONE_CONFIG_BACKUP_* (credenciales del remoto), ALERT_WEBHOOK_URL.
+# `sea-backup-test`: AGE_IDENTITY (llave privada age de PRUEBAS; la del owner nunca entra al clúster).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mongo-backup
+spec:
+  schedule: "30 3 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0 # un fallo deja el Job en error y dispara la alerta; el siguiente corre al día siguiente
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: backup
+              image: ghcr.io/samuelalonso-debug/sea-backup:latest
+              command: ["/opt/backup/backup.sh"]
+              envFrom: [{ secretRef: { name: sea-backup } }]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mongo-restore-test
+spec:
+  schedule: "0 5 1 * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      template:
+        spec:
+          restartPolicy: Never
+          initContainers:
+            # Mongo efímera en el mismo pod (sidecar nativo): termina con el Job, nada persiste.
+            - name: scratch-mongo
+              image: mongo:7
+              restartPolicy: Always
+          containers:
+            - name: restore-test
+              image: ghcr.io/samuelalonso-debug/sea-backup:latest
+              command: ["/opt/backup/restore-test.sh"]
+              envFrom: [{ secretRef: { name: sea-backup } }]
+              env:
+                - { name: RESTORE_URI, value: "mongodb://127.0.0.1:27017/sea" }
+                - { name: AGE_IDENTITY_FILE, value: /keys/age.txt }
+              volumeMounts: [{ name: keys, mountPath: /keys, readOnly: true }]
+          volumes:
+            - name: keys
+              secret: { secretName: sea-backup-test, items: [{ key: AGE_IDENTITY, path: age.txt }] }
