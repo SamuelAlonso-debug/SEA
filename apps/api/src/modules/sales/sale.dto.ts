@@ -1,4 +1,4 @@
-import { PaymentMethod, SalePayment } from "@prisma/client";
+import { PaymentMethod, SalePayment, SaleStatus } from "@prisma/client";
 
 export interface SaleItemDto {
   id: string;
@@ -24,5 +24,8 @@ export interface SaleDto {
   notes?: string | null;
   clientId: string | null;
   clientName: string | null;
+  status: SaleStatus;
+  cancelReason: string | null;
+  cancelledAt: Date | null;
   items: SaleItemDto[];
 }

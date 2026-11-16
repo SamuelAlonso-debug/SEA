@@ -1,20 +1,25 @@
 import prisma from "../../shared/prisma";
 import { businessRanges, Range } from "../../shared/business-time";
 import { salePayments, toCents } from "../sales/sale.payments";
+import { notCancelled } from "../sales/sale.service";
 import {
   HeaderKpisDto,
   PaymentMethodKpiDto,
   LowStockProductDto,
   TopProductDto,
   SummaryKpisDto,
+  ProfitKpisDto,
 } from "./kpi.dto";
+import { computeProfit } from "./kpi.profit";
 
+// Las ventas canceladas no cuentan como ingreso en ningún KPI.
 // 1) KPIs del header: transacciones, ventas, tickets, productos vendidos del mes
 export const getHeaderKpis = async (range: Range): Promise<HeaderKpisDto> => {
   const { start: startOfMonth, end: startOfNextMonth, month, year } = range;
 
   const sales = await prisma.sale.findMany({
     where: {
+      ...notCancelled,
       createdAt: {
         gte: startOfMonth,
         lt: startOfNextMonth,
@@ -57,6 +62,7 @@ export const getPaymentMethodKpis = async (range: Range): Promise<
 
   const sales = await prisma.sale.findMany({
     where: {
+      ...notCancelled,
       createdAt: {
         gte: startOfMonth,
         lt: startOfNextMonth,
@@ -115,6 +121,7 @@ export const getTopProducts = async (
   const saleItems = await prisma.saleItem.findMany({
     where: {
       sale: {
+        ...notCancelled,
         createdAt: {
           gte: startOfMonth,
           lt: startOfNextMonth,
@@ -171,6 +178,7 @@ export const getSummaryKpis = async (range: Range): Promise<SummaryKpisDto> => {
   // Ventas del mes (para promedios)
   const monthSales = await prisma.sale.findMany({
     where: {
+      ...notCancelled,
       createdAt: {
         gte: startOfMonth,
         lt: startOfNextMonth,
@@ -202,6 +210,7 @@ export const getSummaryKpis = async (range: Range): Promise<SummaryKpisDto> => {
   // Ingresos de hoy
   const todaySales = await prisma.sale.findMany({
     where: {
+      ...notCancelled,
       createdAt: {
         gte: startOfToday,
         lt: startOfTomorrow,
@@ -224,4 +233,19 @@ export const getSummaryKpis = async (range: Range): Promise<SummaryKpisDto> => {
     todayRevenue,
     todaySalesCount,
   };
+};
+
+// 6) Utilidad: ventas netas − costo de lo vendido − gastos
+export const getProfitKpis = async ({ start, end }: Range): Promise<ProfitKpisDto> => {
+  const [sales, expenses] = await Promise.all([
+    prisma.sale.findMany({
+      where: { createdAt: { gte: start, lt: end } },
+      select: { subtotal: true, items: { select: { quantity: true, unitCost: true } } },
+    }),
+    prisma.expense.findMany({
+      where: { date: { gte: start, lt: end } },
+      select: { category: true, amount: true },
+    }),
+  ]);
+  return computeProfit(sales, expenses);
 };

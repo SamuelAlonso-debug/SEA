@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LabeledInput } from "@/components/forms/labeled-input";
 import { LabeledSelect } from "@/components/forms/labeled-select";
-import { EXPENSE_PAYMENT_METHODS } from "@/features/expenses/expense-categories";
+import { useCatalogs } from "@/features/catalogs/use-catalogs";
 import type { PaymentMethod, SalePaymentInput } from "@/types/api";
 import {
   AlertDialog,
@@ -48,6 +48,7 @@ interface PaymentDialogProps {
 // Se monta al elegir un método: arranca con un pago por el total y permite dividirlo (pago mixto).
 export function PaymentDialog({ total, initialMethod, loading, onCancel, onConfirm }: PaymentDialogProps) {
   const totalCents = Math.round(total * 100);
+  const { paymentMethods } = useCatalogs();
   const [rows, setRows] = useState<Row[]>([newRow(initialMethod, totalCents)]);
   const update = (index: number, patch: Partial<Row>) =>
     setRows((prev) => prev.map((row, i) => (i === index ? { ...row, ...patch } : row)));
@@ -93,7 +94,7 @@ export function PaymentDialog({ total, initialMethod, loading, onCancel, onConfi
                   value={row.method}
                   onChange={(e) => update(i, { method: e.target.value as PaymentMethod, received: "" })}
                 >
-                  {EXPENSE_PAYMENT_METHODS.map((m) => (
+                  {paymentMethods.map((m) => (
                     <option key={m.value} value={m.value}>{m.label}</option>
                   ))}
                 </LabeledSelect>

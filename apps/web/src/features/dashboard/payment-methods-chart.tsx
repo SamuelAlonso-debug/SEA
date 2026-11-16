@@ -1,5 +1,6 @@
 "use client";
 
+import { useCatalogs } from "@/features/catalogs/use-catalogs";
 import {
   Bar,
   BarChart,
@@ -9,7 +10,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { EXPENSE_PAYMENT_METHOD_LABELS } from "@/features/expenses/expense-categories";
 
 type PaymentMethodKpi = {
   paymentMethod: string;
@@ -28,11 +28,10 @@ const COLORS: Record<string, string> = {
 };
 
 export function PaymentMethodsChart({ data }: PaymentMethodsChartProps) {
+  const { paymentMethodLabel } = useCatalogs();
   const formatted = data.map((item) => ({
     ...item,
-    label:
-      EXPENSE_PAYMENT_METHOD_LABELS[item.paymentMethod as keyof typeof EXPENSE_PAYMENT_METHOD_LABELS] ??
-      item.paymentMethod,
+    label: paymentMethodLabel(item.paymentMethod),
   }));
 
   return (

@@ -31,6 +31,7 @@ export default function ClientsPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showInactive, setShowInactive] = useState(false);
+  const [sortBy, setSortBy] = useState<"CREATED_AT" | "NAME">("CREATED_AT");
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
@@ -44,6 +45,7 @@ export default function ClientsPage() {
           pageSize,
           search: searchTerm || undefined,
           includeInactive: showInactive || undefined,
+          sortBy,
         });
 
         const rows: ClientRow[] = resp.data.map((c: ClientDto) => ({
@@ -68,7 +70,7 @@ export default function ClientsPage() {
     loadClients();
     // Nota: si quieres que el search dispare el backend en tiempo real,
     // mete searchTerm en el array de dependencias.
-  }, [page, pageSize, searchTerm, showInactive, reloadKey]);
+  }, [page, pageSize, searchTerm, showInactive, sortBy, reloadKey]);
 
   const handleActivate = async (id: string) => {
     try {
@@ -142,6 +144,21 @@ export default function ClientsPage() {
               }}
             />
             Mostrar inactivos
+          </label>
+
+          <label className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            Ordenar por
+            <select
+              className="h-8 rounded-full border border-input bg-background px-3 text-[11px] text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              value={sortBy}
+              onChange={(e) => {
+                setSortBy(e.target.value as "CREATED_AT" | "NAME");
+                setPage(1);
+              }}
+            >
+              <option value="CREATED_AT">Fecha de alta</option>
+              <option value="NAME">Nombre</option>
+            </select>
           </label>
 
           <div className="relative w-full max-w-xs">

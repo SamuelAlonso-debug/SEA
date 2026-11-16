@@ -40,6 +40,18 @@ export const createSaleSchema = z.object({
   clientId: z.string().regex(/^[a-f\d]{24}$/i, "ID inválido").optional(),
 });
 
+export const saleIdParamsSchema = z.object({
+  id: z.string().regex(/^[a-f\d]{24}$/i, "ID inválido"),
+});
+
+export const cancelSaleSchema = z.object({
+  reason: z
+    .string({ error: "El motivo es obligatorio" })
+    .trim()
+    .min(1, "El motivo es obligatorio")
+    .max(255, "El motivo no puede tener más de 255 caracteres"),
+});
+
 export type CreateSaleInput = z.infer<typeof createSaleSchema>;
 export type SalePaymentInput = z.infer<typeof salePaymentInputSchema>;
 export type CreateSaleItemInput = z.infer<typeof saleItemInputSchema>;

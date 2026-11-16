@@ -58,7 +58,7 @@ describe("baja lógica de clientes", () => {
     ["patch", "/clients/abc/activate"],
   ] as const)("%s %s → 400 ID inválido", async (method, url) => {
     const res = await api(method, url).expect(400);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path: ["id"], message: "ID inválido" }));
+    expect(res.body.issues).toContainEqual(expect.objectContaining({ path: "id", message: "ID inválido" }));
   });
 
   it.each([
@@ -70,8 +70,8 @@ describe("baja lógica de clientes", () => {
 
   it("includeInactive inválido → 400", async () => {
     const res = await api("get", "/clients?includeInactive=si").expect(400);
-    expect(res.body.errors).toContainEqual(
-      expect.objectContaining({ path: ["includeInactive"], message: 'Opción inválida: se esperaba una de "true"|"false"' })
+    expect(res.body.issues).toContainEqual(
+      expect.objectContaining({ path: "includeInactive", message: 'Opción inválida: se esperaba una de "true"|"false"' })
     );
   });
 });

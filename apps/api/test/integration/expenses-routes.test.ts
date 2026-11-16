@@ -18,4 +18,9 @@ describe("rutas de KPIs de gastos", () => {
     expect(res.body.current).toMatchObject({ totalAmountMonth: 0, totalCountMonth: 0 });
     await request(db.app).get("/api/expenses/kpis/month").set("Authorization", auth).expect(404);
   });
+
+  it("/kpis rechaza parámetros desconocidos con 400", async () => {
+    const res = await request(db.app).get("/api/expenses/kpis?foo=1").set("Authorization", auth).expect(400);
+    expect(res.body.errors).toMatchObject([{ path: ["foo"] }]);
+  });
 });

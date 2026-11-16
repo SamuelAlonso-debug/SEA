@@ -38,3 +38,15 @@ export interface SummaryKpisDto {
   todayRevenue: number;
   todaySalesCount: number;
 }
+
+// Montos sin IVA, en pesos.
+export interface ProfitKpisDto {
+  netSales: number;
+  costOfGoodsSold: number;
+  grossProfit: number;
+  expenses: number; // sin la categoría merchandise
+  netProfit: number;
+  marginPct: number | null; // utilidad neta / ventas netas; null sin ventas
+  itemsWithoutCost: number;
+  warnings: string[];
+}

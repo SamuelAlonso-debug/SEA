@@ -4,17 +4,14 @@ import {
   UpdateClientInput,
   ListClientsQueryInput,
 } from "./client.schema";
+import { ClientSortByEnum } from "./client.enums";
+import { toSortName } from "./client.sort-name";
 import {
   ClientDto,
   ClientListResult,
   ClientSalesSummaryDto,
 } from "./client.dto";
-
-export class ClientError extends Error {
-  constructor(public status: number, message: string) {
-    super(message);
-  }
-}
+import { ConflictError, NotFoundError } from "../../shared/errors";
 
 const EMAIL_TAKEN = "Ya existe un cliente con ese correo";
 
@@ -23,19 +20,21 @@ async function assertEmailFree(email: string | null | undefined, exceptId?: stri
   const other = await prisma.client.findFirst({
     where: { email, ...(exceptId && { id: { not: exceptId } }) },
   });
-  if (other) throw new ClientError(409, EMAIL_TAKEN);
+  if (other) throw new ConflictError(EMAIL_TAKEN);
 }
 
 // P2002: el índice único parcial creado al desplegar #75 cubre altas simultáneas.
 const emailTaken = (error: any) => {
-  throw error?.code === "P2002" ? new ClientError(409, EMAIL_TAKEN) : error;
+  throw error?.code === "P2002" ? new ConflictError(EMAIL_TAKEN) : error;
 };
+
 
 export const listClients = async ({
   search,
   page,
   pageSize,
   includeInactive,
+  sortBy,
 }: ListClientsQueryInput): Promise<ClientListResult> => {
   const where: any = {};
 
@@ -56,7 +55,7 @@ export const listClients = async ({
 
   const data = await prisma.client.findMany({
     where,
-    orderBy: { createdAt: "desc" },
+    orderBy: sortBy === ClientSortByEnum.NAME ? { sortName: "asc" } : { createdAt: "desc" },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });
@@ -75,7 +74,7 @@ export const getClientById = async (id: string): Promise<ClientDto> => {
   });
 
   if (!client) {
-    throw new Error("Cliente no encontrado");
+    throw new NotFoundError("Cliente no encontrado");
   }
 
   return client;
@@ -90,6 +89,7 @@ export const createClient = async (
     data: {
       name: data.name,
       lastname: data.lastname,
+      sortName: toSortName(data.name, data.lastname),
       phone: data.phone,
       email: data.email ?? null,
       street: data.street ?? null,
@@ -109,7 +109,7 @@ export const updateClient = async (
   const existing = await prisma.client.findUnique({ where: { id } });
 
   if (!existing) {
-    throw new Error("Cliente no encontrado");
+    throw new NotFoundError("Cliente no encontrado");
   }
 
   await assertEmailFree(data.email, id);
@@ -119,6 +119,7 @@ export const updateClient = async (
     data: {
       name: data.name ?? existing.name,
       lastname: data.lastname ?? existing.lastname,
+      sortName: toSortName(data.name ?? existing.name, data.lastname ?? existing.lastname),
       phone: data.phone ?? existing.phone,
       email:
         data.email !== undefined
