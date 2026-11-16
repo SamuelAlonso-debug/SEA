@@ -88,10 +88,6 @@ export const updateProductSchema = createProductSchema
     stock: z.undefined({ error: "El stock se modifica con movimientos" }).optional(),
   }) satisfies z.ZodType<UpdateProductDto>;
 
-export const activateProductSchema = z.object({
-  params: z.object({ id: z.string().regex(/^[a-f0-9]{24}$/i, "ID inválido") }),
-});
-
 const STOCK_QTY_MSG = "La cantidad debe ser un entero mayor a 0";
 const REASON_MAX_MSG = "El motivo no puede tener más de 255 caracteres";
 const MOVEMENT_QTY_MSG = "La cantidad debe ser un entero distinto de 0";
@@ -122,7 +118,6 @@ export const movementsQuerySchema = z.object({
 });
 
 // Los servicios reciben los DTOs de product.dto; estos tipos son los del controlador.
-export type ActivateProductInput = z.infer<typeof activateProductSchema>["params"];
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type StockEntryInput = z.infer<typeof stockEntrySchema>;
