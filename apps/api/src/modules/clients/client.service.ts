@@ -5,6 +5,7 @@ import {
   ListClientsQueryInput,
 } from "./client.schema";
 import { ClientSortByEnum } from "./client.enums";
+import { toSortName } from "./client.sort-name";
 import {
   ClientDto,
   ClientListResult,
@@ -26,6 +27,7 @@ async function assertEmailFree(email: string | null | undefined, exceptId?: stri
 const emailTaken = (error: any) => {
   throw error?.code === "P2002" ? new ConflictError(EMAIL_TAKEN) : error;
 };
+
 
 export const listClients = async ({
   search,
@@ -53,7 +55,7 @@ export const listClients = async ({
 
   const data = await prisma.client.findMany({
     where,
-    orderBy: sortBy === ClientSortByEnum.NAME ? [{ name: "asc" }, { lastname: "asc" }] : { createdAt: "desc" },
+    orderBy: sortBy === ClientSortByEnum.NAME ? { sortName: "asc" } : { createdAt: "desc" },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });
@@ -87,6 +89,7 @@ export const createClient = async (
     data: {
       name: data.name,
       lastname: data.lastname,
+      sortName: toSortName(data.name, data.lastname),
       phone: data.phone,
       email: data.email ?? null,
       street: data.street ?? null,
@@ -116,6 +119,7 @@ export const updateClient = async (
     data: {
       name: data.name ?? existing.name,
       lastname: data.lastname ?? existing.lastname,
+      sortName: toSortName(data.name ?? existing.name, data.lastname ?? existing.lastname),
       phone: data.phone ?? existing.phone,
       email:
         data.email !== undefined
