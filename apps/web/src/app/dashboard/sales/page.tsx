@@ -1,13 +1,18 @@
 "use client";
 
 import { errorMessage } from "@/lib/utils";
+import Link from "next/link";
 import { useState, KeyboardEvent } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { salesClient } from "@/features/sales/api";
+import { RecentSales } from "@/features/sales/recent-sales";
 import { productsClient } from "@/features/inventory/api";
-import type { Sale, PaymentMethod } from "@/types/api";
+import { ExportButton } from "@/components/export-button";
+import { RangePicker } from "@/features/dashboard/range-picker";
+import { useCatalogs } from "@/features/catalogs/use-catalogs";
+import type { Sale, PaymentMethod, PeriodQuery } from "@/types/api";
 
 import {
   AlertDialog,
@@ -42,6 +47,8 @@ type DetailItem = {
 };
 
 export default function SalesPage() {
+  const [exportPeriod, setExportPeriod] = useState<PeriodQuery | null>(null);
+  const { paymentMethodLabel } = useCatalogs();
   const [productCode, setProductCode] = useState("");
   const [quantity, setQuantity] = useState<string>("1");
 
@@ -51,10 +58,13 @@ export default function SalesPage() {
   const [selectedCode, setSelectedCode] = useState<string | null>(null);
 
   const [sale, setSale] = useState<Sale | null>(null);
+  const [confirmedSaleId, setConfirmedSaleId] = useState<string | null>(null);
 
   const [loadingScan, setLoadingScan] = useState(false);
   const [loadingSale, setLoadingSale] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [salesVersion, setSalesVersion] = useState(0);
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingMethod, setPendingMethod] = useState<PaymentMethod | null>(
@@ -131,6 +141,7 @@ export default function SalesPage() {
     // empezamos un armado de ticket nuevo (no venta ya guardada)
     setError(null);
     setSale(null);
+    setConfirmedSaleId(null);
 
     if (!code) {
       setError("Ingresa el ID del producto.");
@@ -219,7 +230,7 @@ export default function SalesPage() {
       setError(null);
 
       // Creamos la venta en el backend con todos los productos del ticket
-      await salesClient.create({
+      const created = await salesClient.create({
         paymentMethod: pendingMethod,
         items: items.map((i) => ({
           productCode: i.productCode,
@@ -228,8 +239,11 @@ export default function SalesPage() {
         notes: null,
       });
 
+      setSalesVersion((v) => v + 1);
+
       // ✅ Después de registrar la venta, limpiamos el ticket COMPLETO
       handleCancelTicket();
+      setConfirmedSaleId(created.id);
     } catch (err) {
       setError(errorMessage(err, "Error al registrar la venta."));
     } finally {
@@ -258,6 +272,10 @@ export default function SalesPage() {
           <div className="space-y-1">
             <h1 className="text-2xl font-extrabold text-foreground">Ventas</h1>
             <p className="text-xs text-muted-foreground">Venta de productos</p>
+          </div>
+          <div className="flex flex-wrap items-end gap-3">
+            <RangePicker value={exportPeriod} onChange={setExportPeriod} />
+            <ExportButton onExport={() => salesClient.exportCsv(exportPeriod)} />
           </div>
         </section>
 
@@ -342,6 +360,12 @@ export default function SalesPage() {
                   Total: {totalLabel}
                 </p>
 
+                {confirmedSaleId && (
+                  <Button asChild className="h-8 rounded-full text-[11px] font-semibold">
+                    <Link href={`/dashboard/sales/${confirmedSaleId}/ticket`}>Imprimir ticket</Link>
+                  </Button>
+                )}
+
                 <div className="pt-2">
                   <Button
                     type="button"
@@ -411,19 +435,21 @@ export default function SalesPage() {
                   onClick={() => handleOpenConfirm("CASH")}
                   disabled={loadingScan || loadingSale || items.length === 0}
                 >
-                  Pago Efectivo
+                  Pago {paymentMethodLabel("CASH")}
                 </Button>
                 <Button
                   className="h-11 rounded-lg bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
                   onClick={() => handleOpenConfirm("CARD")}
                   disabled={loadingScan || loadingSale || items.length === 0}
                 >
-                  Pago Tarjeta
+                  Pago {paymentMethodLabel("CARD")}
                 </Button>
               </div>
             </div>
           </div>
         </section>
+
+        <RecentSales refreshKey={salesVersion} />
       </div>
 
       {/* Ventana emergente de confirmación */}

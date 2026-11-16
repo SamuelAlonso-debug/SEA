@@ -8,17 +8,18 @@ import type {
   LowStockProduct,
   TopProduct,
   SummaryKpis,
+  ProfitKpis,
   Compared,
-  Period,
+  PeriodQuery,
 } from "@/types/api";
 
 export const kpisClient = {
-  getHeader: (period?: Period | null) =>
+  getHeader: (period?: PeriodQuery | null) =>
     apiClient.get<Compared<HeaderKpis>>("/kpis/header", {
       query: { ...period },
     }),
 
-  getPaymentMethods: (period?: Period | null) =>
+  getPaymentMethods: (period?: PeriodQuery | null) =>
     apiClient.get<Compared<PaymentMethodKpi[]>>("/kpis/payment-methods", {
       query: { ...period },
     }),
@@ -27,13 +28,18 @@ export const kpisClient = {
   getLowStock: () =>
     apiClient.get<LowStockProduct[]>("/kpis/low-stock"),
 
-  getTopProducts: (period?: Period | null) =>
+  getTopProducts: (period?: PeriodQuery | null) =>
     apiClient.get<Compared<TopProduct[]>>("/kpis/top-products", {
       query: { ...period },
     }),
 
-  getSummary: (period?: Period | null) =>
+  getSummary: (period?: PeriodQuery | null) =>
     apiClient.get<Compared<SummaryKpis>>("/kpis/summary", {
+      query: { ...period },
+    }),
+
+  getProfit: (period?: PeriodQuery | null) =>
+    apiClient.get<Compared<ProfitKpis>>("/kpis/profit", {
       query: { ...period },
     }),
 };

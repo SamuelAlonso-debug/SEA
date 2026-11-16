@@ -40,7 +40,7 @@ describe("productos: código duplicado y entrada de stock", () => {
     const p = await create(a1).expect(201);
     await request(app).delete(`/api/products/${p.body.id}`).set("Authorization", auth).expect(200);
     const bad = await request(app).patch("/api/products/abc/activate").set("Authorization", auth).expect(400);
-    expect(bad.body.errors).toContainEqual(expect.objectContaining({ path: ["params", "id"], message: "ID inválido" }));
+    expect(bad.body.issues).toContainEqual(expect.objectContaining({ path: "id", message: "ID inválido" }));
     const ok = await request(app).patch(`/api/products/${p.body.id}/activate`).set("Authorization", auth);
     expect(ok.body).toMatchObject({ isActive: true });
     expect(ok.status).toBe(200);
@@ -73,7 +73,7 @@ describe("productos: código duplicado y entrada de stock", () => {
   ])("400 con %j", async (body, path, message) => {
     const p = await create(a1).expect(201);
     const res = await entry(p.body.id, body).expect(400);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path: [path], message }));
+    expect(res.body.issues).toContainEqual(expect.objectContaining({ path, message }));
   });
 
   it("entrada a producto inexistente → 404", async () => {

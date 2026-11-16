@@ -1,4 +1,5 @@
 import { CookieOptions, Request, Response } from "express";
+import { CaughtError } from "../../shared/caught-error";
 import { loginSchema } from "./auth.schema";
 import { loginUser, getUserProfile, AuthError } from "./auth.service";
 import { AuthRequest, SESSION_COOKIE } from "../../shared/auth.middleware";
@@ -19,7 +20,8 @@ export const loginHandler = async (req: Request, res: Response) => {
     const { user, token } = await loginUser(parsed);
     res.cookie(SESSION_COOKIE, token, { ...sessionCookie, maxAge: SESSION_MAX_AGE_MS });
     return res.status(200).json({ user });
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
@@ -48,7 +50,8 @@ export const profileHandler = async (req: AuthRequest, res: Response) => {
 
     const user = await getUserProfile(req.userId);
     return res.status(200).json(user);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res.status(400).json({ message: error.message || "Error al obtener perfil" });
   }
 };

@@ -80,6 +80,13 @@ export function currentMonth(now: Date = new Date(), timeZone: string = BUSINESS
   return { from: formatDay(Date.UTC(year, month - 1, 1)), to: formatDay(Date.UTC(year, month, 0)) };
 }
 
+// Día en curso del negocio como periodo de un solo día.
+export function currentDay(now: Date = new Date(), timeZone: string = BUSINESS_TIMEZONE): Period {
+  const { year, month, day } = wallClock(now.getTime(), timeZone);
+  const date = formatDay(Date.UTC(year, month - 1, day));
+  return { from: date, to: date };
+}
+
 // Periodo anterior de igual duración. Meses completos → mismos meses anteriores (oct → sep).
 export function previousPeriod(period: Period): Period {
   const start = utcDay(period.from);
@@ -95,3 +102,7 @@ export function previousPeriod(period: Period): Period {
 // Variación porcentual a 2 decimales; null si el periodo anterior es 0.
 export const percentChange = (current: number, previous: number) =>
   previous === 0 ? null : Math.round(((current - previous) / previous) * 10_000) / 100;
+
+// "AAAA-MM-DD HH:mm" en hora del negocio (sv-SE ya usa ese orden), para CSV y reportes.
+const stampFormat = new Intl.DateTimeFormat("sv-SE", { timeZone: BUSINESS_TIMEZONE, dateStyle: "short", timeStyle: "short" });
+export const businessStamp = (date: Date) => stampFormat.format(date);
