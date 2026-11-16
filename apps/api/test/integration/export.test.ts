@@ -20,6 +20,8 @@ afterAll(() => db?.stop());
 beforeEach(() => db.reset());
 
 const OCT = "?from=2026-10-01&to=2026-10-31";
+// Hoy en hora del negocio, calculado sin el código bajo prueba.
+const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: process.env.BUSINESS_TIMEZONE }).format(new Date());
 
 describe("GET /api/sales/export", () => {
   beforeEach(async () => {
@@ -77,6 +79,17 @@ describe("GET /api/sales/export", () => {
     expect(res.headers["content-disposition"]).toMatch(/filename="ventas_\d{4}-\d{2}-01_\d{4}-\d{2}-\d{2}\.csv"/);
   });
 
+  it("?period=TODAY: nombre con el día en curso y solo ventas de hoy", async () => {
+    const a = await db.prisma.product.findFirstOrThrow({ where: { productCode: "A" } });
+    const sale = await db.prisma.sale.create({ data: { ticketNumber: "0000003", subtotal: 10, tax: 1.6, total: 11.6, paymentMethod: "CASH" } });
+    await db.prisma.saleItem.create({ data: { saleId: sale.id, productId: a.id, quantity: 1, unitPrice: 10, subtotal: 10 } });
+    const day = today();
+    const res = await get("/api/sales/export?period=TODAY").expect(200);
+    if (today() !== day) return; // cruzó la medianoche durante la petición
+    expect(res.headers["content-disposition"]).toBe(`attachment; filename="ventas_${day}_${day}.csv"`);
+    expect(lines(res.text).slice(1).map((l) => l.split(",")[0])).toEqual(["0000003"]);
+  });
+
   it("errores de rango con los mensajes de #86", async () => {
     const bad = await get("/api/sales/export?from=2026-1-01&to=2026-10-31").expect(400);
     expect(bad.body.errors).toMatchObject([{ path: ["from"], message: "La fecha debe tener formato AAAA-MM-DD" }]);
@@ -108,6 +121,13 @@ describe("GET /api/expenses/export", () => {
     expect(lines(all.text)).toHaveLength(3);
     const rent = lines((await get(`/api/expenses/export${OCT}&category=rent`)).text);
     expect(rent).toEqual(["Fecha,Concepto,Categoría,Monto,Método de pago,Proveedor,Notas", '2026-10-03 10:00,Renta,rent,100.50,CASH,"Luz, S.A.",']);
+  });
+
+  it("?period=TODAY: nombre con el día en curso", async () => {
+    const day = today();
+    const res = await get("/api/expenses/export?period=TODAY").expect(200);
+    if (today() !== day) return;
+    expect(res.headers["content-disposition"]).toBe(`attachment; filename="gastos_${day}_${day}.csv"`);
   });
 
   it("categoría fuera del catálogo: 400 con path y mensaje", async () => {

@@ -4,7 +4,7 @@ import { Request, Response } from "express";
 import { cancelSaleSchema, createSaleSchema } from "./sale.schema";
 import { createSale, listSales, getSaleById, cancelSale, SaleError, saleExportRows } from "./sale.service";
 import { csvExport } from "../../shared/csv";
-import { currentMonth } from "../../shared/business-time";
+import { periodOf } from "../../shared/period";
 import { periodQuerySchema } from "../kpis/kpi.schema";
 
 export const createSaleHandler = async (req: Request, res: Response) => {
@@ -64,11 +64,11 @@ export const getSaleHandler = async (req: Request, res: Response) => {
 export const exportSalesHandler = csvExport({
   schema: periodQuerySchema,
   filename: (q) => {
-    const { from, to } = q.from && q.to ? { from: q.from, to: q.to } : currentMonth();
+    const { from, to } = periodOf(q);
     return `ventas_${from}_${to}.csv`;
   },
   header: ["Ticket", "Fecha", "Código", "Producto", "Cantidad", "Precio", "Subtotal", "IVA", "Total", "Método de pago", "Cliente", "Cajero"],
-  rows: (q) => saleExportRows(q.from && q.to ? { from: q.from, to: q.to } : currentMonth()),
+  rows: (q) => saleExportRows(periodOf(q)),
 });
 
 export const cancelSaleHandler = async (req: Request, res: Response) => {
