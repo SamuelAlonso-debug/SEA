@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { LoginDto, RegisterDto } from "./auth.dto";
+import { Role } from "@prisma/client";
+import { CreateUserDto, LoginDto } from "./auth.dto";
 import {
   UserNameLength,
   UserLastNameLength,
@@ -7,8 +8,10 @@ import {
   UserPasswordLength,
 } from "./user.enums";
 
-// El correo se normaliza (trim, minúsculas): una cuenta por correo sin importar mayúsculas.
-export const registerSchema = z.object({
+const ROLES = Object.values(Role);
+
+// Alta de personal (POST /api/users, solo ADMIN). El correo se normaliza (trim, minúsculas): una cuenta por correo sin importar mayúsculas.
+export const createUserSchema = z.object({
   name: z
     .string()
     .min(
@@ -55,7 +58,11 @@ export const registerSchema = z.object({
       UserPasswordLength.MAX,
       `La contraseña no puede tener más de ${UserPasswordLength.MAX} caracteres`
     ),
-}) satisfies z.ZodType<RegisterDto>;
+
+  role: z.enum(ROLES, {
+    error: () => `Opción inválida: se esperaba una de ${ROLES.map((r) => `"${r}"`).join("|")}`,
+  }),
+}) satisfies z.ZodType<CreateUserDto>;
 
 export const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email("Correo inválido"),
@@ -65,5 +72,5 @@ export const loginSchema = z.object({
 }) satisfies z.ZodType<LoginDto>;
 
 // Tipos del controlador; los servicios reciben los DTOs de auth.dto.
-export type RegisterInput = z.infer<typeof registerSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

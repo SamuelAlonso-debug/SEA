@@ -14,6 +14,6 @@ export enum UserEmailLength {
 }
 
 export enum UserPasswordLength {
-  MIN = 6,
+  MIN = 8,
   MAX = 72,
 }

@@ -1,10 +1,14 @@
 import { Request, Response, NextFunction } from "express";
+import { Role } from "@prisma/client";
 import { verifyToken } from "./jwt";
 
 export const SESSION_COOKIE = "sea_session";
 
+const ROLES = Object.values(Role);
+
 export interface AuthRequest extends Request {
   userId?: string;
+  userRole?: Role;
 }
 
 export const authMiddleware = (
@@ -21,11 +25,25 @@ export const authMiddleware = (
     return res.status(401).json({ message: "No autenticado" });
   }
 
+  let payload: ReturnType<typeof verifyToken> | undefined;
   try {
-    const payload = verifyToken(token);
-    req.userId = payload.userId;
-    next();
+    payload = verifyToken(token);
   } catch {
+    // Firma inválida o token expirado: mismo 401 que un token sin rol.
+  }
+  // Un token sin rol válido (emitido antes de los roles) obliga a iniciar sesión de nuevo.
+  if (!payload?.userId || !payload.role || !ROLES.includes(payload.role)) {
     return res.status(401).json({ message: "Sesión expirada. Inicia sesión de nuevo." });
   }
+  req.userId = payload.userId;
+  req.userRole = payload.role;
+  next();
 };
+
+// Después de authMiddleware. El rol viaja en el token: un cambio de rol aplica en el siguiente login.
+export const requireRole =
+  (...roles: Role[]) =>
+  (req: AuthRequest, res: Response, next: NextFunction) =>
+    req.userRole && roles.includes(req.userRole)
+      ? next()
+      : res.status(403).json({ message: "No tienes permiso para esta acción" });

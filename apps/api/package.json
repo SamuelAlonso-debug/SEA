@@ -13,6 +13,7 @@
     "migrate:expense-payment-method": "node prisma/migrate-expense-payment-method.mjs",
     "backfill:client-sort-name": "node prisma/backfill-client-sort-name.mjs",
     "migrate:initial-stock-movements": "node prisma/migrate-initial-stock-movements.mjs",
+    "seed:admin": "node prisma/seed-admin.mjs",
     "lint": "eslint src test"
   },
   "keywords": [],

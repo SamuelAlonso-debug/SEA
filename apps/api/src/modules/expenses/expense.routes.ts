@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../../shared/auth.middleware";
+import { authMiddleware, requireRole } from "../../shared/auth.middleware";
 import {
   listExpensesHandler,
   getExpenseHandler,
@@ -12,8 +12,8 @@ import {
 
 const router = Router();
 
-// proteger todas con auth
-router.use(authMiddleware);
+// Gastos: solo ADMIN.
+router.use(authMiddleware, requireRole("ADMIN"));
 
 // /api/expenses
 router.get("/kpis", getExpenseKpisHandler);

@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import { startMongo } from "./mongo";
+import { signToken } from "../../src/shared/jwt";
 
 // Una sola base por archivo; el limitador de auth admite 10 intentos por ventana.
 let db: Awaited<ReturnType<typeof startMongo>>;
@@ -14,7 +15,9 @@ beforeAll(async () => {
 
 afterAll(() => db?.stop());
 
-const user = { name: "Ana", lastname: "Pérez", password: "secreto123" };
+const user = { name: "Ana", lastname: "Pérez", password: "secreto123", role: "CASHIER" };
+// Las altas son de un ADMIN: no hay registro público.
+const admin = `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011", role: "ADMIN" })}`;
 
 const WEB = "http://localhost:3000"; // origen permitido por defecto (CORS_ORIGIN)
 const EXPIRED = "Sesión expirada. Inicia sesión de nuevo.";
@@ -36,9 +39,9 @@ describe("GET /api/auth/profile", () => {
 
 describe("correo sin distinción de mayúsculas", () => {
   it("una cuenta por correo; login con cualquier capitalización", async () => {
-    await request(app).post("/api/auth/register").send({ ...user, email: "Ana@x.com" }).expect(201);
+    await request(app).post("/api/users").set("Authorization", admin).send({ ...user, email: "Ana@x.com" }).expect(201);
 
-    const dup = await request(app).post("/api/auth/register").send({ ...user, email: "ana@x.com" }).expect(409);
+    const dup = await request(app).post("/api/users").set("Authorization", admin).send({ ...user, email: "ana@x.com" }).expect(409);
     expect(dup.body.message).toBe("El correo ya está registrado");
     expect(await db.prisma.user.count()).toBe(1);
 
@@ -56,15 +59,15 @@ describe("correo sin distinción de mayúsculas", () => {
   });
 
   it.each([
-    ["/api/auth/register", { ...user, email: "no-es-correo" }, "email", "Correo inválido"],
+    ["/api/users", { ...user, email: "no-es-correo" }, "email", "Correo inválido"],
     ["/api/auth/login", { email: "ana@x.com", password: "" }, "password", "La contraseña es obligatoria"],
   ])("400 en %s", async (url, body, path, message) => {
-    const res = await request(app).post(url).send(body).expect(400);
+    const res = await request(app).post(url).set("Authorization", admin).send(body).expect(400);
     expect(res.body.errors).toContainEqual(expect.objectContaining({ path: [path], message }));
   });
 });
 
-// Usa la cuenta creada arriba: el limitador de auth no da para otra alta.
+// Usa la cuenta creada arriba: el limitador de auth admite 10 intentos por ventana.
 describe("sesión por cookie httpOnly", () => {
   const login = () =>
     request(app).post("/api/auth/login").set("Origin", WEB).send({ email: "ana@x.com", password: user.password }).expect(200);
@@ -78,7 +81,8 @@ describe("sesión por cookie httpOnly", () => {
     for (const attr of ["HttpOnly", "Secure", "SameSite=Strict", "Path=/"]) expect(cookie).toContain(attr);
 
     const profile = await request(app).get("/api/auth/profile").set("Cookie", sessionOf(res)).expect(200);
-    expect(profile.body.email).toBe("ana@x.com");
+    expect(profile.body).toMatchObject({ email: "ana@x.com", role: "CASHIER" });
+    expect(profile.body).not.toHaveProperty("password");
   });
 
   it("logout responde 204, expira la cookie y la siguiente petición es 401", async () => {

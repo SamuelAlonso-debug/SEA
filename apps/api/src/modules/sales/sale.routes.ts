@@ -4,14 +4,14 @@ import {
   listSalesHandler,
   getSaleHandler,
   exportSalesHandler,
-
   cancelSaleHandler,
 } from "./sale.controller";
 import { saleIdParamsSchema } from "./sale.schema";
-import { authMiddleware } from "../../shared/auth.middleware";
+import { authMiddleware, requireRole } from "../../shared/auth.middleware";
 
 const router = Router();
 
+// ADMIN y CASHIER: cobrar y consultar ventas es el trabajo de caja. Exportar y cancelar son de ADMIN.
 router.use(authMiddleware);
 
 // Un id que no es ObjectId responde 400 antes de llegar a Prisma.
@@ -24,9 +24,9 @@ router.param("id", (req, res, next, id) => {
 
 router.post("/", createSaleHandler);
 router.get("/", listSalesHandler);
-router.get("/export", exportSalesHandler); // antes de /:id
+router.get("/export", requireRole("ADMIN"), exportSalesHandler); // antes de /:id
 router.get("/:id", getSaleHandler);
-// Sin roles todavía (#8): cualquier usuario autenticado puede cancelar.
-router.post("/:id/cancel", cancelSaleHandler);
+// Cancelar reintegra stock y saca la venta de los KPIs.
+router.post("/:id/cancel", requireRole("ADMIN"), cancelSaleHandler);
 
 export default router;

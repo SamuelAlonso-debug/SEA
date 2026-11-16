@@ -15,6 +15,8 @@ WORKDIR /app
 COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist
+# seed-admin.mjs se ejecuta desde la imagen; las credenciales llegan por entorno al ejecutarlo.
+COPY --from=build /app/prisma ./prisma
 USER node
 EXPOSE 4000
 CMD ["node", "dist/server.js"]
