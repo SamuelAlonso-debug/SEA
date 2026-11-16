@@ -1,10 +1,13 @@
 export type PaymentMethod = "CASH" | "CARD";
 
+export type Role = "ADMIN" | "CASHIER";
+
 export interface User {
   id: string;
   name: string;
   lastname: string;
   email: string;
+  role: Role;
   createdAt: string;
   updatedAt: string;
 }

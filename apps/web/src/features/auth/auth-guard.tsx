@@ -4,8 +4,9 @@ import { createContext, ReactNode, useContext, useEffect, useState } from "react
 import { usePathname, useRouter } from "next/navigation";
 import { profileRequest } from "./api";
 import type { User } from "@/types/api";
+import { canAccess, homeFor } from "@/config/navigation";
 
-const PUBLIC_ROUTES = ["/landing", "/auth/login", "/auth/register"];
+const PUBLIC_ROUTES = ["/landing", "/auth/login"];
 
 interface Session {
   user: User | null;
@@ -32,7 +33,9 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   let redirect: string | null = null;
   if (user === null && !isPublic) redirect = "/auth/login";
   // Con sesión, /auth/* va al dashboard. "/" redirige a /landing y dejaba el login inalcanzable.
-  if (user && pathname.startsWith("/auth")) redirect = "/dashboard";
+  if (user && pathname.startsWith("/auth")) redirect = homeFor(user.role);
+  // Una pantalla sin permiso del rol lleva a su inicio en lugar de mostrar errores 403.
+  else if (user && !isPublic && !canAccess(pathname, user.role)) redirect = homeFor(user.role);
 
   useEffect(() => {
     if (redirect) router.replace(redirect);

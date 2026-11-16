@@ -82,7 +82,7 @@ export default function LandingPage() {
               mantén todo organizado.
             </p>
 
-            <CircleLink href="/auth/register" label="Ir" />
+            <CircleLink href="/auth/login" label="Ir" />
           </div>
 
           
@@ -101,7 +101,7 @@ export default function LandingPage() {
               reportes y mantén controlado tu negocio sin complicaciones.
             </p>
 
-            <CircleLink href="/auth/register" label="Ir" />
+            <CircleLink href="/auth/login" label="Ir" />
           </div>
 
           {/* Imagen derecha */}
@@ -140,7 +140,7 @@ export default function LandingPage() {
               repetitivas con asistencia de inteligencia artificial.
             </p>
 
-            <CircleLink href="/auth/register" label="Ir" />
+            <CircleLink href="/auth/login" label="Ir" />
           </div>
         </div>
       </section>
@@ -207,7 +207,7 @@ export default function LandingPage() {
             internet y mantén el control de tu negocio en todo momento.
           </p>
           <Link
-            href="/auth/register"
+            href="/auth/login"
             className="rounded-full bg-[#F5A524] px-6 py-2 text-xs font-semibold text-[#1A2D4D] hover:bg-[#f6b341]"
           >
             Empezar ahora
@@ -341,7 +341,7 @@ export default function LandingPage() {
                 Empieza gratis y cambia de plan cuando lo necesites.
               </p>
               <Link
-                href="/auth/register"
+                href="/auth/login"
                 className="inline-flex rounded-full bg-[#F5A524] px-4 py-2 text-[11px] font-semibold text-[#1A2D4D] hover:bg-[#f6b341]"
               >
                 Estoy dentro
@@ -404,7 +404,7 @@ function PricingCard({
 
       <div className="mt-4">
         <Link
-          href="/auth/register"
+          href="/auth/login"
           className={`inline-flex w-full items-center justify-center rounded-full px-4 py-2 text-[11px] font-semibold ${
             highlight
               ? "bg-[#F5A524] text-[#1A2D4D] hover:bg-[#f6b341]"
