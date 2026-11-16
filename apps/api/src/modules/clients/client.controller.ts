@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { CaughtError } from "../../shared/caught-error";
 import {
   createClientSchema,
   updateClientSchema,
@@ -13,130 +12,40 @@ import {
   deactivateClient,
   activateClient,
   getClientSales,
-  ClientError,
 } from "./client.service";
 
+// Sin try/catch: Express 5 lleva los errores (Zod, dominio, BD) al middleware central.
+// `req.params.id` llega validado como ObjectId por router.param.
+
 export const listClientsHandler = async (req: Request, res: Response) => {
-  try {
-    const parsed = listClientsQuerySchema.parse(req.query);
-
-    const result = await listClients(parsed);
-
-    return res.status(200).json(result);
-  } catch (caught) {
-    const error = caught as CaughtError;
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        message: "Errores de validación",
-        errors: error.issues,
-      });
-    }
-    return res
-      .status(500)
-      .json({ message: error.message || "Error al listar clientes" });
-  }
+  res.status(200).json(await listClients(listClientsQuerySchema.parse(req.query)));
 };
 
-// 👇 Aquí tipamos que el param `id` es string
-export const getClientHandler = async (
-  req: Request<{ id: string }>,
-  res: Response
-) => {
-  try {
-    const { id } = req.params;
-    const client = await getClientById(id);
-    return res.status(200).json(client);
-  } catch (caught) {
-    const error = caught as CaughtError;
-    return res
-      .status(404)
-      .json({ message: error.message || "Cliente no encontrado" });
-  }
+export const getClientHandler = async (req: Request<{ id: string }>, res: Response) => {
+  res.status(200).json(await getClientById(req.params.id));
 };
 
 export const createClientHandler = async (req: Request, res: Response) => {
-  try {
-    const parsed = createClientSchema.parse(req.body);
-    const client = await createClient(parsed);
-    return res.status(201).json(client);
-  } catch (caught) {
-    const error = caught as CaughtError;
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        message: "Errores de validación",
-        errors: error.issues,
-      });
-    }
-    if (error instanceof ClientError) {
-      return res.status(error.status).json({ message: error.message });
-    }
-    return res
-      .status(400)
-      .json({ message: error.message || "Error al crear cliente" });
-  }
+  res.status(201).json(await createClient(createClientSchema.parse(req.body)));
 };
 
-export const updateClientHandler = async (
-  req: Request<{ id: string }>,
-  res: Response
-) => {
-  try {
-    const { id } = req.params;
-    const parsed = updateClientSchema.parse(req.body);
-    const client = await updateClient(id, parsed);
-    return res.status(200).json(client);
-  } catch (caught) {
-    const error = caught as CaughtError;
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        message: "Errores de validación",
-        errors: error.issues,
-      });
-    }
-    if (error instanceof ClientError) {
-      return res.status(error.status).json({ message: error.message });
-    }
-    return res
-      .status(400)
-      .json({ message: error.message || "Error al actualizar cliente" });
-  }
+export const updateClientHandler = async (req: Request<{ id: string }>, res: Response) => {
+  const client = await updateClient(req.params.id, updateClientSchema.parse(req.body));
+  res.status(200).json(client);
 };
 
 const NOT_FOUND = { message: "Cliente no encontrado" };
 
 export const deleteClientHandler = async (req: Request<{ id: string }>, res: Response) => {
-  try {
-    return (await deactivateClient(req.params.id)) ? res.status(204).send() : res.status(404).json(NOT_FOUND);
-  } catch {
-    return res.status(500).json({ message: "Error al dar de baja al cliente" });
-  }
+  return (await deactivateClient(req.params.id)) ? res.status(204).send() : res.status(404).json(NOT_FOUND);
 };
 
 export const activateClientHandler = async (req: Request<{ id: string }>, res: Response) => {
-  try {
-    const client = await activateClient(req.params.id);
-    return client ? res.status(200).json(client) : res.status(404).json(NOT_FOUND);
-  } catch {
-    return res.status(500).json({ message: "Error al reactivar al cliente" });
-  }
+  const client = await activateClient(req.params.id);
+  return client ? res.status(200).json(client) : res.status(404).json(NOT_FOUND);
 };
 
-// Ventas de un cliente
-export const getClientSalesHandler = async (
-  req: Request<{ id: string }>,
-  res: Response
-) => {
-  try {
-    const { id } = req.params;
-    const sales = await getClientSales(id);
-    if (!sales) {
-      return res.status(404).json({ message: "Cliente no encontrado" });
-    }
-    return res.status(200).json(sales);
-  } catch (caught) {
-    const error = caught as CaughtError;
-    return res.status(400).json({
-      message: error.message || "Error al obtener ventas del cliente",
-    });
-  }
+export const getClientSalesHandler = async (req: Request<{ id: string }>, res: Response) => {
+  const sales = await getClientSales(req.params.id);
+  return sales ? res.status(200).json(sales) : res.status(404).json(NOT_FOUND);
 };

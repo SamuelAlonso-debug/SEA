@@ -9,7 +9,7 @@ import type {
   ExpensesListResponse,
   ExpensesKpisResponse,
   Compared,
-  Period,
+  PeriodQuery,
   CreateExpenseRequest,
   UpdateExpenseRequest,
 } from "@/types/api";
@@ -38,11 +38,15 @@ export const expensesClient = {
     }),
 
   // GET /api/expenses/kpis
-  getKpis: (period?: Period | null) =>
+  getKpis: (period?: PeriodQuery | null) =>
     apiClient.get<Compared<ExpensesKpisResponse>>("/expenses/kpis", {
       ...withToken(),
       query: { ...period },
     }),
+
+  // GET /api/expenses/export: descarga el CSV (sin periodo = mes en curso)
+  exportCsv: (period?: PeriodQuery | null) =>
+    apiClient.download("/expenses/export", { ...withToken(), query: { ...period } }),
 
   // POST /api/expenses
   create: (input: CreateExpenseRequest) =>
@@ -79,7 +83,7 @@ export const expensesClient = {
 export const getExpenses = (params?: GetExpensesParams) =>
   expensesClient.list(params ?? {});
 
-export const getExpensesKpis = (period?: Period | null) => expensesClient.getKpis(period);
+export const getExpensesKpis = (period?: PeriodQuery | null) => expensesClient.getKpis(period);
 
 export const createExpense = (input: CreateExpenseRequest) =>
   expensesClient.create(input);

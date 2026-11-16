@@ -7,6 +7,7 @@ import { KpiCard } from "@/features/dashboard/kpi-card";
 import { LowStockTable } from "@/features/dashboard/low-stock-table";
 import { PaymentMethodsChart } from "@/features/dashboard/payment-methods-chart";
 import { SummaryBlock } from "@/features/dashboard/summary-block";
+import { ProfitBlock } from "@/features/dashboard/profit-block";
 import { TopProductsDonut } from "@/features/dashboard/top-products-donut";
 import { RangePicker, periodLabel } from "@/features/dashboard/range-picker";
 
@@ -18,7 +19,8 @@ import type {
   LowStockProduct,
   TopProduct,
   SummaryKpis,
-  Period,
+  ProfitKpis,
+  PeriodQuery,
 } from "@/types/api";
 
 // Helpers de formato
@@ -40,9 +42,10 @@ export default function DashboardHomePage() {
   );
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [summary, setSummary] = useState<SummaryKpis | null>(null);
-  const [period, setPeriod] = useState<Period | null>(null);
+  const [profit, setProfit] = useState<ProfitKpis | null>(null);
+  const [period, setPeriod] = useState<PeriodQuery | null>(null);
   // Periodo de los datos en pantalla; distinto de `period` mientras se recarga.
-  const [loadedPeriod, setLoadedPeriod] = useState<Period | null | undefined>(undefined);
+  const [loadedPeriod, setLoadedPeriod] = useState<PeriodQuery | null | undefined>(undefined);
   const refreshing = loadedPeriod !== period;
   const [headerChange, setHeaderChange] = useState<Record<string, number | null>>({});
 
@@ -70,8 +73,9 @@ export default function DashboardHomePage() {
       kpisClient.getLowStock(),
       kpisClient.getTopProducts(period),
       kpisClient.getSummary(period),
+      kpisClient.getProfit(period),
     ])
-      .then(([header, payment, lowStock, top, summaryData]) => {
+      .then(([header, payment, lowStock, top, summaryData, profitData]) => {
         if (cancelled) return;
         setHeaderKpis(header.current);
         setHeaderChange(header.change);
@@ -79,6 +83,7 @@ export default function DashboardHomePage() {
         setLowStockProducts(lowStock);
         setTopProducts(top.current);
         setSummary(summaryData.current);
+        setProfit(profitData.current);
         setError(null);
       })
       .catch((err) => {
@@ -132,7 +137,7 @@ export default function DashboardHomePage() {
         )}
       </section>
 
-      {error || !headerKpis || !summary ? (
+      {error || !headerKpis || !summary || !profit ? (
         <div role="alert" className="p-6 text-sm text-red-500">
           {error ?? "No se pudieron cargar los datos del dashboard."}
         </div>
@@ -179,6 +184,7 @@ export default function DashboardHomePage() {
                   todaySalesCount: summary.todaySalesCount,
                 }}
               />
+              <ProfitBlock data={profit} />
             </div>
 
             {/* Derecha: stock bajo + top productos */}

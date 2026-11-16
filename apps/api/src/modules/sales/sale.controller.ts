@@ -1,8 +1,11 @@
-import { Request, Response } from "express";
-import { CaughtError } from "../../shared/caught-error";
 import { AuthRequest } from "../../shared/auth.middleware";
-import { createSaleSchema } from "./sale.schema";
-import { createSale, listSales, getSaleById, SaleError } from "./sale.service";
+import { CaughtError } from "../../shared/caught-error";
+import { Request, Response } from "express";
+import { cancelSaleSchema, createSaleSchema } from "./sale.schema";
+import { createSale, listSales, getSaleById, cancelSale, SaleError, saleExportRows } from "./sale.service";
+import { csvExport } from "../../shared/csv";
+import { currentMonth } from "../../shared/business-time";
+import { periodQuerySchema } from "../kpis/kpi.schema";
 
 export const createSaleHandler = async (req: Request, res: Response) => {
   try {
@@ -54,5 +57,34 @@ export const getSaleHandler = async (req: Request, res: Response) => {
     return res
       .status(404)
       .json({ message: error.message || "Venta no encontrada" });
+  }
+};
+
+// Una fila por ítem. Sin ?from&to: mes en curso, igual que los KPIs.
+export const exportSalesHandler = csvExport({
+  schema: periodQuerySchema,
+  filename: (q) => {
+    const { from, to } = q.from && q.to ? { from: q.from, to: q.to } : currentMonth();
+    return `ventas_${from}_${to}.csv`;
+  },
+  header: ["Ticket", "Fecha", "Código", "Producto", "Cantidad", "Precio", "Subtotal", "IVA", "Total", "Método de pago", "Cliente", "Cajero"],
+  rows: (q) => saleExportRows(q.from && q.to ? { from: q.from, to: q.to } : currentMonth()),
+});
+
+export const cancelSaleHandler = async (req: Request, res: Response) => {
+  const parsed = cancelSaleSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({ message: parsed.error.issues[0]!.message, errors: parsed.error.issues });
+  }
+
+  try {
+    const userId = (req as AuthRequest).userId;
+    const sale = await cancelSale(req.params.id as string, parsed.data.reason, userId);
+    return res.status(200).json(sale);
+  } catch (error) {
+    if (error instanceof SaleError) {
+      return res.status(error.status).json({ message: error.message });
+    }
+    return res.status(500).json({ message: "Error al cancelar la venta" });
   }
 };
