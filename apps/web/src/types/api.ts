@@ -63,6 +63,9 @@ export interface Period {
   to: string;
 }
 
+// Selección de periodo de los KPIs: rango libre o preset (?period=).
+export type PeriodQuery = Period | { period: "TODAY" | "MONTH" };
+
 // KPI de un periodo comparado con el anterior de igual duración (fechas AAAA-MM-DD).
 export interface Compared<T, C = Record<string, number | null>> {
   period: Period;
