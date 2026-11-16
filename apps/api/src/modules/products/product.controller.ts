@@ -19,6 +19,9 @@ import {
   listMovements,
 } from "./product.service";
 import { present } from "./product.margin";
+import { z } from "zod";
+import multer from "multer";
+import { IMPORT_HEADERS, IMPORT_MAX_BYTES, ImportError, importProducts } from "./product.import";
 import { AuthRequest } from "../../shared/auth.middleware";
 
 // Sin try/catch: Express 5 lleva los errores (Zod, dominio, BD) al middleware central.
@@ -67,4 +70,31 @@ export const createMovementHandler = async (req: Request<{ id: string }>, res: R
 
 export const listMovementsHandler = async (req: Request<{ id: string }>, res: Response) => {
   res.status(200).json(await listMovements(req.params.id, movementsQuerySchema.parse(req.query)));
+};
+
+// En memoria: el límite de 1 MB acota el uso; el archivo nunca se escribe a disco.
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: IMPORT_MAX_BYTES, files: 1 } }).single("file");
+
+export const importTemplateHandler = (_req: Request, res: Response) => {
+  res.type("text/csv").attachment("plantilla-productos.csv").send(IMPORT_HEADERS.join(",") + "\r\n");
+};
+
+export const importProductsHandler = (req: Request, res: Response) => {
+  upload(req, res, async (uploadError: any) => {
+    try {
+      if (uploadError?.code === "LIMIT_FILE_SIZE") throw new ImportError(413, "El archivo supera 1 MB");
+      if (uploadError) throw new ImportError(400, "Selecciona un archivo CSV");
+      if (!req.file) throw new ImportError(400, "Selecciona un archivo CSV");
+      const dryRun = z.enum(["true", "false"]).default("false").safeParse(req.query.dryRun);
+      if (!dryRun.success) throw new ImportError(400, "dryRun debe ser true o false");
+
+      const result = await importProducts(req.file.buffer, dryRun.data === "true");
+      return res.status("created" in result ? 201 : 200).json(result);
+    } catch (error: any) {
+      if (error instanceof ImportError) {
+        return res.status(error.status).json({ message: error.message, ...(error.rows && { rows: error.rows }) });
+      }
+      return res.status(500).json({ message: "Error al importar productos" });
+    }
+  });
 };

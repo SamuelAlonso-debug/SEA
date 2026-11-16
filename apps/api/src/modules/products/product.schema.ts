@@ -42,7 +42,7 @@ export const createProductSchema = z.object({
     .nullable(),
 
   price: z
-    .number()
+    .number({ error: (issue) => (issue.input === undefined ? "El precio es obligatorio" : "El precio debe ser un número") })
     .min(ProductPriceLimits.MIN, "El precio no puede ser negativo")
     .max(ProductPriceLimits.MAX, "El precio es demasiado alto"),
 
@@ -52,7 +52,7 @@ export const createProductSchema = z.object({
     .max(ProductPriceLimits.MAX, "El costo es demasiado alto"),
 
   stock: z
-    .number()
+    .number({ error: (issue) => (issue.input === undefined ? "El stock es obligatorio" : "El stock debe ser un número") })
     .int("El stock debe ser un número entero")
     .min(ProductStockLimits.MIN, "El stock no puede ser negativo")
     .max(ProductStockLimits.MAX, "El stock es demasiado alto"),
