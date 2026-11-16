@@ -5,6 +5,7 @@ import {
   ListClientsQueryInput,
 } from "./client.schema";
 import { ClientSortByEnum } from "./client.enums";
+import { toSortName } from "./client.sort-name";
 import {
   ClientDto,
   ClientListResult,
@@ -32,7 +33,6 @@ const emailTaken = (error: any) => {
   throw error?.code === "P2002" ? new ClientError(409, EMAIL_TAKEN) : error;
 };
 
-const NAME_COLLATOR = new Intl.Collator("es", { sensitivity: "base" });
 
 export const listClients = async ({
   search,
@@ -56,19 +56,11 @@ export const listClients = async ({
     ];
   }
 
-  if (sortBy === ClientSortByEnum.NAME) {
-    // Prisma con Mongo no expone collation: se ordena en memoria con la misma regla
-    // (es, strength 1 equivale a sensitivity "base") y se pagina después.
-    const all = await prisma.client.findMany({ where });
-    all.sort((a, b) => NAME_COLLATOR.compare(a.name, b.name) || NAME_COLLATOR.compare(a.lastname, b.lastname));
-    return { data: all.slice((page - 1) * pageSize, page * pageSize), total: all.length, page, pageSize };
-  }
-
   const total = await prisma.client.count({ where });
 
   const data = await prisma.client.findMany({
     where,
-    orderBy: { createdAt: "desc" },
+    orderBy: sortBy === ClientSortByEnum.NAME ? { sortName: "asc" } : { createdAt: "desc" },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });
@@ -102,6 +94,7 @@ export const createClient = async (
     data: {
       name: data.name,
       lastname: data.lastname,
+      sortName: toSortName(data.name, data.lastname),
       phone: data.phone,
       email: data.email ?? null,
       street: data.street ?? null,
@@ -131,6 +124,7 @@ export const updateClient = async (
     data: {
       name: data.name ?? existing.name,
       lastname: data.lastname ?? existing.lastname,
+      sortName: toSortName(data.name ?? existing.name, data.lastname ?? existing.lastname),
       phone: data.phone ?? existing.phone,
       email:
         data.email !== undefined

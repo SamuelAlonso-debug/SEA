@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
 import { signToken } from "../../src/shared/jwt";
 import { startMongo } from "./mongo";
+import { toSortName } from "../../src/modules/clients/client.sort-name";
 
 let db: Awaited<ReturnType<typeof startMongo>>;
 let app: any;
@@ -76,7 +77,7 @@ describe("orden del listado", () => {
   beforeEach(async () => {
     // Altas en orden distinto al alfabético para distinguir ambos criterios.
     for (const [name, lastname] of [["Luis", "Zamora"], ["Ana", "Soto"], ["Ana", "Pérez"]]) {
-      await db.prisma.client.create({ data: { name, lastname, phone: "4421234567" } });
+      await db.prisma.client.create({ data: { name, lastname, sortName: toSortName(name, lastname), phone: "4421234567" } });
       await new Promise((r) => setTimeout(r, 5));
     }
   });
@@ -99,7 +100,7 @@ describe("orden del listado", () => {
   it("NAME ignora mayúsculas y acentos y pagina sobre el orden completo", async () => {
     await db.prisma.client.deleteMany();
     for (const name of ["Zoe", "ana", "Óscar", "Bea"]) {
-      await db.prisma.client.create({ data: { name, lastname: "X", phone: "4421234567" } });
+      await db.prisma.client.create({ data: { name, lastname: "X", sortName: toSortName(name, "X"), phone: "4421234567" } });
     }
     expect(await list("?sortBy=NAME")).toEqual(["ana X", "Bea X", "Óscar X", "Zoe X"]);
     expect(await list("?sortBy=NAME&page=2&pageSize=2")).toEqual(["Óscar X", "Zoe X"]);
