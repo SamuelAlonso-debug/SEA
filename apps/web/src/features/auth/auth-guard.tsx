@@ -31,9 +31,9 @@ export function AuthGuard({ children }: { children: ReactNode }) {
       return;
     }
 
-    // 🔑 Con token y estás en cualquier ruta /auth/* → al dashboard
+    // Con sesión, /auth/* va al dashboard. "/" redirige a /landing y dejaba el login inalcanzable.
     if (token && pathname.startsWith("/auth")) {
-      router.replace("/");
+      router.replace("/dashboard");
       return;
     }
 

@@ -42,6 +42,13 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     body: body ? JSON.stringify(body) : undefined,
   });
 
+  // Token vencido o inválido: se borra la sesión y se vuelve al login en lugar de dejar el dashboard roto.
+  if (res.status === 401 && token && typeof window !== "undefined") {
+    localStorage.removeItem("sea_token");
+    localStorage.removeItem("sea_user");
+    window.location.assign("/auth/login");
+  }
+
   if (!res.ok) {
     let msg = `Error ${res.status}`;
     try {
