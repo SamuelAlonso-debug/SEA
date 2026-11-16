@@ -1,48 +1,44 @@
 "use client";
 
-import { ReactNode, useEffect, useState } from "react";
+import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { profileRequest } from "./api";
+import type { User } from "@/types/api";
 
-const TOKEN_KEY = "sea_token";
-
-// 👇 añadimos /auth/register aquí
 const PUBLIC_ROUTES = ["/landing", "/auth/login", "/auth/register"];
 
-function getToken() {
-  if (typeof window === "undefined") return null;
-  return localStorage.getItem(TOKEN_KEY);
+interface Session {
+  user: User | null;
+  setUser: (user: User | null) => void;
 }
+
+const SessionContext = createContext<Session>({ user: null, setUser: () => {} });
+
+// Usuario de la sesión: lo carga AuthGuard y lo fija el login.
+export const useSession = () => useContext(SessionContext);
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [ready, setReady] = useState(false);
+  // undefined: aún no se sabe si hay sesión.
+  const [user, setUser] = useState<User | null | undefined>(undefined);
+
+  // La cookie es httpOnly: solo la API sabe si hay sesión válida.
+  useEffect(() => {
+    profileRequest().then(setUser, () => setUser(null));
+  }, []);
+
+  const isPublic = PUBLIC_ROUTES.some((route) => pathname.startsWith(route));
+  let redirect: string | null = null;
+  if (user === null && !isPublic) redirect = "/auth/login";
+  // Con sesión, /auth/* va al dashboard. "/" redirige a /landing y dejaba el login inalcanzable.
+  if (user && pathname.startsWith("/auth")) redirect = "/dashboard";
 
   useEffect(() => {
-    const token = getToken();
+    if (redirect) router.replace(redirect);
+  }, [redirect, router]);
 
-    const isPublic = PUBLIC_ROUTES.some((route) =>
-      pathname.startsWith(route)
-    );
+  if (user === undefined || redirect) return null;
 
-    // 🔒 Sin token y NO es ruta pública → al login
-    if (!token && !isPublic) {
-      router.replace("/auth/login");
-      return;
-    }
-
-    // Con sesión, /auth/* va al dashboard. "/" redirige a /landing y dejaba el login inalcanzable.
-    if (token && pathname.startsWith("/auth")) {
-      router.replace("/dashboard");
-      return;
-    }
-
-    // localStorage solo existe en cliente: leer tras montar evita mismatch de hidratación.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setReady(true);
-  }, [pathname, router]);
-
-  if (!ready) return null;
-
-  return <>{children}</>;
+  return <SessionContext.Provider value={{ user, setUser }}>{children}</SessionContext.Provider>;
 }

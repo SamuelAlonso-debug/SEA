@@ -1,19 +1,22 @@
+import { AuthRequest } from "../../shared/auth.middleware";
+import { CaughtError } from "../../shared/caught-error";
 import { Request, Response } from "express";
 import { cancelSaleSchema, createSaleSchema } from "./sale.schema";
 import { createSale, listSales, getSaleById, cancelSale, SaleError, saleExportRows } from "./sale.service";
 import { csvExport } from "../../shared/csv";
-import { currentMonth } from "../../shared/business-time";
+import { periodOf } from "../../shared/period";
 import { periodQuerySchema } from "../kpis/kpi.schema";
 
 export const createSaleHandler = async (req: Request, res: Response) => {
   try {
     const parsed = createSaleSchema.parse(req.body);
 
-    const userId = (req as any).userId as string | undefined; // depende de tu authMiddleware
+    const userId = (req as AuthRequest).userId;
 
     const sale = await createSale(parsed, userId);
     return res.status(201).json(sale);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
@@ -49,7 +52,8 @@ export const getSaleHandler = async (req: Request, res: Response) => {
 
     const sale = await getSaleById(id);
     return res.status(200).json(sale);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res
       .status(404)
       .json({ message: error.message || "Venta no encontrada" });
@@ -60,11 +64,11 @@ export const getSaleHandler = async (req: Request, res: Response) => {
 export const exportSalesHandler = csvExport({
   schema: periodQuerySchema,
   filename: (q) => {
-    const { from, to } = q.from && q.to ? { from: q.from, to: q.to } : currentMonth();
+    const { from, to } = periodOf(q);
     return `ventas_${from}_${to}.csv`;
   },
   header: ["Ticket", "Fecha", "Código", "Producto", "Cantidad", "Precio", "Subtotal", "IVA", "Total", "Método de pago", "Cliente", "Cajero"],
-  rows: (q) => saleExportRows(q.from && q.to ? { from: q.from, to: q.to } : currentMonth()),
+  rows: (q) => saleExportRows(periodOf(q)),
 });
 
 export const cancelSaleHandler = async (req: Request, res: Response) => {
@@ -74,7 +78,7 @@ export const cancelSaleHandler = async (req: Request, res: Response) => {
   }
 
   try {
-    const userId = (req as any).userId as string | undefined;
+    const userId = (req as AuthRequest).userId;
     const sale = await cancelSale(req.params.id as string, parsed.data.reason, userId);
     return res.status(200).json(sale);
   } catch (error) {

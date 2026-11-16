@@ -3,6 +3,7 @@ import rateLimit from "express-rate-limit";
 import {
   registerHandler,
   loginHandler,
+  logoutHandler,
   profileHandler,
 } from "./auth.controller";
 import { authMiddleware } from "../../shared/auth.middleware";
@@ -14,6 +15,7 @@ const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHea
 
 router.post("/register", authLimiter, registerHandler);
 router.post("/login", authLimiter, loginHandler);
+router.post("/logout", logoutHandler);
 router.get("/profile", authMiddleware, profileHandler);
 
 export default router;

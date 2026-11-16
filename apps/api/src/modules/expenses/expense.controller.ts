@@ -1,3 +1,4 @@
+import { CaughtError } from "../../shared/caught-error";
 import { Request, RequestHandler, Response } from "express";
 import {
   createExpenseSchema,
@@ -16,8 +17,7 @@ import {
   getMonthlyExpenseKpis,
   expenseExportRows,
 } from "./expense.service";
-import { comparedKpi, numericChange } from "../../shared/period";
-import { currentMonth } from "../../shared/business-time";
+import { comparedKpi, numericChange, periodOf } from "../../shared/period";
 import { periodQuerySchema } from "../kpis/kpi.schema";
 import { csvExport } from "../../shared/csv";
 import { z } from "zod";
@@ -48,7 +48,8 @@ export const listExpensesHandler = async (req: Request, res: Response) => {
 
     const result = await listExpenses(filters);
     return res.status(200).json(result);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
@@ -71,7 +72,8 @@ export const getExpenseHandler = async (req: Request, res: Response) => {
 
     const expense = await getExpenseById(id);
     return res.status(200).json(expense);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res
       .status(404)
       .json({ message: error.message || "Gasto no encontrado" });
@@ -84,7 +86,8 @@ export const createExpenseHandler = async (req: Request, res: Response) => {
 
     const expense = await createExpense(parsed);
     return res.status(201).json(expense);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
@@ -109,7 +112,8 @@ export const updateExpenseHandler = async (req: Request, res: Response) => {
 
     const expense = await updateExpense(id, parsed);
     return res.status(200).json(expense);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
@@ -132,7 +136,8 @@ export const deleteExpenseHandler = async (req: Request, res: Response) => {
 
     await deleteExpense(id);
     return res.status(204).send();
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res
       .status(400)
       .json({ message: error.message || "Error al eliminar gasto" });
@@ -143,11 +148,11 @@ export const deleteExpenseHandler = async (req: Request, res: Response) => {
 export const exportExpensesHandler = csvExport({
   schema: z.intersection(periodQuerySchema, exportCategorySchema),
   filename: (q) => {
-    const { from, to } = q.from && q.to ? { from: q.from, to: q.to } : currentMonth();
+    const { from, to } = periodOf(q);
     return `gastos_${from}_${to}.csv`;
   },
   header: ["Fecha", "Concepto", "Categoría", "Monto", "Método de pago", "Proveedor", "Notas"],
-  rows: (q) => expenseExportRows(q.from && q.to ? { from: q.from, to: q.to } : currentMonth(), q.category as ExpenseCategory | undefined),
+  rows: (q) => expenseExportRows(periodOf(q), q.category as ExpenseCategory | undefined),
 });
 
 // Mismo 400 que /api/kpis/*: Zod agrupa las claves desconocidas en una issue y la expandimos a una

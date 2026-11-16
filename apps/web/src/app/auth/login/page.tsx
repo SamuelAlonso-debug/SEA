@@ -2,7 +2,6 @@
 
 import { errorMessage } from "@/lib/utils";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { AuthLayout } from "@/features/auth/auth-layout";
@@ -11,9 +10,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { loginRequest } from "@/features/auth/api";
+import { useSession } from "@/features/auth/auth-guard";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { setUser } = useSession();
 
   //  Estados form
   const [email, setEmail] = useState("");
@@ -30,10 +30,9 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await loginRequest(email, password);
-
-      // Ir al dashboard
-      router.push("/dashboard");
+      const { user } = await loginRequest(email, password);
+      // Con sesión, AuthGuard lleva al dashboard.
+      setUser(user);
     } catch (err) {
       setError(errorMessage(err, "Credenciales incorrectas"));
     } finally {

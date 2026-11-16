@@ -1,8 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-
 import { Bell, LogOut, User as UserIcon } from "lucide-react";
 import {
   DropdownMenu,
@@ -13,27 +10,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { getUser, clearToken, clearUser } from "@/features/auth/api";
-
-interface StoredUser {
-  id: string;
-  name: string;
-  lastname: string;
-  email: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import { logoutRequest } from "@/features/auth/api";
+import { useSession } from "@/features/auth/auth-guard";
 
 export function Navbar() {
-  const router = useRouter();
-  const [user, setUser] = useState<StoredUser | null>(null);
-
-  useEffect(() => {
-    const u = getUser();
-    // localStorage solo existe en cliente: leer tras montar evita mismatch de hidratación.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (u) setUser(u);
-  }, []);
+  const { user } = useSession();
 
   const initials = user
     ? `${user.name?.[0] ?? ""}${user.lastname?.[0] ?? ""}`.toUpperCase()
@@ -43,10 +24,17 @@ export function Navbar() {
     ? `${user.name} ${user.lastname}`
     : "Usuario SEA";
 
-  const handleLogout = () => {
-    clearToken();
-    clearUser();
-    router.push("/landing");
+  const handleLogout = async () => {
+    try {
+      await logoutRequest();
+    } catch {
+      // La cookie sigue viva: no se finge un cierre de sesión que no ocurrió.
+      window.alert("No se pudo cerrar la sesión. Inténtalo de nuevo.");
+      return;
+    }
+    // Recarga completa a propósito: no quedan en memoria datos de la sesión cerrada.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+    window.location.assign("/landing");
   };
 
   return (
