@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyToken } from "./jwt";
 
+export const SESSION_COOKIE = "sea_session";
+
 export interface AuthRequest extends Request {
   userId?: string;
 }
@@ -10,16 +12,13 @@ export const authMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization;
+  // La web usa la cookie httpOnly. El Bearer queda para clientes sin navegador (scripts, tests):
+  // el navegador no lo adjunta solo, así que no abre la puerta a CSRF.
+  const [scheme, bearer] = (req.headers.authorization ?? "").split(" ");
+  const token: string | undefined = req.cookies?.[SESSION_COOKIE] ?? (scheme === "Bearer" ? bearer : undefined);
 
-  if (!authHeader) {
-    return res.status(401).json({ message: "No se proporcionó token" });
-  }
-
-  const [scheme, token] = authHeader.split(" ");
-
-  if (scheme !== "Bearer" || !token) {
-    return res.status(401).json({ message: "Formato de token inválido" });
+  if (!token) {
+    return res.status(401).json({ message: "No autenticado" });
   }
 
   try {
@@ -27,6 +26,6 @@ export const authMiddleware = (
     req.userId = payload.userId;
     next();
   } catch {
-    return res.status(401).json({ message: "Token inválido o expirado" });
+    return res.status(401).json({ message: "Sesión expirada. Inicia sesión de nuevo." });
   }
 };

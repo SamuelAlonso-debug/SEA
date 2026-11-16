@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { apiClient } from "@/lib/api-client";
-import { getToken } from "@/features/auth/api";
 import type { CatalogsResponse } from "@/types/api";
 
 // Una sola petición por sesión de página, compartida por todos los componentes.
@@ -11,7 +10,7 @@ let pending: Promise<CatalogsResponse> | null = null;
 
 function loadCatalogs() {
   pending ??= apiClient
-    .get<CatalogsResponse>("/catalogs", { token: getToken() })
+    .get<CatalogsResponse>("/catalogs")
     .catch((err) => {
       pending = null;
       throw err;

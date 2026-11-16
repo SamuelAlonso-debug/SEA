@@ -9,7 +9,6 @@ type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 interface RequestOptions {
   method?: Method;
   body?: unknown;
-  token?: string | null;
   query?: Record<string, string | number | boolean | undefined>;
 }
 
@@ -26,32 +25,32 @@ function buildUrl(path: string, query?: RequestOptions["query"]) {
   return url.toString();
 }
 
-// Token vencido o inválido: se borra la sesión y se vuelve al login en lugar de dejar el dashboard roto.
-function expireSession(res: Response, token?: string | null) {
-  if (res.status === 401 && token && typeof window !== "undefined") {
-    localStorage.removeItem("sea_token");
-    localStorage.removeItem("sea_user");
+// Sesión vencida o cerrada: al login en lugar de dejar el dashboard roto.
+// Las rutas /auth/* (login, perfil del guard) resuelven su propio 401.
+function expireSession(res: Response, path: string) {
+  if (res.status === 401 && !path.startsWith("/auth/") && typeof window !== "undefined") {
     window.location.assign("/auth/login");
   }
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { method = "GET", body, token, query } = options;
+  const { method = "GET", body, query } = options;
 
   const url = buildUrl(path, query);
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
   };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
 
+  // La sesión viaja en la cookie httpOnly de la API (otro origen): hay que pedir que se envíe.
   const res = await fetch(url, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
+    credentials: "include",
   });
 
-  expireSession(res, token);
+  expireSession(res, path);
 
   if (!res.ok) {
     let msg = `Error ${res.status}`;
@@ -62,16 +61,15 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     throw new Error(msg);
   }
 
-  return res.json();
+  // 204 (logout) no trae cuerpo.
+  return res.status === 204 ? (undefined as T) : res.json();
 }
 
 // Descarga un archivo (CSV) con el nombre que manda el servidor en Content-Disposition.
-async function download(path: string, options: Pick<RequestOptions, "token" | "query"> = {}): Promise<void> {
-  const headers: HeadersInit = {};
-  if (options.token) headers["Authorization"] = `Bearer ${options.token}`;
-  const res = await fetch(buildUrl(path, options.query), { headers });
+async function download(path: string, options: Pick<RequestOptions, "query"> = {}): Promise<void> {
+  const res = await fetch(buildUrl(path, options.query), { credentials: "include" });
 
-  expireSession(res, options.token);
+  expireSession(res, path);
   if (!res.ok) {
     let msg = `Error ${res.status}`;
     try {

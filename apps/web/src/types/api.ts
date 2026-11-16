@@ -57,7 +57,6 @@ export interface Sale {
 
 export interface AuthResponse {
   user: User;
-  token: string;
 }
 
 // KPIs header

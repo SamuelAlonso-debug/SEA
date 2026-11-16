@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
-import { API_URL, removeProduct, tokenOf } from "./fixtures";
+import { API_URL, removeProduct } from "./fixtures";
 
-test("un producto dado de alta aparece en el listado", async ({ page, request }) => {
+test("un producto dado de alta aparece en el listado", async ({ page }) => {
   const suffix = Date.now();
   const name = `Alta E2E ${suffix}`;
 
@@ -17,8 +17,7 @@ test("un producto dado de alta aparece en el listado", async ({ page, request })
   await expect(page.getByRole("row", { name: new RegExp(name) })).toContainText("7 pcs");
 
   // Limpieza: el id sale del listado de la API.
-  const token = await tokenOf(page);
-  const list = await request.get(`${API_URL}/products`, { headers: { Authorization: `Bearer ${token}` } });
+  const list = await page.request.get(`${API_URL}/products`);
   const created = (await list.json()).find((p: { name: string }) => p.name === name);
-  await removeProduct(request, token, created.id);
+  await removeProduct(page.request, created.id);
 });
