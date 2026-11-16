@@ -99,6 +99,16 @@ model Sale {
   clientId    String?    @db.ObjectId
   client      Client?    @relation(fields: [clientId], references: [id])
 
+  // Opcional: las ventas previas no lo tienen (= COMPLETED).
+  status        SaleStatus? @default(COMPLETED)
+  cancelReason  String?
+  cancelledAt   DateTime?
+  cancelledById String?     @db.ObjectId // quién canceló; sin relación para no tocar la de User
+}
+
+enum SaleStatus {
+  COMPLETED
+  CANCELLED
 }
 
 model SaleItem {

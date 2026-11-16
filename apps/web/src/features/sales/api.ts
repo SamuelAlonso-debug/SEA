@@ -32,4 +32,11 @@ export const salesClient = {
     apiClient.get<Sale>(`/sales/${id}`, {
       ...withToken(),
     }),
+
+  // POST /api/sales/:id/cancel
+  cancel: (id: string, reason: string) =>
+    apiClient.post<Sale>(`/sales/${id}/cancel`, {
+      ...withToken(),
+      body: { reason },
+    }),
 };

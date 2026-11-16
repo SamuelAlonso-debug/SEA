@@ -9,11 +9,11 @@ export enum ExpenseCategoryEnum {
 }
 
 export const ExpenseCategoryLabels: Record<ExpenseCategoryEnum, string> = {
-  [ExpenseCategoryEnum.service]: "SERVICIO",
-  [ExpenseCategoryEnum.merchandise]: "MERCANCÍA",
-  [ExpenseCategoryEnum.maintenance]: "MANTENIMIENTO",
-  [ExpenseCategoryEnum.rent]: "RENTA",
-  [ExpenseCategoryEnum.payroll]: "NÓMINA",
-  [ExpenseCategoryEnum.tax]: "IMPUESTOS",
-  [ExpenseCategoryEnum.other]: "OTRO",
+  [ExpenseCategoryEnum.service]: "Servicios",
+  [ExpenseCategoryEnum.merchandise]: "Mercancía",
+  [ExpenseCategoryEnum.maintenance]: "Mantenimiento",
+  [ExpenseCategoryEnum.rent]: "Renta",
+  [ExpenseCategoryEnum.payroll]: "Nómina",
+  [ExpenseCategoryEnum.tax]: "Impuestos",
+  [ExpenseCategoryEnum.other]: "Otros",
 };

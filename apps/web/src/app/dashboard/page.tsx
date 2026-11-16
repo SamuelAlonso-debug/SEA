@@ -18,7 +18,7 @@ import type {
   LowStockProduct,
   TopProduct,
   SummaryKpis,
-  Period,
+  PeriodQuery,
 } from "@/types/api";
 
 // Helpers de formato
@@ -40,9 +40,9 @@ export default function DashboardHomePage() {
   );
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [summary, setSummary] = useState<SummaryKpis | null>(null);
-  const [period, setPeriod] = useState<Period | null>(null);
+  const [period, setPeriod] = useState<PeriodQuery | null>(null);
   // Periodo de los datos en pantalla; distinto de `period` mientras se recarga.
-  const [loadedPeriod, setLoadedPeriod] = useState<Period | null | undefined>(undefined);
+  const [loadedPeriod, setLoadedPeriod] = useState<PeriodQuery | null | undefined>(undefined);
   const refreshing = loadedPeriod !== period;
   const [headerChange, setHeaderChange] = useState<Record<string, number | null>>({});
 
