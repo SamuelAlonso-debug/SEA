@@ -5,6 +5,7 @@ import {
   getLowStockProducts,
   getTopProducts,
   getSummaryKpis,
+  getProfitKpis,
 } from "./kpi.service";
 import { percentChange } from "../../shared/business-time";
 import { comparedKpi, numericChange } from "../../shared/period";
@@ -32,6 +33,8 @@ export const getPaymentMethodKpisHandler = comparedKpi(
 export const getTopProductsHandler = comparedKpi((range) => getTopProducts(range), undefined, "Error al obtener top productos");
 
 export const getSummaryKpisHandler = comparedKpi(getSummaryKpis, numericChange, "Error al obtener resumen de KPIs");
+
+export const getProfitKpisHandler = comparedKpi(getProfitKpis, numericChange, "Error al obtener la utilidad");
 
 export const getLowStockProductsHandler = async (
   req: Request,

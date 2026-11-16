@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { createSaleSchema } from "./sale.schema";
-import { createSale, listSales, getSaleById, SaleError } from "./sale.service";
+import { cancelSaleSchema, createSaleSchema } from "./sale.schema";
+import { createSale, listSales, getSaleById, cancelSale, SaleError } from "./sale.service";
 
 export const createSaleHandler = async (req: Request, res: Response) => {
   try {
@@ -50,5 +50,23 @@ export const getSaleHandler = async (req: Request, res: Response) => {
     return res
       .status(404)
       .json({ message: error.message || "Venta no encontrada" });
+  }
+};
+
+export const cancelSaleHandler = async (req: Request, res: Response) => {
+  const parsed = cancelSaleSchema.safeParse(req.body ?? {});
+  if (!parsed.success) {
+    return res.status(400).json({ message: parsed.error.issues[0]!.message, errors: parsed.error.issues });
+  }
+
+  try {
+    const userId = (req as any).userId as string | undefined;
+    const sale = await cancelSale(req.params.id as string, parsed.data.reason, userId);
+    return res.status(200).json(sale);
+  } catch (error) {
+    if (error instanceof SaleError) {
+      return res.status(error.status).json({ message: error.message });
+    }
+    return res.status(500).json({ message: "Error al cancelar la venta" });
   }
 };
