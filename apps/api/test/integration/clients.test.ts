@@ -63,7 +63,7 @@ describe("correo de clientes", () => {
     [{ ...base, phone: "123" }, "phone", "El teléfono es demasiado corto"],
   ])("400 en %j", async (body, path, message) => {
     const res = await create(body).expect(400);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path: [path], message }));
+    expect(res.body.issues).toContainEqual(expect.objectContaining({ path, message }));
     expect(JSON.stringify(res.body)).not.toMatch(/prisma/i);
   });
 });
@@ -108,8 +108,8 @@ describe("orden del listado", () => {
 
   it("sortBy inválido → 400 con path y mensaje", async () => {
     const res = await request(app).get("/api/clients?sortBy=PHONE").set("Authorization", auth).expect(400);
-    expect(res.body.errors).toContainEqual(
-      expect.objectContaining({ path: ["sortBy"], message: 'Opción inválida: se esperaba una de "CREATED_AT" o "NAME"' }),
+    expect(res.body.issues).toContainEqual(
+      expect.objectContaining({ path: "sortBy", message: 'Opción inválida: se esperaba una de "CREATED_AT" o "NAME"' }),
     );
   });
 });

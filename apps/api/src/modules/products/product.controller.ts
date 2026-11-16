@@ -3,7 +3,8 @@ import {
   createProductSchema,
   updateProductSchema,
   stockEntrySchema,
-  activateProductSchema,
+  stockMovementSchema,
+  movementsQuerySchema,
 } from "./product.schema";
 import {
   createProduct,
@@ -14,146 +15,56 @@ import {
   activateProduct,
   getProductByCode,
   addStock,
-  ProductError,
+  createMovement,
+  listMovements,
 } from "./product.service";
 import { present } from "./product.margin";
+import { AuthRequest } from "../../shared/auth.middleware";
+
+// Sin try/catch: Express 5 lleva los errores (Zod, dominio, BD) al middleware central.
+// `req.params.id` llega validado como ObjectId por router.param.
 
 export const createProductHandler = async (req: Request, res: Response) => {
-  try {
-    const parsed = createProductSchema.parse(req.body);
-    const product = await createProduct(parsed);
-    return res.status(201).json(present(product, true));
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        message: "Datos inválidos",
-        errors: error.issues,
-      });
-    }
-
-    if (error instanceof ProductError) {
-      return res.status(error.status).json({ message: error.message });
-    }
-
-    return res
-      .status(400)
-      .json({ message: error.message || "Error al crear producto" });
-  }
+  const product = await createProduct(createProductSchema.parse(req.body), (req as AuthRequest).userId);
+  res.status(201).json(present(product, true));
 };
 
 export const listProductsHandler = async (req: Request, res: Response) => {
-  try {
-    const products = await listProducts();
-    return res.status(200).json(products.map((p) => present(p)));
-  } catch {
-    return res.status(500).json({ message: "Error al obtener productos" });
-  }
+  const products = await listProducts();
+  res.status(200).json(products.map((p) => present(p)));
 };
 
-export const getProductHandler = async (req: Request, res: Response) => {
-  try {
-    const id = req.params.id as string; // 👈 forzamos a string
-
-    if (!id) {
-      return res.status(400).json({ message: "El id es requerido" });
-    }
-
-    const product = await getProductById(id);
-    return res.status(200).json(present(product));
-  } catch (error: any) {
-    return res
-      .status(404)
-      .json({ message: error.message || "Producto no encontrado" });
-  }
+export const getProductHandler = async (req: Request<{ id: string }>, res: Response) => {
+  res.status(200).json(present(await getProductById(req.params.id)));
 };
 
-export const updateProductHandler = async (req: Request, res: Response) => {
-  try {
-    const id = req.params.id as string;
-
-    if (!id) {
-      return res.status(400).json({ message: "El id es requerido" });
-    }
-
-    const parsed = updateProductSchema.parse(req.body);
-    const product = await updateProduct(id, parsed);
-    return res.status(200).json(present(product, true));
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        message: "Datos inválidos",
-        errors: error.issues,
-      });
-    }
-
-    if (error instanceof ProductError) {
-      return res.status(error.status).json({ message: error.message });
-    }
-
-    return res
-      .status(400)
-      .json({ message: error.message || "Error al actualizar producto" });
-  }
+export const updateProductHandler = async (req: Request<{ id: string }>, res: Response) => {
+  const product = await updateProduct(req.params.id, updateProductSchema.parse(req.body));
+  res.status(200).json(present(product, true));
 };
 
-export const deleteProductHandler = async (req: Request, res: Response) => {
-  try {
-    const id = req.params.id as string;
-
-    if (!id) {
-      return res.status(400).json({ message: "El id es requerido" });
-    }
-
-    const product = await deleteProduct(id);
-    return res.status(200).json(present(product));
-  } catch (error: any) {
-    return res
-      .status(400)
-      .json({ message: error.message || "Error al eliminar producto" });
-  }
+export const deleteProductHandler = async (req: Request<{ id: string }>, res: Response) => {
+  res.status(200).json(present(await deleteProduct(req.params.id)));
 };
 
-export const activateProductHandler = async (req: Request, res: Response) => {
-  const parsed = activateProductSchema.safeParse({ params: req.params });
-  if (!parsed.success) {
-    return res.status(400).json({ message: "Errores de validación", errors: parsed.error.issues });
-  }
-  try {
-    const product = await activateProduct(parsed.data.params.id);
-    return res.status(200).json(present(product));
-  } catch (error: any) {
-    return res.status(400).json({ message: error.message });
-  }
+export const activateProductHandler = async (req: Request<{ id: string }>, res: Response) => {
+  res.status(200).json(present(await activateProduct(req.params.id)));
 };
 
-export const getProductByCodeHandler = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    const productCode = req.params.productCode as string;
-
-    const product = await getProductByCode(productCode);
-
-    return res.json(present(product));
-  } catch (error: any) {
-    return res.status(404).json({
-      message: error.message ?? "Producto no encontrado",
-    });
-  }
+export const getProductByCodeHandler = async (req: Request<{ productCode: string }>, res: Response) => {
+  res.json(present(await getProductByCode(req.params.productCode)));
 };
-export const addStockHandler = async (req: Request, res: Response) => {
-  try {
-    const parsed = stockEntrySchema.parse(req.body);
-    const product = await addStock(req.params.id as string, parsed);
-    return res.status(200).json(present(product));
-  } catch (error: any) {
-    if (error.name === "ZodError") {
-      return res.status(400).json({ message: "Datos inválidos", errors: error.issues });
-    }
-    if (error instanceof ProductError) {
-      return res.status(error.status).json({ message: error.message });
-    }
-    return res.status(500).json({ message: "Error al registrar la entrada de stock" });
-  }
+
+export const addStockHandler = async (req: Request<{ id: string }>, res: Response) => {
+  const product = await addStock(req.params.id, stockEntrySchema.parse(req.body), (req as AuthRequest).userId);
+  res.status(200).json(present(product));
+};
+
+export const createMovementHandler = async (req: Request<{ id: string }>, res: Response) => {
+  const product = await createMovement(req.params.id, stockMovementSchema.parse(req.body), (req as AuthRequest).userId);
+  res.status(201).json(present(product));
+};
+
+export const listMovementsHandler = async (req: Request<{ id: string }>, res: Response) => {
+  res.status(200).json(await listMovements(req.params.id, movementsQuerySchema.parse(req.query)));
 };

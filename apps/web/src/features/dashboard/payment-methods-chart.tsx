@@ -1,5 +1,6 @@
 "use client";
 
+import { useCatalogs } from "@/features/catalogs/use-catalogs";
 import {
   Bar,
   BarChart,
@@ -21,19 +22,15 @@ interface PaymentMethodsChartProps {
 }
 
 const COLORS: Record<string, string> = {
-  CASH: "#17C964", // Efectivo
-  CARD: "#1A2D4D", // Tarjeta
+  CASH: "#17C964",
+  CARD: "#1A2D4D",
 };
 
 export function PaymentMethodsChart({ data }: PaymentMethodsChartProps) {
+  const { paymentMethodLabel } = useCatalogs();
   const formatted = data.map((item) => ({
     ...item,
-    label:
-      item.paymentMethod === "CASH"
-        ? "Efectivo"
-        : item.paymentMethod === "CARD"
-        ? "Tarjeta"
-        : item.paymentMethod,
+    label: paymentMethodLabel(item.paymentMethod),
   }));
 
   return (
