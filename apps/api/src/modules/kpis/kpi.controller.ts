@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { CaughtError } from "../../shared/caught-error";
 import {
   getHeaderKpis,
   getPaymentMethodKpis,
@@ -40,7 +41,8 @@ export const getLowStockProductsHandler = async (
   try {
     const data = await getLowStockProducts();
     return res.status(200).json(data);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res.status(500).json({
       message: error.message || "Error al obtener productos con stock bajo",
     });

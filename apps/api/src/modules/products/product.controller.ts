@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { CaughtError } from "../../shared/caught-error";
 import {
   createProductSchema,
   updateProductSchema,
@@ -23,7 +24,8 @@ export const createProductHandler = async (req: Request, res: Response) => {
     const parsed = createProductSchema.parse(req.body);
     const product = await createProduct(parsed);
     return res.status(201).json(present(product, true));
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
@@ -60,7 +62,8 @@ export const getProductHandler = async (req: Request, res: Response) => {
 
     const product = await getProductById(id);
     return res.status(200).json(present(product));
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res
       .status(404)
       .json({ message: error.message || "Producto no encontrado" });
@@ -78,7 +81,8 @@ export const updateProductHandler = async (req: Request, res: Response) => {
     const parsed = updateProductSchema.parse(req.body);
     const product = await updateProduct(id, parsed);
     return res.status(200).json(present(product, true));
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
@@ -106,7 +110,8 @@ export const deleteProductHandler = async (req: Request, res: Response) => {
 
     const product = await deleteProduct(id);
     return res.status(200).json(present(product));
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res
       .status(400)
       .json({ message: error.message || "Error al eliminar producto" });
@@ -121,7 +126,8 @@ export const activateProductHandler = async (req: Request, res: Response) => {
   try {
     const product = await activateProduct(parsed.data.params.id);
     return res.status(200).json(present(product));
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res.status(400).json({ message: error.message });
   }
 };
@@ -136,7 +142,8 @@ export const getProductByCodeHandler = async (
     const product = await getProductByCode(productCode);
 
     return res.json(present(product));
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res.status(404).json({
       message: error.message ?? "Producto no encontrado",
     });
@@ -147,7 +154,8 @@ export const addStockHandler = async (req: Request, res: Response) => {
     const parsed = stockEntrySchema.parse(req.body);
     const product = await addStock(req.params.id as string, parsed);
     return res.status(200).json(present(product));
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({ message: "Datos inválidos", errors: error.issues });
     }

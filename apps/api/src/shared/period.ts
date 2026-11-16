@@ -53,5 +53,5 @@ export const numericChange = <T extends object>(current: T, previous: T) =>
   Object.fromEntries(
     Object.entries(current)
       .filter(([key, value]) => typeof value === "number" && !NOT_COMPARED.has(key))
-      .map(([key, value]) => [key, percentChange(value, (previous as any)[key] ?? 0)])
+      .map(([key, value]) => [key, percentChange(value, (previous as Record<string, number>)[key] ?? 0)])
   );

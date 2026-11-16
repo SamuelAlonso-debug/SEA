@@ -14,7 +14,7 @@ export class ProductError extends Error {
 const codeTaken = (code: string) => new ProductError(409, `Ya existe un producto con el código ${code}`);
 
 // P2002: alta o edición simultánea con el mismo código; el índice único decide.
-const rethrowCodeTaken = (code: string | undefined) => (error: any) => {
+const rethrowCodeTaken = (code: string | undefined) => (error: { code?: string }) => {
   throw error?.code === "P2002" && code ? codeTaken(code) : error;
 };
 

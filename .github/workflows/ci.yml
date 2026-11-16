@@ -47,6 +47,7 @@ jobs:
           cache: npm
           cache-dependency-path: apps/api/package-lock.json
       - run: npm ci
+      - run: npm run lint
       - run: npm run build
       - run: npm run test:unit --if-present
       - run: npm run test:integration --if-present

@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { CaughtError } from "../../shared/caught-error";
+import { AuthRequest } from "../../shared/auth.middleware";
 import { createSaleSchema } from "./sale.schema";
 import { createSale, listSales, getSaleById, SaleError } from "./sale.service";
 
@@ -6,11 +8,12 @@ export const createSaleHandler = async (req: Request, res: Response) => {
   try {
     const parsed = createSaleSchema.parse(req.body);
 
-    const userId = (req as any).userId as string | undefined; // depende de tu authMiddleware
+    const userId = (req as AuthRequest).userId;
 
     const sale = await createSale(parsed, userId);
     return res.status(201).json(sale);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
@@ -46,7 +49,8 @@ export const getSaleHandler = async (req: Request, res: Response) => {
 
     const sale = await getSaleById(id);
     return res.status(200).json(sale);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res
       .status(404)
       .json({ message: error.message || "Venta no encontrada" });

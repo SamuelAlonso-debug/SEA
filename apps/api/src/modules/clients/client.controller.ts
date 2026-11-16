@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { CaughtError } from "../../shared/caught-error";
 import {
   createClientSchema,
   updateClientSchema,
@@ -22,7 +23,8 @@ export const listClientsHandler = async (req: Request, res: Response) => {
     const result = await listClients(parsed);
 
     return res.status(200).json(result);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
@@ -44,7 +46,8 @@ export const getClientHandler = async (
     const { id } = req.params;
     const client = await getClientById(id);
     return res.status(200).json(client);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res
       .status(404)
       .json({ message: error.message || "Cliente no encontrado" });
@@ -56,7 +59,8 @@ export const createClientHandler = async (req: Request, res: Response) => {
     const parsed = createClientSchema.parse(req.body);
     const client = await createClient(parsed);
     return res.status(201).json(client);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
@@ -81,7 +85,8 @@ export const updateClientHandler = async (
     const parsed = updateClientSchema.parse(req.body);
     const client = await updateClient(id, parsed);
     return res.status(200).json(client);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
@@ -128,7 +133,8 @@ export const getClientSalesHandler = async (
       return res.status(404).json({ message: "Cliente no encontrado" });
     }
     return res.status(200).json(sales);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res.status(400).json({
       message: error.message || "Error al obtener ventas del cliente",
     });

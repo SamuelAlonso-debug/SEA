@@ -1,4 +1,5 @@
 import prisma from "../../shared/prisma";
+import { Prisma } from "@prisma/client";
 import {
   CreateClientInput,
   UpdateClientInput,
@@ -27,7 +28,7 @@ async function assertEmailFree(email: string | null | undefined, exceptId?: stri
 }
 
 // P2002: el índice único parcial creado al desplegar #75 cubre altas simultáneas.
-const emailTaken = (error: any) => {
+const emailTaken = (error: { code?: string }) => {
   throw error?.code === "P2002" ? new ClientError(409, EMAIL_TAKEN) : error;
 };
 
@@ -37,7 +38,7 @@ export const listClients = async ({
   pageSize,
   includeInactive,
 }: ListClientsQueryInput): Promise<ClientListResult> => {
-  const where: any = {};
+  const where: Prisma.ClientWhereInput = {};
 
   // Documentos previos sin el campo cuentan como activos (Prisma excluye los ausentes en `not`).
   if (!includeInactive) where.AND = [{ OR: [{ isActive: true }, { isActive: { isSet: false } }] }];

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { CaughtError } from "../../shared/caught-error";
 import {
   createExpenseSchema,
   updateExpenseSchema,
@@ -40,7 +41,8 @@ export const listExpensesHandler = async (req: Request, res: Response) => {
 
     const result = await listExpenses(filters);
     return res.status(200).json(result);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
@@ -63,7 +65,8 @@ export const getExpenseHandler = async (req: Request, res: Response) => {
 
     const expense = await getExpenseById(id);
     return res.status(200).json(expense);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res
       .status(404)
       .json({ message: error.message || "Gasto no encontrado" });
@@ -76,7 +79,8 @@ export const createExpenseHandler = async (req: Request, res: Response) => {
 
     const expense = await createExpense(parsed);
     return res.status(201).json(expense);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
@@ -101,7 +105,8 @@ export const updateExpenseHandler = async (req: Request, res: Response) => {
 
     const expense = await updateExpense(id, parsed);
     return res.status(200).json(expense);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Errores de validación",
@@ -124,7 +129,8 @@ export const deleteExpenseHandler = async (req: Request, res: Response) => {
 
     await deleteExpense(id);
     return res.status(204).send();
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res
       .status(400)
       .json({ message: error.message || "Error al eliminar gasto" });

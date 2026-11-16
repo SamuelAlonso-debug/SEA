@@ -10,7 +10,8 @@
     "postinstall": "prisma generate",
     "test:unit": "vitest run src",
     "test:integration": "vitest run test/integration",
-    "migrate:expense-payment-method": "node prisma/migrate-expense-payment-method.mjs"
+    "migrate:expense-payment-method": "node prisma/migrate-expense-payment-method.mjs",
+    "lint": "eslint src test"
   },
   "keywords": [],
   "author": "",
@@ -27,17 +28,20 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/bcrypt": "^6.0.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.1",
     "@types/supertest": "^7.2.1",
+    "eslint": "^10.15.0",
     "mongodb-memory-server-core": "^11.3.0",
     "prisma": "^5.14.0",
     "supertest": "^7.3.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.72.2",
     "vitest": "^5.1.0"
   }
 }

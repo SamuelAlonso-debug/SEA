@@ -1,13 +1,17 @@
 import prisma from "../../shared/prisma";
 import { CreateSaleInput } from "./sale.schema";
 import { SaleDto, SaleItemDto } from "./sale.dto";
-import { PaymentMethod } from "@prisma/client";
+import { PaymentMethod, Prisma } from "@prisma/client";
 import { computeTotals } from "./sale.totals";
 import { withRetry } from "../../shared/with-retry";
 
 // Mapea el objeto de Prisma (con items + product) a nuestro DTO
-function mapSaleToDto(sale: any): SaleDto {
-  const items: SaleItemDto[] = sale.items.map((i: any) => ({
+type SaleWithRelations = Prisma.SaleGetPayload<{
+  include: { items: { include: { product: true } }; client: { select: { name: true; lastname: true } } };
+}>;
+
+function mapSaleToDto(sale: SaleWithRelations): SaleDto {
+  const items: SaleItemDto[] = sale.items.map((i) => ({
     id: i.id,
     productId: i.productId,
     productCode: i.product.productCode,
@@ -40,7 +44,7 @@ export class SaleError extends Error {
 }
 
 // Número de ticket tipo 0000001. El contador arranca tras las ventas ya existentes.
-async function generateNextTicketNumber(tx: any): Promise<string> {
+async function generateNextTicketNumber(tx: Prisma.TransactionClient): Promise<string> {
   const counter = await tx.counter.findUnique({ where: { id: "ticket" } });
   const { seq } = counter
     ? await tx.counter.update({ where: { id: "ticket" }, data: { seq: { increment: 1 } } })
@@ -53,7 +57,7 @@ export const createSale = async (
   userId?: string
 ): Promise<SaleDto> => {
   return withRetry(() => prisma.$transaction(async (tx) => {
-    const saleItemsToCreate: any[] = [];
+    const saleItemsToCreate: Prisma.SaleItemCreateWithoutSaleInput[] = [];
 
     if (data.clientId) {
       const client = await tx.client.findUnique({ where: { id: data.clientId } });
@@ -104,7 +108,7 @@ export const createSale = async (
     const ticketNumber = await generateNextTicketNumber(tx);
 
     // Construimos el data aparte para evitar problemas con exactOptionalPropertyTypes
-    const saleData: any = {
+    const saleData: Prisma.SaleCreateInput = {
       ticketNumber,
       subtotal,
       tax,
@@ -147,7 +151,7 @@ export const listSales = async (): Promise<SaleDto[]> => {
     },
   });
 
-  return sales.map((sale: any) => mapSaleToDto(sale));
+  return sales.map(mapSaleToDto);
 };
 
 export const getSaleById = async (id: string): Promise<SaleDto> => {
