@@ -6,10 +6,11 @@ import {
   getLowStockProducts,
   getTopProducts,
   getSummaryKpis,
+  getProfitKpis,
 } from "./kpi.service";
 import { percentChange } from "../../shared/business-time";
 import { comparedKpi, numericChange } from "../../shared/period";
-import { headerKpisSchema, lowStockKpisSchema, paymentMethodKpisSchema, summaryKpisSchema, topProductsKpisSchema } from "./kpi.schema";
+import { headerKpisSchema, lowStockKpisSchema, paymentMethodKpisSchema, profitKpisSchema, summaryKpisSchema, topProductsKpisSchema } from "./kpi.schema";
 
 // Valida query, params y body con el schema del endpoint antes del handler. Zod agrupa las claves
 // desconocidas en una sola issue: la expandimos a una por clave (path ["foo"]) y quitamos el prefijo
@@ -63,6 +64,11 @@ export const getTopProductsHandler = validated(
 export const getSummaryKpisHandler = validated(
   summaryKpisSchema,
   comparedKpi(getSummaryKpis, numericChange, "Error al obtener resumen de KPIs")
+);
+
+export const getProfitKpisHandler = validated(
+  profitKpisSchema,
+  comparedKpi(getProfitKpis, numericChange, "Error al obtener la utilidad")
 );
 
 export const getLowStockProductsHandler = validated(lowStockKpisSchema, async (req: Request, res: Response) => {

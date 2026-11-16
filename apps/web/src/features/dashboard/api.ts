@@ -9,6 +9,7 @@ import type {
   LowStockProduct,
   TopProduct,
   SummaryKpis,
+  ProfitKpis,
   Compared,
   PeriodQuery,
 } from "@/types/api";
@@ -44,6 +45,12 @@ export const kpisClient = {
 
   getSummary: (period?: PeriodQuery | null) =>
     apiClient.get<Compared<SummaryKpis>>("/kpis/summary", {
+      ...withToken(),
+      query: { ...period },
+    }),
+
+  getProfit: (period?: PeriodQuery | null) =>
+    apiClient.get<Compared<ProfitKpis>>("/kpis/profit", {
       ...withToken(),
       query: { ...period },
     }),

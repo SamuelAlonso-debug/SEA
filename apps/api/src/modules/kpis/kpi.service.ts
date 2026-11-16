@@ -7,7 +7,9 @@ import {
   LowStockProductDto,
   TopProductDto,
   SummaryKpisDto,
+  ProfitKpisDto,
 } from "./kpi.dto";
+import { computeProfit } from "./kpi.profit";
 
 // Las ventas canceladas no cuentan como ingreso en ningún KPI.
 // 1) KPIs del header: transacciones, ventas, tickets, productos vendidos del mes
@@ -229,4 +231,19 @@ export const getSummaryKpis = async (range: Range): Promise<SummaryKpisDto> => {
     todayRevenue,
     todaySalesCount,
   };
+};
+
+// 6) Utilidad: ventas netas − costo de lo vendido − gastos
+export const getProfitKpis = async ({ start, end }: Range): Promise<ProfitKpisDto> => {
+  const [sales, expenses] = await Promise.all([
+    prisma.sale.findMany({
+      where: { createdAt: { gte: start, lt: end } },
+      select: { subtotal: true, items: { select: { quantity: true, unitCost: true } } },
+    }),
+    prisma.expense.findMany({
+      where: { date: { gte: start, lt: end } },
+      select: { category: true, amount: true },
+    }),
+  ]);
+  return computeProfit(sales, expenses);
 };

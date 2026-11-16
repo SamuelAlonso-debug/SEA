@@ -49,6 +49,7 @@ export const headerKpisSchema = periodRequest;
 export const paymentMethodKpisSchema = periodRequest;
 export const topProductsKpisSchema = periodRequest;
 export const summaryKpisSchema = periodRequest;
+export const profitKpisSchema = periodRequest;
 
 // No depende del periodo: no acepta ningún parámetro.
 export const lowStockKpisSchema = z.object({

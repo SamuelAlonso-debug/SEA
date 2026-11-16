@@ -84,7 +84,7 @@ describe("KPIs por rango con periodo anterior", () => {
 });
 
 describe("KPIs: parámetros desconocidos", () => {
-  it.each(["header", "payment-methods", "top-products", "summary", "low-stock"])("%s rechaza ?foo=1 con 400", async (endpoint) => {
+  it.each(["header", "payment-methods", "top-products", "summary", "profit", "low-stock"])("%s rechaza ?foo=1 con 400", async (endpoint) => {
     const res = await get(`/api/kpis/${endpoint}?foo=1`).expect(400);
     expect(res.body.errors).toMatchObject([{ path: ["foo"] }]);
   });
