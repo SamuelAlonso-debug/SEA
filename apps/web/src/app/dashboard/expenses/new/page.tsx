@@ -41,8 +41,9 @@ export default function AddExpensePage() {
         throw new Error("El monto no es válido");
       }
 
+      // Medianoche local: la fecha capturada no cambia de día al pasar a UTC.
       const isoDate = date
-        ? new Date(date + "T00:00:00.000Z").toISOString()
+        ? new Date(date + "T00:00:00").toISOString()
         : new Date().toISOString();
 
       await createExpense({
