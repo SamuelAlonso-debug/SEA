@@ -33,10 +33,14 @@ export default defineConfig({
       timeout: 180_000,
     },
     {
-      // NEXT_PUBLIC_API_URL se fija en el build.
-      command: `npm run build && npm start -- -p ${WEB_PORT}`,
+      // NEXT_PUBLIC_API_URL se fija en el build. Mismo servidor que Docker: standalone con public y static copiados.
+      command: `npm run build && npm run start:standalone`,
       url: `http://localhost:${WEB_PORT}/landing`,
-      env: { NEXT_PUBLIC_API_URL: `http://localhost:${API_PORT}/api` },
+      env: {
+        NEXT_PUBLIC_API_URL: `http://localhost:${API_PORT}/api`,
+        PORT: String(WEB_PORT),
+        HOSTNAME: "localhost",
+      },
       timeout: 300_000,
     },
   ],

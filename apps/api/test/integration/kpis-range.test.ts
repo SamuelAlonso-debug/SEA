@@ -83,6 +83,22 @@ describe("KPIs por rango con periodo anterior", () => {
   });
 });
 
+describe("KPIs: parámetros desconocidos", () => {
+  it.each(["header", "payment-methods", "top-products", "summary", "profit", "low-stock"])("%s rechaza ?foo=1 con 400", async (endpoint) => {
+    const res = await get(`/api/kpis/${endpoint}?foo=1`).expect(400);
+    expect(res.body.errors).toMatchObject([{ path: ["foo"] }]);
+  });
+
+  it("header ya no acepta month/year sueltos", async () => {
+    const res = await get("/api/kpis/header?month=3&year=2026").expect(400);
+    expect(res.body.errors.map((e: any) => e.path[0]).sort()).toEqual(["month", "year"]);
+  });
+
+  it("body inesperado → 400", async () => {
+    await request(app).get("/api/kpis/header").set("Authorization", auth).send({ a: 1 }).expect(400);
+  });
+});
+
 describe("presets ?period=", () => {
   // Hoy en hora del negocio, calculado sin el código bajo prueba.
   const day = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: process.env.BUSINESS_TIMEZONE }).format(d);

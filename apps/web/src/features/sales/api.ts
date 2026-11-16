@@ -2,7 +2,7 @@
 "use client";
 
 import { apiClient } from "@/lib/api-client";
-import type { Sale, PaymentMethod } from "@/types/api";
+import type { Sale, PaymentMethod, PeriodQuery } from "@/types/api";
 
 export const salesClient = {
   // POST /api/sales
@@ -18,6 +18,10 @@ export const salesClient = {
   // GET /api/sales
   list: () =>
     apiClient.get<Sale[]>("/sales"),
+
+  // GET /api/sales/export: descarga el CSV (sin periodo = mes en curso)
+  exportCsv: (period?: PeriodQuery | null) =>
+    apiClient.download("/sales/export", { query: { ...period } }),
 
   // GET /api/sales/:id
   getById: (id: string) =>

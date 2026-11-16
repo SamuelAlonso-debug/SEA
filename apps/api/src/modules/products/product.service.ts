@@ -4,12 +4,13 @@ import { CreateProductDto, ProductDto, UpdateProductDto } from "./product.dto";
 import { Prisma, StockMovementType } from "@prisma/client";
 import { withRetry } from "../../shared/with-retry";
 import { ConflictError, NotFoundError } from "../../shared/errors";
+import { paged, Cell } from "../../shared/csv";
 
 const NOT_FOUND = "Producto no encontrado";
 const codeTaken = (code: string) => new ConflictError(`Ya existe un producto con el código ${code}`);
 
 // P2002: alta o edición simultánea con el mismo código; el índice único decide.
-const rethrowCodeTaken = (code: string | undefined) => (error: any) => {
+const rethrowCodeTaken = (code: string | undefined) => (error: { code?: string }) => {
   throw error?.code === "P2002" && code ? codeTaken(code) : error;
 };
 
@@ -208,3 +209,10 @@ export const getProductByCode = async (
 
   return product;
 };
+// Catálogo completo (activos e inactivos) para el CSV. `minStock` null = 5, el umbral por defecto.
+export async function* productExportRows(): AsyncGenerator<Cell[]> {
+  const products = paged((page) => prisma.product.findMany({ orderBy: { id: "asc" }, ...page }));
+  for await (const p of products) {
+    yield [p.productCode, p.name, p.category, p.provider, p.price.toFixed(2), p.cost?.toFixed(2), p.stock, p.minStock ?? 5, p.isActive ? "Sí" : "No"];
+  }
+}

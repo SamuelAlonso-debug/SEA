@@ -1,4 +1,5 @@
 import { CookieOptions, Request, Response } from "express";
+import { CaughtError } from "../../shared/caught-error";
 import { registerSchema, loginSchema } from "./auth.schema";
 import {
   registerUser,
@@ -24,7 +25,8 @@ export const registerHandler = async (req: Request, res: Response) => {
     // Sin sesión al registrarse: la web lleva al login. El token no sale en el cuerpo.
     const { user } = await registerUser(parsed);
     return res.status(201).json({ user });
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     // Zod error
     if (error.name === "ZodError") {
       return res.status(400).json({
@@ -47,7 +49,8 @@ export const loginHandler = async (req: Request, res: Response) => {
     const { user, token } = await loginUser(parsed);
     res.cookie(SESSION_COOKIE, token, { ...sessionCookie, maxAge: SESSION_MAX_AGE_MS });
     return res.status(200).json({ user });
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     if (error.name === "ZodError") {
       return res.status(400).json({
         message: "Datos inválidos",
@@ -76,7 +79,8 @@ export const profileHandler = async (req: AuthRequest, res: Response) => {
 
     const user = await getUserProfile(req.userId);
     return res.status(200).json(user);
-  } catch (error: any) {
+  } catch (caught) {
+    const error = caught as CaughtError;
     return res.status(400).json({ message: error.message || "Error al obtener perfil" });
   }
 };

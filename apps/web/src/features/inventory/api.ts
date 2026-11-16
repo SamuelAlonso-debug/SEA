@@ -9,6 +9,9 @@ export const productsClient = {
   list: () =>
     apiClient.get<Product[]>("/products"),
 
+  // GET /api/products/export: descarga el CSV del catálogo
+  exportCsv: () => apiClient.download("/products/export"),
+
   // GET /api/products/:id
   getById: (id: string) =>
     apiClient.get<Product>(`/products/${id}`),

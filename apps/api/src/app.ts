@@ -20,7 +20,8 @@ const app = express();
 const allowedOrigins = (process.env.CORS_ORIGIN ?? "http://localhost:3000").split(",");
 
 app.use(helmet());
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+// Content-Disposition expuesto: la web lee de ahí el nombre del CSV descargado.
+app.use(cors({ origin: allowedOrigins, credentials: true, exposedHeaders: ["Content-Disposition"] }));
 // Límite global holgado: el dashboard dispara varias peticiones por vista.
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 1000, standardHeaders: "draft-8", legacyHeaders: false }));
 app.use(express.json({ limit: "100kb" }));

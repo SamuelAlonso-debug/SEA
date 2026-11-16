@@ -37,6 +37,10 @@ export const expensesClient = {
       query: { ...period },
     }),
 
+  // GET /api/expenses/export: descarga el CSV (sin periodo = mes en curso)
+  exportCsv: (period?: PeriodQuery | null) =>
+    apiClient.download("/expenses/export", { query: { ...period } }),
+
   // POST /api/expenses
   create: (input: CreateExpenseRequest) =>
     apiClient.post<ExpenseDto>("/expenses", {

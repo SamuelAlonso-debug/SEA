@@ -14,7 +14,7 @@ const fileError = (csv: string) => {
 
 describe("parseProductsCsv", () => {
   it("parsea comillas, comas y saltos de línea dentro de campos, y el BOM", () => {
-    const { products, errors } = parse(`﻿${H}\r\nA1,"Arroz, ""extra""\nlargo",Granos,10.5,6,5,2,Acme\r\n`);
+    const { products, errors } = parse(`\uFEFF${H}\r\nA1,"Arroz, ""extra""\nlargo",Granos,10.5,6,5,2,Acme\r\n`);
     expect(errors).toEqual([]);
     expect(products[0]).toMatchObject({ productCode: "A1", name: 'Arroz, "extra"\nlargo', price: 10.5, minStock: 2 });
   });

@@ -25,6 +25,14 @@ function buildUrl(path: string, query?: RequestOptions["query"]) {
   return url.toString();
 }
 
+// Sesión vencida o cerrada: al login en lugar de dejar el dashboard roto.
+// Las rutas /auth/* (login, perfil del guard) resuelven su propio 401.
+function expireSession(res: Response, path: string) {
+  if (res.status === 401 && !path.startsWith("/auth/") && typeof window !== "undefined") {
+    window.location.assign("/auth/login");
+  }
+}
+
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = "GET", body, query } = options;
 
@@ -42,11 +50,7 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     credentials: "include",
   });
 
-  // Sesión vencida o cerrada: al login en lugar de dejar el dashboard roto.
-  // Las rutas /auth/* (login, perfil del guard) resuelven su propio 401.
-  if (res.status === 401 && !path.startsWith("/auth/") && typeof window !== "undefined") {
-    window.location.assign("/auth/login");
-  }
+  expireSession(res, path);
 
   if (!res.ok) {
     let msg = `Error ${res.status}`;
@@ -61,7 +65,30 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   return res.status === 204 ? (undefined as T) : res.json();
 }
 
+// Descarga un archivo (CSV) con el nombre que manda el servidor en Content-Disposition.
+async function download(path: string, options: Pick<RequestOptions, "query"> = {}): Promise<void> {
+  const res = await fetch(buildUrl(path, options.query), { credentials: "include" });
+
+  expireSession(res, path);
+  if (!res.ok) {
+    let msg = `Error ${res.status}`;
+    try {
+      msg = ((await res.json()) as { message?: string }).message || msg;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const name = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? "exportacion.csv";
+  const url = URL.createObjectURL(await res.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = name;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export const apiClient = {
+  download,
   get:  <T>(path: string, options?: Omit<RequestOptions, "method">) =>
     request<T>(path, { ...options, method: "GET" }),
   post: <T>(path: string, options?: Omit<RequestOptions, "method">) =>

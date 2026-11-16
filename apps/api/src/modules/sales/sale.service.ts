@@ -4,10 +4,16 @@ import { SaleDto, SaleItemDto } from "./sale.dto";
 import { PaymentMethod, Prisma } from "@prisma/client";
 import { computeTotals } from "./sale.totals";
 import { withRetry } from "../../shared/with-retry";
+import { paged, Cell } from "../../shared/csv";
+import { businessStamp, Period, rangeOf } from "../../shared/business-time";
+
+type SaleWithRelations = Prisma.SaleGetPayload<{
+  include: { items: { include: { product: true } }; client: { select: { name: true; lastname: true } } };
+}>;
 
 // Mapea el objeto de Prisma (con items + product) a nuestro DTO
-function mapSaleToDto(sale: any): SaleDto {
-  const items: SaleItemDto[] = sale.items.map((i: any) => ({
+function mapSaleToDto(sale: SaleWithRelations): SaleDto {
+  const items: SaleItemDto[] = sale.items.map((i) => ({
     id: i.id,
     productId: i.productId,
     productCode: i.product.productCode,
@@ -48,7 +54,7 @@ export const notCancelled = {
 } satisfies Prisma.SaleWhereInput;
 
 // Número de ticket tipo 0000001. El contador arranca tras las ventas ya existentes.
-async function generateNextTicketNumber(tx: any): Promise<string> {
+async function generateNextTicketNumber(tx: Prisma.TransactionClient): Promise<string> {
   const counter = await tx.counter.findUnique({ where: { id: "ticket" } });
   const { seq } = counter
     ? await tx.counter.update({ where: { id: "ticket" }, data: { seq: { increment: 1 } } })
@@ -61,7 +67,7 @@ export const createSale = async (
   userId?: string
 ): Promise<SaleDto> => {
   return withRetry(() => prisma.$transaction(async (tx) => {
-    const saleItemsToCreate: any[] = [];
+    const saleItemsToCreate: Prisma.SaleItemCreateWithoutSaleInput[] = [];
     const movements: Prisma.StockMovementCreateManyInput[] = [];
 
     if (data.clientId) {
@@ -122,7 +128,7 @@ export const createSale = async (
     const ticketNumber = await generateNextTicketNumber(tx);
 
     // Construimos el data aparte para evitar problemas con exactOptionalPropertyTypes
-    const saleData: any = {
+    const saleData: Prisma.SaleCreateInput = {
       ticketNumber,
       subtotal,
       tax,
@@ -167,7 +173,7 @@ export const listSales = async (): Promise<SaleDto[]> => {
     },
   });
 
-  return sales.map((sale: any) => mapSaleToDto(sale));
+  return sales.map(mapSaleToDto);
 };
 
 export const getSaleById = async (id: string): Promise<SaleDto> => {
@@ -185,6 +191,54 @@ export const getSaleById = async (id: string): Promise<SaleDto> => {
 
   return mapSaleToDto(sale);
 };
+
+const money = (cents: number) => (cents / 100).toFixed(2);
+
+// Filas del CSV: una por ítem. El IVA del ticket se reparte por acumulado redondeado,
+// así la suma de `Total` de un ticket es exactamente el total de la venta.
+export async function* saleExportRows(period: Period): AsyncGenerator<Cell[]> {
+  const { start, end } = rangeOf(period);
+  const sales = paged((page) =>
+    prisma.sale.findMany({
+      where: { createdAt: { gte: start, lt: end } },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      include: {
+        items: { include: { product: { select: { productCode: true, name: true } } }, orderBy: { id: "asc" } },
+        client: { select: { name: true, lastname: true } },
+        user: { select: { name: true, lastname: true } },
+      },
+      ...page,
+    })
+  );
+
+  for await (const sale of sales) {
+    const taxCents = Math.round(sale.tax * 100);
+    const subtotalCents = sale.items.reduce((sum, i) => sum + Math.round(i.subtotal * 100), 0);
+    let running = 0;
+    let allocated = 0;
+    for (const item of sale.items) {
+      const itemCents = Math.round(item.subtotal * 100);
+      running += itemCents;
+      const upTo = subtotalCents === 0 ? 0 : Math.round((taxCents * running) / subtotalCents);
+      const tax = upTo - allocated;
+      allocated = upTo;
+      yield [
+        sale.ticketNumber,
+        businessStamp(sale.createdAt),
+        item.product.productCode,
+        item.product.name,
+        item.quantity,
+        item.unitPrice.toFixed(2),
+        money(itemCents),
+        money(tax),
+        money(itemCents + tax),
+        sale.paymentMethod,
+        sale.client ? `${sale.client.name} ${sale.client.lastname}` : "",
+        sale.user ? `${sale.user.name} ${sale.user.lastname}` : "",
+      ];
+    }
+  }
+}
 
 // Cancela la venta completa y reintegra todo su stock en la misma transacción.
 export const cancelSale = async (id: string, reason: string, userId?: string): Promise<SaleDto> => {
