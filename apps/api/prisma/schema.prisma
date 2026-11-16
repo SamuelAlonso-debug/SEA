@@ -153,6 +153,8 @@ model Client {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   lastname  String
+  // Clave de orden por nombre (sin mayúsculas ni acentos). Opcional: documentos previos la reciben con el backfill.
+  sortName  String?
   phone     String
   // Opcional y sin @unique: en Mongo el índice único cuenta null como valor y solo
   // permitiría un cliente sin correo. La unicidad se valida en client.service.
@@ -169,6 +171,8 @@ model Client {
   updatedAt DateTime @updatedAt
 
   sales     Sale[]
+
+  @@index([sortName])
 }
 
 // Secuencias atómicas (p. ej. número de ticket): `seq` se incrementa dentro de la transacción.
