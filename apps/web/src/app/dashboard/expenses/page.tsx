@@ -7,8 +7,9 @@ import { Search } from "lucide-react";
 
 import { KpiCard } from "@/features/dashboard/kpi-card";
 import { RangePicker, periodLabel } from "@/features/dashboard/range-picker";
-import type { Period } from "@/types/api";
+import type { PeriodQuery } from "@/types/api";
 import { Button } from "@/components/ui/button";
+import { ExportButton } from "@/components/export-button";
 import {
   ExpensesTable,
   type ExpenseRow,
@@ -16,13 +17,11 @@ import {
 import {
   getExpenses,
   getExpensesKpis,
+  expensesClient,
   type ExpensesKpisResponse,
   type ExpenseDto,
 } from "@/features/expenses/api";
-import {
-  EXPENSE_CATEGORY_LABELS,
-  EXPENSE_PAYMENT_METHOD_LABELS,
-} from "@/features/expenses/expense-categories";
+import { useCatalogs } from "@/features/catalogs/use-catalogs";
 
 const formatDate = (iso: string) => {
   const d = new Date(iso);
@@ -41,13 +40,14 @@ const formatCurrency = (value: number) =>
   }).format(value);
 
 export default function ExpensesPage() {
+  const { categoryLabel, paymentMethodLabel } = useCatalogs();
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
 
   const [kpis, setKpis] = useState<ExpensesKpisResponse | null>(null);
-  const [period, setPeriod] = useState<Period | null>(null);
+  const [period, setPeriod] = useState<PeriodQuery | null>(null);
   const [kpisChange, setKpisChange] = useState<Record<string, number | null>>({});
 
   const [loadingList, setLoadingList] = useState(true);
@@ -72,9 +72,9 @@ export default function ExpensesPage() {
         const rows: ExpenseRow[] = resp.data.map((e: ExpenseDto) => ({
           id: e.id,
           date: formatDate(e.date),
-          category: EXPENSE_CATEGORY_LABELS[e.category] ?? e.category,
+          category: e.category,
           concept: e.concept,
-          paymentMethod: EXPENSE_PAYMENT_METHOD_LABELS[e.paymentMethod] ?? e.paymentMethod,
+          paymentMethod: e.paymentMethod,
           amount: e.amount,
         }));
 
@@ -114,18 +114,24 @@ export default function ExpensesPage() {
 
   // Filtro de búsqueda (client-side sobre la página actual)
   const filteredExpenses = useMemo(() => {
-    if (!searchTerm.trim()) return expenses;
+    // Las filas guardan el valor del enum; la etiqueta se resuelve al pintar para no depender del orden de carga del catálogo.
+    const labeled = expenses.map((e) => ({
+      ...e,
+      category: categoryLabel(e.category),
+      paymentMethod: paymentMethodLabel(e.paymentMethod),
+    }));
+    if (!searchTerm.trim()) return labeled;
 
     const term = searchTerm.toLowerCase();
 
-    return expenses.filter((e) => {
+    return labeled.filter((e) => {
       return (
         e.concept.toLowerCase().includes(term) ||
         e.category.toLowerCase().includes(term) ||
         e.paymentMethod.toLowerCase().includes(term)
       );
     });
-  }, [expenses, searchTerm]);
+  }, [expenses, searchTerm, categoryLabel, paymentMethodLabel]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -137,7 +143,10 @@ export default function ExpensesPage() {
         </p>
       </section>
 
-      <RangePicker value={period} onChange={setPeriod} />
+      <div className="flex flex-wrap items-end gap-3">
+        <RangePicker value={period} onChange={setPeriod} />
+        <ExportButton onExport={() => expensesClient.exportCsv(period)} />
+      </div>
 
       {/* KPIs superiores */}
       <section className="grid gap-4 md:grid-cols-2">

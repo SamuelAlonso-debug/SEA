@@ -1,5 +1,6 @@
 import prisma from "../../shared/prisma";
-import { Range } from "../../shared/business-time";
+import { businessStamp, Period, Range, rangeOf } from "../../shared/business-time";
+import { paged, Cell } from "../../shared/csv";
 import {
   CreateExpenseInput,
   UpdateExpenseInput,
@@ -11,7 +12,7 @@ import {
   ExpenseListResult,
   ExpenseKpisDto,
 } from "./expense.dto";
-import { ExpenseCategory, PaymentMethod } from "@prisma/client";
+import { ExpenseCategory, PaymentMethod, Prisma } from "@prisma/client";
 
 export const createExpense = async (
   data: CreateExpenseInput
@@ -21,7 +22,7 @@ export const createExpense = async (
       concept: data.concept,
       category: data.category as ExpenseCategory,
       amount: data.amount,
-      date: data.date ? new Date(data.date as any) : new Date(),
+      date: data.date ? new Date(data.date) : new Date(),
       paymentMethod: data.paymentMethod,
       vendor: data.vendor ?? null,
       notes: data.notes ?? null,
@@ -46,7 +47,7 @@ export const updateExpense = async (
       concept: data.concept ?? expense.concept,
       category: (data.category as ExpenseCategory) ?? expense.category,
       amount: data.amount ?? expense.amount,
-      date: data.date ? new Date(data.date as any) : expense.date,
+      date: data.date ? new Date(data.date) : expense.date,
       paymentMethod: data.paymentMethod ?? expense.paymentMethod,
       vendor:
         data.vendor !== undefined ? data.vendor : expense.vendor,
@@ -80,7 +81,7 @@ export const getExpenseById = async (id: string): Promise<ExpenseDto> => {
 export const listExpenses = async (
   filters: ExpenseListFilters
 ): Promise<ExpenseListResult> => {
-  const where: any = {};
+  const where: Prisma.ExpenseWhereInput = {};
 
   if (filters.from || filters.to) {
     where.date = {};
@@ -152,3 +153,17 @@ export const getMonthlyExpenseKpis = async (range: Range): Promise<ExpenseKpisDt
     })),
   };
 };
+
+export async function* expenseExportRows(period: Period, category?: ExpenseCategory): AsyncGenerator<Cell[]> {
+  const { start, end } = rangeOf(period);
+  const expenses = paged((page) =>
+    prisma.expense.findMany({
+      where: { date: { gte: start, lt: end }, ...(category ? { category } : {}) },
+      orderBy: [{ date: "asc" }, { id: "asc" }],
+      ...page,
+    })
+  );
+  for await (const e of expenses) {
+    yield [businessStamp(e.date), e.concept, e.category, e.amount.toFixed(2), e.paymentMethod, e.vendor, e.notes];
+  }
+}

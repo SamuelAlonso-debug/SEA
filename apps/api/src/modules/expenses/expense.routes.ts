@@ -7,6 +7,7 @@ import {
   updateExpenseHandler,
   deleteExpenseHandler,
   getExpenseKpisHandler,
+  exportExpensesHandler,
 } from "./expense.controller";
 
 const router = Router();
@@ -16,6 +17,7 @@ router.use(authMiddleware, requireRole("ADMIN"));
 
 // /api/expenses
 router.get("/kpis", getExpenseKpisHandler);
+router.get("/export", exportExpensesHandler);
 router.get("/", listExpensesHandler);             // ?from=&to=&category=&page=&pageSize=
 router.get("/:id", getExpenseHandler);
 router.post("/", createExpenseHandler);

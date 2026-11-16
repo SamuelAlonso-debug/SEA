@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { PaymentMethod } from "@prisma/client";
 import { ExpenseCategoryEnum } from "./expense.enums";
+import { periodQuerySchema } from "../kpis/kpi.schema";
 
 // Mismo catálogo que ventas: el enum de Prisma es la única fuente.
 export const PAYMENT_METHODS = Object.values(PaymentMethod);
@@ -58,3 +59,16 @@ export const listExpensesQuerySchema = z.object({
     .optional()
     .transform((v) => (v ? parseInt(v, 10) : 10)),
 });
+
+// ?category= de la exportación: mismo formato de "opción inválida" que el método de pago.
+const CATEGORIES = Object.values(ExpenseCategoryEnum);
+export const exportCategorySchema = z.object({
+  category: z
+    .enum(ExpenseCategoryEnum, {
+      error: () => `Opción inválida: se esperaba una de ${CATEGORIES.map((c) => `"${c}"`).join("|")}`,
+    })
+    .optional(),
+});
+
+// /kpis solo acepta el periodo (?from=&to=); cualquier otra clave se rechaza.
+export const expenseKpisQuerySchema = periodQuerySchema.strict();

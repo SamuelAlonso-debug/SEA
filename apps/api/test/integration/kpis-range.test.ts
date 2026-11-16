@@ -82,3 +82,59 @@ describe("KPIs por rango con periodo anterior", () => {
     }
   });
 });
+
+describe("KPIs: parámetros desconocidos", () => {
+  it.each(["header", "payment-methods", "top-products", "summary", "profit", "low-stock"])("%s rechaza ?foo=1 con 400", async (endpoint) => {
+    const res = await get(`/api/kpis/${endpoint}?foo=1`).expect(400);
+    expect(res.body.errors).toMatchObject([{ path: ["foo"] }]);
+  });
+
+  it("header ya no acepta month/year sueltos", async () => {
+    const res = await get("/api/kpis/header?month=3&year=2026").expect(400);
+    expect(res.body.errors.map((e: any) => e.path[0]).sort()).toEqual(["month", "year"]);
+  });
+
+  it("body inesperado → 400", async () => {
+    await request(app).get("/api/kpis/header").set("Authorization", auth).send({ a: 1 }).expect(400);
+  });
+});
+
+describe("presets ?period=", () => {
+  // Hoy en hora del negocio, calculado sin el código bajo prueba.
+  const day = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: process.env.BUSINESS_TIMEZONE }).format(d);
+
+  it("TODAY: periodo de un día y anterior = ayer", async () => {
+    const now = new Date();
+    const res = await get("/api/kpis/header?period=TODAY").expect(200);
+    const today = day(now);
+    if (day(new Date()) !== today) return; // cruzó la medianoche durante la petición
+    expect(res.body.period).toEqual({ from: today, to: today });
+    const yesterday = day(new Date(now.getTime() - 86_400_000));
+    expect(res.body.previousPeriod).toEqual({ from: yesterday, to: yesterday });
+  });
+
+  it("MONTH: misma respuesta que sin query", async () => {
+    await sale(new Date().toISOString(), 500);
+    const [a, b] = await Promise.all([get("/api/kpis/header?period=MONTH"), get("/api/kpis/header")]);
+    expect(a.status).toBe(200);
+    expect(a.body).toEqual(b.body);
+    const [c, d] = await Promise.all([get("/api/expenses/kpis?period=MONTH"), get("/api/expenses/kpis")]);
+    expect(c.status).toBe(200);
+    expect(c.body).toEqual(d.body);
+  });
+
+  it("TODAY aplica en gastos", async () => {
+    const res = await get("/api/expenses/kpis?period=TODAY").expect(200);
+    expect(res.body.period.from).toBe(res.body.period.to);
+  });
+
+  it.each([
+    ["?period=WEEK", 'Opción inválida: se esperaba una de "TODAY" o "MONTH"'],
+    ["?period=TODAY&from=2026-10-01&to=2026-10-31", "Indica periodo o rango, no ambos"],
+  ])("400 con %s", async (query, message) => {
+    for (const url of ["/api/kpis/header", "/api/expenses/kpis"]) {
+      const res = await get(`${url}${query}`).expect(400);
+      expect(res.body.errors).toEqual([expect.objectContaining({ path: ["period"], message })]);
+    }
+  });
+});

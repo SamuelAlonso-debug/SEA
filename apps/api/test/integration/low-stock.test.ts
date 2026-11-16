@@ -53,6 +53,6 @@ describe("stock mínimo por producto", () => {
     [1_000_001, "El stock mínimo es demasiado alto"],
   ])("minStock %d → 400", async (minStock, message) => {
     const res = await create({ productCode: "X", stock: 1, minStock }).expect(400);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path: ["minStock"], message }));
+    expect(res.body.issues).toContainEqual(expect.objectContaining({ path: "minStock", message }));
   });
 });
