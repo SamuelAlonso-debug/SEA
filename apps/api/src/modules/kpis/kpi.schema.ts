@@ -1,44 +1,25 @@
 import { z } from "zod";
+import { periodQuerySchema } from "../../shared/period";
 
-/**
- * Por ahora, los endpoints de KPIs no reciben body ni params.
- * Dejamos los schemas preparados por si luego queremos aceptar month/year por query.
- */
+const noParams = z.strictObject({});
 
-export const headerKpisSchema = z.object({
-  query: z
-    .object({
-      // opcionalmente, podrías permitir ?month=0-11&year=2025
-      month: z.string().optional(),
-      year: z.string().optional(),
-    })
-    .optional(),
-  params: z.object({}).optional(),
-  body: z.object({}).optional(),
+// Endpoints por periodo: ?from=&to= (o mes en curso). Sin params ni body.
+const periodRequest = z.object({
+  query: periodQuerySchema.strict(),
+  params: noParams,
+  body: noParams.optional(),
 });
 
-export const paymentMethodKpisSchema = z.object({
-  query: z.object({}).optional(),
-  params: z.object({}).optional(),
-  body: z.object({}).optional(),
-});
+export const headerKpisSchema = periodRequest;
+export const paymentMethodKpisSchema = periodRequest;
+export const topProductsKpisSchema = periodRequest;
+export const summaryKpisSchema = periodRequest;
 
+// No depende del periodo: no acepta ningún parámetro.
 export const lowStockKpisSchema = z.object({
-  query: z.object({}).optional(),
-  params: z.object({}).optional(),
-  body: z.object({}).optional(),
-});
-
-export const topProductsKpisSchema = z.object({
-  query: z.object({}).optional(),
-  params: z.object({}).optional(),
-  body: z.object({}).optional(),
-});
-
-export const summaryKpisSchema = z.object({
-  query: z.object({}).optional(),
-  params: z.object({}).optional(),
-  body: z.object({}).optional(),
+  query: noParams,
+  params: noParams,
+  body: noParams.optional(),
 });
 
 export type HeaderKpisSchemaInput = z.infer<typeof headerKpisSchema>;
