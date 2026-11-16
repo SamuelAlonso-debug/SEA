@@ -24,6 +24,7 @@ interface PaymentMethodsChartProps {
 const COLORS: Record<string, string> = {
   CASH: "#17C964",
   CARD: "#1A2D4D",
+  TRANSFER: "#F5A524",
 };
 
 export function PaymentMethodsChart({ data }: PaymentMethodsChartProps) {

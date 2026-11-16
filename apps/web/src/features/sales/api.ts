@@ -2,12 +2,12 @@
 "use client";
 
 import { apiClient } from "@/lib/api-client";
-import type { Sale, PaymentMethod, PeriodQuery } from "@/types/api";
+import type { Sale, SalePaymentInput, PeriodQuery } from "@/types/api";
 
 export const salesClient = {
   // POST /api/sales
   create: (data: {
-    paymentMethod: PaymentMethod;
+    payments: SalePaymentInput[];
     items: { productCode: string; quantity: number }[];
     notes?: string | null;
   }) =>

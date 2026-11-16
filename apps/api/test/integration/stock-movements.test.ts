@@ -59,7 +59,7 @@ describe("movimientos de stock", () => {
   it("venta de 2 → SALE -2 con saleId; entrada → PURCHASE; suma de movimientos = stock", async () => {
     const id = await createA1();
     const sale = await api()
-      .post("/api/sales", { items: [{ productCode: "A1", quantity: 2 }], paymentMethod: "CASH" })
+      .post("/api/sales", { items: [{ productCode: "A1", quantity: 2 }], payments: [{ method: "CASH", amount: 23.2 }] })
       .expect(201);
     await api().post(`/api/products/${id}/stock`, { quantity: 5, reason: "Compra" }).expect(200);
     await move(id, { type: "WASTE", quantity: -1, reason: "Roto" }).expect(201);

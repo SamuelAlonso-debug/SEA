@@ -1,4 +1,15 @@
-export type PaymentMethod = "CASH" | "CARD";
+export type PaymentMethod = "CASH" | "CARD" | "TRANSFER";
+
+// Pago de una venta; received y change solo en efectivo.
+export interface SalePayment {
+  method: PaymentMethod;
+  amount: number;
+  received: number | null;
+  change: number | null;
+  reference: string | null;
+}
+
+export type SalePaymentInput = Pick<SalePayment, "method" | "amount"> & { received?: number; reference?: string };
 
 export type Role = "ADMIN" | "CASHIER";
 
@@ -50,7 +61,9 @@ export interface Sale {
   subtotal: number;
   tax: number;
   total: number;
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod; // método del pago mayor
+  payments: SalePayment[];
+  change: number;
   notes: string | null;
   status: "COMPLETED" | "CANCELLED";
   cancelReason: string | null;

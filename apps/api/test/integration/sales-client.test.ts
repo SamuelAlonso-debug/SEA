@@ -26,7 +26,7 @@ const sell = (extra: object) =>
   request(app)
     .post("/api/sales")
     .set("Authorization", auth)
-    .send({ items: [{ productCode: "A", quantity: 1 }], paymentMethod: "CASH", ...extra });
+    .send({ items: [{ productCode: "A", quantity: 1 }], payments: [{ method: "CASH", amount: 11.6 }], ...extra });
 const clientSales = (id: string) => request(app).get(`/api/clients/${id}/sales`).set("Authorization", auth);
 
 describe("venta con cliente", () => {

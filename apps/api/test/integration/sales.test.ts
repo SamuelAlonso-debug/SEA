@@ -28,7 +28,7 @@ const sell = (body: object) => request(db.app).post("/api/sales").set("Authoriza
 
 describe("POST /api/sales", () => {
   it("guarda subtotal, IVA y total; los KPIs suman el total", async () => {
-    const res = await sell({ items: [{ productCode: "A", quantity: 1 }], paymentMethod: "CASH" }).expect(201);
+    const res = await sell({ items: [{ productCode: "A", quantity: 1 }], payments: [{ method: "CASH", amount: 116 }] }).expect(201);
     expect(res.body).toMatchObject({ subtotal: 100, tax: 16, total: 116 });
     expect(await db.prisma.sale.findFirst()).toMatchObject({ subtotal: 100, tax: 16, total: 116 });
 
@@ -37,13 +37,13 @@ describe("POST /api/sales", () => {
   });
 
   it("redondea a centavos", async () => {
-    const res = await sell({ items: [{ productCode: "B", quantity: 3 }], paymentMethod: "CARD" }).expect(201);
+    const res = await sell({ items: [{ productCode: "B", quantity: 3 }], payments: [{ method: "CARD", amount: 115.99 }] }).expect(201);
     expect(res.body).toMatchObject({ subtotal: 99.99, tax: 16, total: 115.99 });
   });
 
   it.each([
-    [{ items: [], paymentMethod: "CASH" }, ["items"], "Debe haber al menos un producto en la venta"],
-    [{ items: [{ productCode: "A", quantity: 0 }], paymentMethod: "CASH" }, ["items", 0, "quantity"], "La cantidad mínima es 1"],
+    [{ items: [], payments: [{ method: "CASH", amount: 116 }] }, ["items"], "Debe haber al menos un producto en la venta"],
+    [{ items: [{ productCode: "A", quantity: 0 }], payments: [{ method: "CASH", amount: 116 }] }, ["items", 0, "quantity"], "La cantidad mínima es 1"],
   ])("400 con %j", async (body, path, message) => {
     const res = await sell(body).expect(400);
     expect(res.body.errors).toContainEqual(expect.objectContaining({ path, message }));

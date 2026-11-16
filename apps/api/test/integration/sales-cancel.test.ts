@@ -26,7 +26,7 @@ const sellTwo = async () =>
     await request(db.app)
       .post("/api/sales")
       .set("Authorization", auth)
-      .send({ items: [{ productCode: "A1", quantity: 2 }], paymentMethod: "CASH" })
+      .send({ items: [{ productCode: "A1", quantity: 2 }], payments: [{ method: "CASH", amount: 232 }] })
       .expect(201)
   ).body;
 const cancel = (id: string, body: object = { reason: "Devolución total" }) =>

@@ -1,4 +1,4 @@
-import { PaymentMethod, SaleStatus } from "@prisma/client";
+import { PaymentMethod, SalePayment, SaleStatus } from "@prisma/client";
 
 export interface SaleItemDto {
   id: string;
@@ -18,7 +18,9 @@ export interface SaleDto {
   subtotal: number;
   tax: number;
   total: number;
-  paymentMethod: PaymentMethod;
+  paymentMethod: PaymentMethod; // método del pago mayor (compatibilidad)
+  payments: SalePayment[];
+  change: number; // cambio total entregado en efectivo
   notes?: string | null;
   clientId: string | null;
   clientName: string | null;

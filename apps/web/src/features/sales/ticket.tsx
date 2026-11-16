@@ -20,6 +20,7 @@ const business = {
 const paymentLabel: Record<Sale["paymentMethod"], string> = {
   CASH: "Efectivo",
   CARD: "Tarjeta",
+  TRANSFER: "Transferencia",
 };
 
 export function Ticket({ sale, width }: { sale: Sale; width: 58 | 80 }) {
