@@ -1,8 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import { startMongo } from "./mongo";
-import { signToken } from "../../src/shared/jwt";
+import { bearer, FIXTURE_IDS } from "./session";
 import { seedAdmin } from "../../prisma/seed-admin.mjs";
 
 let db: Awaited<ReturnType<typeof startMongo>>;
@@ -16,7 +15,6 @@ beforeAll(async () => {
 afterAll(() => db?.stop());
 
 const ID = "507f1f77bcf86cd799439011";
-const bearer = (role: "ADMIN" | "CASHIER") => `Bearer ${signToken({ userId: ID, role })}`;
 const FORBIDDEN = "No tienes permiso para esta acción";
 const cashier = { name: "Caja", lastname: "Uno", email: "caja@x.com", password: "secreto123", role: "CASHIER" };
 
@@ -27,13 +25,7 @@ describe("registro público eliminado", () => {
       .send({ name: "Eva", lastname: "Mala", email: "eva@x.com", password: "secreto123" })
       .expect(404);
     expect(res.body.message).toBe("Ruta no encontrada");
-    expect(await db.prisma.user.count()).toBe(0);
-  });
-
-  it("token sin role (anterior al cambio) → 401", async () => {
-    const legacy = jwt.sign({ userId: ID }, "test-secret");
-    const res = await request(app).get("/api/clients").set("Authorization", `Bearer ${legacy}`).expect(401);
-    expect(res.body.message).toBe("Sesión expirada. Inicia sesión de nuevo.");
+    expect(await db.prisma.user.count({ where: { id: { notIn: FIXTURE_IDS } } })).toBe(0);
   });
 });
 
@@ -93,7 +85,7 @@ describe("POST /api/users", () => {
     expect(denied.body.message).toBe(FORBIDDEN);
 
     const list = await request(app).get("/api/users").set("Authorization", bearer("ADMIN")).expect(200);
-    expect(list.body).toHaveLength(1);
+    expect(list.body).toHaveLength(1 + FIXTURE_IDS.length);
     expect(list.body[0]).not.toHaveProperty("password");
   });
 

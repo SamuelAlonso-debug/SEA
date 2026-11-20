@@ -26,7 +26,6 @@ export default defineConfig({
       env: {
         PORT: String(API_PORT),
         CORS_ORIGIN: `http://localhost:${WEB_PORT}`,
-        JWT_SECRET: process.env.JWT_SECRET ?? "e2e-local-secret",
         BUSINESS_TIMEZONE: "America/Mexico_City",
         // http://localhost: la cookie de sesión sin Secure, igual que en desarrollo.
         COOKIE_SECURE: "false",

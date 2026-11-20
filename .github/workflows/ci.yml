@@ -103,7 +103,6 @@ jobs:
       # La API y su Mongo en memoria (replica set) los levanta e2e/api-server.mjs.
       - working-directory: apps/api
         run: npm ci
-      - run: echo "JWT_SECRET=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
       - working-directory: apps/web
         run: |
           npm ci

@@ -1,8 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import request from "supertest";
-import jwt from "jsonwebtoken";
 import { startMongo } from "./mongo";
-import { signToken } from "../../src/shared/jwt";
+import { bearer } from "./session";
 
 // Una sola base por archivo; el limitador de auth admite 10 intentos por ventana.
 let db: Awaited<ReturnType<typeof startMongo>>;
@@ -17,7 +16,7 @@ afterAll(() => db?.stop());
 
 const user = { name: "Ana", lastname: "Pérez", password: "secreto123", role: "CASHIER" };
 // Las altas son de un ADMIN: no hay registro público.
-const admin = `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011", role: "ADMIN" })}`;
+const admin = bearer("ADMIN");
 
 const WEB = "http://localhost:3000"; // origen permitido por defecto (CORS_ORIGIN)
 const EXPIRED = "Sesión expirada. Inicia sesión de nuevo.";
@@ -28,11 +27,8 @@ describe("GET /api/auth/profile", () => {
     expect(res.body.message).toBe("No autenticado");
   });
 
-  it.each([
-    ["firmado con otro secreto", jwt.sign({ userId: "507f1f77bcf86cd799439011" }, "default_secret")],
-    ["expirado", jwt.sign({ userId: "507f1f77bcf86cd799439011", exp: 1 }, "test-secret")],
-  ])("401 con token %s en la cookie", async (_, token) => {
-    const res = await request(app).get("/api/auth/profile").set("Cookie", `sea_session=${token}`).expect(401);
+  it("401 con un token sin sesión en la cookie", async () => {
+    const res = await request(app).get("/api/auth/profile").set("Cookie", "sea_session=inventado").expect(401);
     expect(res.body.message).toBe(EXPIRED);
   });
 });
@@ -43,7 +39,7 @@ describe("correo sin distinción de mayúsculas", () => {
 
     const dup = await request(app).post("/api/users").set("Authorization", admin).send({ ...user, email: "ana@x.com" }).expect(409);
     expect(dup.body.message).toBe("El correo ya está registrado");
-    expect(await db.prisma.user.count()).toBe(1);
+    expect(await db.prisma.user.count({ where: { email: "ana@x.com" } })).toBe(1);
 
     const login = await request(app).post("/api/auth/login").send({ email: "ANA@x.com", password: user.password }).expect(200);
     expect(login.body.user.email).toBe("ana@x.com");
@@ -85,13 +81,17 @@ describe("sesión por cookie httpOnly", () => {
     expect(profile.body).not.toHaveProperty("password");
   });
 
-  it("logout responde 204, expira la cookie y la siguiente petición es 401", async () => {
-    const res = await request(app).post("/api/auth/logout").set("Origin", WEB).set("Cookie", sessionOf(await login())).expect(204);
+  it("logout responde 204, expira la cookie y revoca la sesión", async () => {
+    const session = sessionOf(await login());
+    const res = await request(app).post("/api/auth/logout").set("Origin", WEB).set("Cookie", session).expect(204);
     expect(String(res.headers["set-cookie"])).toMatch(/^sea_session=;.*Expires=Thu, 01 Jan 1970/);
 
     // El navegador sustituye la cookie por la vacía que devuelve el logout.
     const next = await request(app).get("/api/auth/profile").set("Cookie", sessionOf(res)).expect(401);
     expect(next.body.message).toBe("No autenticado");
+    // Una copia del token anterior ya no vale.
+    const copy = await request(app).get("/api/auth/profile").set("Cookie", session).expect(401);
+    expect(copy.body.message).toBe(EXPIRED);
   });
 
   it.each([

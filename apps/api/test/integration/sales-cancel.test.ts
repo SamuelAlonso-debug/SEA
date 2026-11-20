@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
-import { signToken } from "../../src/shared/jwt";
+import { bearerFor } from "./session";
 import { startMongo } from "./mongo";
 
 let db: Awaited<ReturnType<typeof startMongo>>;
@@ -17,7 +17,7 @@ beforeEach(async () => {
   await db.reset();
   const user = await db.prisma.user.create({ data: { name: "C", lastname: "C", email: "c@c.mx", password: "x", role: "ADMIN" } });
   userId = user.id;
-  auth = `Bearer ${signToken({ userId, role: "ADMIN" })}`;
+  auth = await bearerFor(db.prisma, userId);
   await db.prisma.product.create({ data: { name: "Prod A1", productCode: "A1", price: 100, stock: 10 } });
 });
 
