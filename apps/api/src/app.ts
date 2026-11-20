@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { z } from "zod";
 import authRouter from "./modules/auth/auth.routes";
 import productRouter from "./modules/products/product.routes";
 import saleRouter from "./modules/sales/sale.routes";
@@ -14,6 +15,9 @@ import catalogRouter from "./modules/catalogs/catalog.routes";
 import prisma from "./shared/prisma";
 import { SESSION_COOKIE } from "./shared/auth.middleware";
 import { errorHandler, routeNotFound } from "./shared/error-handler";
+
+// Mensajes genéricos de Zod en español: los schemas solo definen los que este texto no cubre.
+z.config(z.locales.es());
 
 const app = express();
 

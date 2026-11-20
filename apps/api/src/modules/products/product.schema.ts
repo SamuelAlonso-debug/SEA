@@ -11,7 +11,7 @@ import {
 
 export const createProductSchema = z.object({
   name: z
-    .string()
+    .string({ error: (issue) => (issue.input === undefined ? "El nombre es obligatorio" : undefined) })
     .min(
       ProductNameLength.MIN,
       `El nombre debe tener al menos ${ProductNameLength.MIN} caracteres`
@@ -22,7 +22,7 @@ export const createProductSchema = z.object({
     ),
 
   productCode: z
-    .string()
+    .string({ error: (issue) => (issue.input === undefined ? "El ID del producto es obligatorio" : undefined) })
     .min(
       ProductCodeLength.MIN,
       `El ID del producto debe tener al menos ${ProductCodeLength.MIN} caracteres`
