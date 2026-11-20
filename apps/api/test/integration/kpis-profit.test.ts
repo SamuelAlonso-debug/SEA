@@ -88,6 +88,6 @@ describe("GET /api/kpis/profit", () => {
     ["?from=2025-01-01&to=2026-01-02", "to", "El rango máximo es de 366 días"],
   ])("400 con %s", async (query, path, message) => {
     const res = await get(`/api/kpis/profit${query}`).expect(400);
-    expect(res.body.errors).toEqual([expect.objectContaining({ path: [path], message })]);
+    expect(res.body.issues).toEqual([{ path, message }]);
   });
 });

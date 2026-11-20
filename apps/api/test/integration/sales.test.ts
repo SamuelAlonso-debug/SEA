@@ -42,10 +42,10 @@ describe("POST /api/sales", () => {
   });
 
   it.each([
-    [{ items: [], payments: [{ method: "CASH", amount: 116 }] }, ["items"], "Debe haber al menos un producto en la venta"],
-    [{ items: [{ productCode: "A", quantity: 0 }], payments: [{ method: "CASH", amount: 116 }] }, ["items", 0, "quantity"], "La cantidad mínima es 1"],
+    [{ items: [], payments: [{ method: "CASH", amount: 116 }] }, "items", "Debe haber al menos un producto en la venta"],
+    [{ items: [{ productCode: "A", quantity: 0 }], payments: [{ method: "CASH", amount: 116 }] }, "items.0.quantity", "La cantidad mínima es 1"],
   ])("400 con %j", async (body, path, message) => {
     const res = await sell(body).expect(400);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path, message }));
+    expect(res.body.issues).toContainEqual({ path, message });
   });
 });

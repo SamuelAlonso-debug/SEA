@@ -1,7 +1,6 @@
 import { CookieOptions, Request, Response } from "express";
-import { CaughtError } from "../../shared/caught-error";
 import { loginSchema } from "./auth.schema";
-import { loginUser, getUserProfile, AuthError } from "./auth.service";
+import { loginUser, getUserProfile } from "./auth.service";
 import { AuthRequest, SESSION_COOKIE } from "../../shared/auth.middleware";
 
 // httpOnly: el token no es legible desde JavaScript. Strict: el navegador no la envía desde otros sitios.
@@ -14,27 +13,11 @@ const sessionCookie: CookieOptions = {
 };
 const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // igual que la caducidad del JWT
 
+// Sin try/catch: Express 5 lleva los errores (Zod, dominio, BD) al middleware central.
 export const loginHandler = async (req: Request, res: Response) => {
-  try {
-    const parsed = loginSchema.parse(req.body);
-    const { user, token } = await loginUser(parsed);
-    res.cookie(SESSION_COOKIE, token, { ...sessionCookie, maxAge: SESSION_MAX_AGE_MS });
-    return res.status(200).json({ user });
-  } catch (caught) {
-    const error = caught as CaughtError;
-    if (error.name === "ZodError") {
-      return res.status(400).json({
-        message: "Datos inválidos",
-        errors: error.issues,
-      });
-    }
-
-    if (error instanceof AuthError) {
-      return res.status(error.status).json({ message: error.message });
-    }
-
-    return res.status(400).json({ message: error.message || "Error al iniciar sesión" });
-  }
+  const { user, token } = await loginUser(loginSchema.parse(req.body));
+  res.cookie(SESSION_COOKIE, token, { ...sessionCookie, maxAge: SESSION_MAX_AGE_MS });
+  return res.status(200).json({ user });
 };
 
 export const logoutHandler = (req: Request, res: Response) => {
@@ -43,15 +26,8 @@ export const logoutHandler = (req: Request, res: Response) => {
 };
 
 export const profileHandler = async (req: AuthRequest, res: Response) => {
-  try {
-    if (!req.userId) {
-      return res.status(401).json({ message: "No autorizado" });
-    }
-
-    const user = await getUserProfile(req.userId);
-    return res.status(200).json(user);
-  } catch (caught) {
-    const error = caught as CaughtError;
-    return res.status(400).json({ message: error.message || "Error al obtener perfil" });
+  if (!req.userId) {
+    return res.status(401).json({ message: "No autorizado" });
   }
+  return res.status(200).json(await getUserProfile(req.userId));
 };

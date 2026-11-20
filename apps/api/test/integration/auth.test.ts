@@ -63,7 +63,7 @@ describe("correo sin distinción de mayúsculas", () => {
     ["/api/auth/login", { email: "ana@x.com", password: "" }, "password", "La contraseña es obligatoria"],
   ])("400 en %s", async (url, body, path, message) => {
     const res = await request(app).post(url).set("Authorization", admin).send(body).expect(400);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path: [path], message }));
+    expect(res.body.issues).toContainEqual(expect.objectContaining({ path, message }));
   });
 });
 

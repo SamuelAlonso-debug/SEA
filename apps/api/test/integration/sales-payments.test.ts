@@ -49,15 +49,15 @@ describe("POST /api/sales con pagos", () => {
   });
 
   it.each([
-    [[], ["payments"], "Debe haber al menos un pago"],
-    [[{ method: "CHEQUE", amount: 116 }], ["payments", 0, "method"], 'Opción inválida: se esperaba una de "CASH"|"CARD"|"TRANSFER"'],
-    [[{ method: "CASH", amount: 0 }], ["payments", 0, "amount"], "El monto del pago debe ser mayor a 0"],
-    [[{ method: "CASH", amount: 100 }], ["payments"], "Los pagos suman 100.00 y el total es 116.00"],
-    [[{ method: "CASH", amount: 116, received: 100 }], ["payments", 0, "received"], "El efectivo recibido no cubre el pago"],
-    [[{ method: "CARD", amount: 116, received: 200 }], ["payments", 0, "received"], "Solo los pagos en efectivo llevan monto recibido"],
+    [[], "payments", "Debe haber al menos un pago"],
+    [[{ method: "CHEQUE", amount: 116 }], "payments.0.method", 'Opción inválida: se esperaba una de "CASH"|"CARD"|"TRANSFER"'],
+    [[{ method: "CASH", amount: 0 }], "payments.0.amount", "El monto del pago debe ser mayor a 0"],
+    [[{ method: "CASH", amount: 100 }], "payments", "Los pagos suman 100.00 y el total es 116.00"],
+    [[{ method: "CASH", amount: 116, received: 100 }], "payments.0.received", "El efectivo recibido no cubre el pago"],
+    [[{ method: "CARD", amount: 116, received: 200 }], "payments.0.received", "Solo los pagos en efectivo llevan monto recibido"],
   ])("400 con %j; sin venta ni stock descontado", async (payments, path, message) => {
     const res = await sell(payments).expect(400);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path, message }));
+    expect(res.body.issues).toContainEqual({ path, message });
     expect(await db.prisma.sale.count()).toBe(0);
     expect(await db.prisma.saleItem.count()).toBe(0);
     expect((await db.prisma.product.findUnique({ where: { productCode: "A" } }))!.stock).toBe(5);

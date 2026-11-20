@@ -107,13 +107,13 @@ describe("GET /api/sales/export", () => {
 
   it("errores de rango con los mensajes de #86", async () => {
     const bad = await get("/api/sales/export?from=2026-1-01&to=2026-10-31").expect(400);
-    expect(bad.body.errors).toMatchObject([{ path: ["from"], message: "La fecha debe tener formato AAAA-MM-DD" }]);
+    expect(bad.body.issues).toMatchObject([{ path: "from", message: "La fecha debe tener formato AAAA-MM-DD" }]);
     const half = await get("/api/sales/export?from=2026-10-01").expect(400);
-    expect(half.body.errors).toMatchObject([{ path: ["to"], message: "Indica fecha inicial y final" }]);
+    expect(half.body.issues).toMatchObject([{ path: "to", message: "Indica fecha inicial y final" }]);
     const order = await get("/api/sales/export?from=2026-10-31&to=2026-10-01").expect(400);
-    expect(order.body.errors[0].message).toBe("La fecha inicial no puede ser posterior a la final");
+    expect(order.body.issues[0].message).toBe("La fecha inicial no puede ser posterior a la final");
     const long = await get("/api/sales/export?from=2025-01-01&to=2026-12-31").expect(400);
-    expect(long.body.errors[0].message).toBe("El rango máximo es de 366 días");
+    expect(long.body.issues[0].message).toBe("El rango máximo es de 366 días");
   });
 
   it("exige sesión", async () => {
@@ -147,14 +147,14 @@ describe("GET /api/expenses/export", () => {
 
   it("categoría fuera del catálogo: 400 con path y mensaje", async () => {
     const res = await get(`/api/expenses/export${OCT}&category=x`).expect(400);
-    expect(res.body.errors).toMatchObject([
-      { path: ["category"], message: 'Opción inválida: se esperaba una de "service"|"merchandise"|"maintenance"|"rent"|"payroll"|"tax"|"other"' },
+    expect(res.body.issues).toMatchObject([
+      { path: "category", message: 'Opción inválida: se esperaba una de "service"|"merchandise"|"maintenance"|"rent"|"payroll"|"tax"|"other"' },
     ]);
   });
 
   it("errores de rango con los mensajes de #86", async () => {
     const res = await get("/api/expenses/export?from=2026-10-31&to=2026-10-01").expect(400);
-    expect(res.body.errors[0].message).toBe("La fecha inicial no puede ser posterior a la final");
+    expect(res.body.issues[0].message).toBe("La fecha inicial no puede ser posterior a la final");
   });
 });
 

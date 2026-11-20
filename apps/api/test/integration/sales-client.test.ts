@@ -53,7 +53,7 @@ describe("venta con cliente", () => {
 
   it("clientId que no es ObjectId → 400", async () => {
     const res = await sell({ clientId: "abc" }).expect(400);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path: ["clientId"], message: "ID inválido" }));
+    expect(res.body.issues).toContainEqual({ path: "clientId", message: "ID inválido" });
   });
 
   it("historial de cliente inexistente → 404", async () => {

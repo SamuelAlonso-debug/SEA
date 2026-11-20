@@ -102,7 +102,7 @@ describe("POST /api/users", () => {
     [{ ...cashier, email: "otro@x.com", password: "1234567" }, 400, "password", "La contraseña debe tener al menos 8 caracteres"],
   ])("400 por %#", async (body, status, path, message) => {
     const res = await request(app).post("/api/users").set("Authorization", bearer("ADMIN")).send(body).expect(status);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path: [path], message }));
+    expect(res.body.issues).toContainEqual(expect.objectContaining({ path, message }));
   });
 
   it("409 con correo existente", async () => {

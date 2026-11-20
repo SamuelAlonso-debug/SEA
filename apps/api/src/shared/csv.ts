@@ -42,11 +42,8 @@ export function csvExport<Q>(opts: {
   rows: (query: Q) => AsyncIterable<Cell[]>;
 }): RequestHandler {
   return async (req: Request, res: Response) => {
-    const parsed = opts.schema.safeParse(req.query);
-    if (!parsed.success) {
-      return res.status(400).json({ message: "Errores de validación", errors: parsed.error.issues });
-    }
-    const query = parsed.data;
+    // Validar antes de escribir: un 400 ya no cabe con la respuesta empezada.
+    const query = opts.schema.parse(req.query);
     async function* chunks() {
       yield "﻿" + csvRow(opts.header);
       for await (const row of opts.rows(query)) yield csvRow(row);

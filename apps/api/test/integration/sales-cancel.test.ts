@@ -91,17 +91,17 @@ describe("POST /api/sales/:id/cancel", () => {
   ])("%s → 400 sin tocar el stock", async (_, body, message) => {
     const sale = await sellTwo();
     const res = await cancel(sale.id, body).expect(400);
-    expect(res.body.message).toBe(message);
+    expect(res.body).toEqual({ message: "Datos inválidos", issues: [{ path: "reason", message }] });
     expect(await stock()).toBe(8);
   });
 
   it.each([
-    ["id que no es ObjectId", "abc", 400, "ID inválido"],
-    ["venta inexistente", "507f1f77bcf86cd799439011", 404, "Venta no encontrada"],
-  ])("%s → %i", async (_, id, status, message) => {
+    ["id que no es ObjectId", "abc", 400, { message: "Datos inválidos", issues: [{ path: "id", message: "ID inválido" }] }],
+    ["venta inexistente", "507f1f77bcf86cd799439011", 404, { message: "Venta no encontrada" }],
+  ])("%s → %i", async (_, id, status, body) => {
     await sellTwo();
     const res = await cancel(id).expect(status);
-    expect(res.body.message).toBe(message);
+    expect(res.body).toEqual(body);
     expect(await stock()).toBe(8);
   });
 });

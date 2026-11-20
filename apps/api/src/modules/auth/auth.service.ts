@@ -1,15 +1,10 @@
 import bcrypt from "bcrypt";
 import prisma from "../../shared/prisma";
 import { signToken } from "../../shared/jwt";
+import { ConflictError, HttpError, NotFoundError } from "../../shared/errors";
 import { AuthResponseDto, CreateUserDto, LoginDto } from "./auth.dto";
 
 const SALT_ROUNDS = 10;
-
-export class AuthError extends Error {
-  constructor(public status: number, message: string) {
-    super(message);
-  }
-}
 
 const EMAIL_TAKEN = "El correo ya está registrado";
 // Mismo mensaje para correo inexistente y contraseña incorrecta: no revela qué cuentas existen.
@@ -33,7 +28,7 @@ export const createUser = async (data: CreateUserDto) => {
   });
 
   if (existingUser) {
-    throw new AuthError(409, EMAIL_TAKEN);
+    throw new ConflictError(EMAIL_TAKEN);
   }
 
   const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
@@ -42,7 +37,7 @@ export const createUser = async (data: CreateUserDto) => {
   return prisma.user
     .create({ data: { ...data, password: hashedPassword }, select: publicUser })
     .catch((error) => {
-      throw error?.code === "P2002" ? new AuthError(409, EMAIL_TAKEN) : error;
+      throw error?.code === "P2002" ? new ConflictError(EMAIL_TAKEN) : error;
     });
 };
 
@@ -54,7 +49,7 @@ export const loginUser = async (data: LoginDto): Promise<AuthResponseDto> => {
   });
 
   if (!user || !(await bcrypt.compare(data.password, user.password))) {
-    throw new AuthError(401, BAD_CREDENTIALS);
+    throw new HttpError(401, BAD_CREDENTIALS);
   }
 
   const token = signToken({ userId: user.id, role: user.role });
@@ -80,7 +75,7 @@ export const getUserProfile = async (userId: string) => {
   });
 
   if (!user) {
-    throw new Error("Usuario no encontrado");
+    throw new NotFoundError("Usuario no encontrado");
   }
 
   return user;

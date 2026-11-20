@@ -58,6 +58,6 @@ describe("método de pago de gastos", () => {
     [{ ...base, paymentMethod: "Efectivo" }, 'Opción inválida: se esperaba una de "CASH"|"CARD"|"TRANSFER"'],
   ])("400 con %j", async (body, message) => {
     const res = await create(body).expect(400);
-    expect(res.body.errors).toContainEqual(expect.objectContaining({ path: ["paymentMethod"], message }));
+    expect(res.body.issues).toContainEqual({ path: "paymentMethod", message });
   });
 });

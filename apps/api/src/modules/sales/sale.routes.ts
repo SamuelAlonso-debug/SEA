@@ -6,7 +6,7 @@ import {
   exportSalesHandler,
   cancelSaleHandler,
 } from "./sale.controller";
-import { saleIdParamsSchema } from "./sale.schema";
+import { validateId } from "../../shared/error-handler";
 import { authMiddleware, requireRole } from "../../shared/auth.middleware";
 
 const router = Router();
@@ -14,13 +14,7 @@ const router = Router();
 // ADMIN y CASHIER: cobrar y consultar ventas es el trabajo de caja. Exportar y cancelar son de ADMIN.
 router.use(authMiddleware);
 
-// Un id que no es ObjectId responde 400 antes de llegar a Prisma.
-router.param("id", (req, res, next, id) => {
-  if (!saleIdParamsSchema.safeParse({ id }).success) {
-    return res.status(400).json({ message: "ID inválido" });
-  }
-  next();
-});
+router.param("id", validateId);
 
 router.post("/", createSaleHandler);
 router.get("/", listSalesHandler);

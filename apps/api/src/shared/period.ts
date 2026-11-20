@@ -9,20 +9,12 @@ export const periodOf = ({ from, to, period }: { from?: string | undefined; to?:
 
 // Handler de KPI: calcula el periodo pedido y el anterior y devuelve ambos con su variación.
 export const comparedKpi =
-  <T>(compute: (range: Range) => Promise<T>, change: ((current: T, previous: T) => unknown) | undefined, failMessage: string) =>
+  <T>(compute: (range: Range) => Promise<T>, change?: (current: T, previous: T) => unknown) =>
   async (req: Request, res: Response) => {
-    const parsed = periodQuerySchema.safeParse(req.query);
-    if (!parsed.success) {
-      return res.status(400).json({ message: "Errores de validación", errors: parsed.error.issues });
-    }
-    try {
-      const period = periodOf(parsed.data);
-      const before = previousPeriod(period);
-      const [current, previous] = await Promise.all([compute(rangeOf(period)), compute(rangeOf(before))]);
-      return res.status(200).json({ period, previousPeriod: before, current, previous, change: change?.(current, previous) });
-    } catch {
-      return res.status(500).json({ message: failMessage });
-    }
+    const period = periodOf(periodQuerySchema.parse(req.query));
+    const before = previousPeriod(period);
+    const [current, previous] = await Promise.all([compute(rangeOf(period)), compute(rangeOf(before))]);
+    return res.status(200).json({ period, previousPeriod: before, current, previous, change: change?.(current, previous) });
   };
 
 // Variación de cada campo numérico, salvo identificadores de periodo y "hoy" (no depende del rango).
