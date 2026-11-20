@@ -14,7 +14,8 @@ Sistema administrativo web: inventario, ventas, gastos, clientes y KPIs.
 ```bash
 # apps/api/.env
 DATABASE_URL="mongodb+srv://usuario:password@cluster.mongodb.net/sea"
-JWT_SECRET="cadena-larga-aleatoria"
+SESSION_IDLE_MINUTES=30  # opcional; minutos de inactividad
+SESSION_MAX_HOURS=12     # opcional; horas desde el login
 PORT=4000
 CORS_ORIGIN="http://localhost:3000"
 BUSINESS_TIMEZONE="America/Mexico_City"  # IANA; día y mes de los KPIs

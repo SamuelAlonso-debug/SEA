@@ -1,46 +1,38 @@
 import { Request, Response, NextFunction } from "express";
 import { Role } from "@prisma/client";
-import { verifyToken } from "./jwt";
+import { sessionUser } from "./session";
 
 export const SESSION_COOKIE = "sea_session";
-
-const ROLES = Object.values(Role);
 
 export interface AuthRequest extends Request {
   userId?: string;
   userRole?: Role;
 }
 
-export const authMiddleware = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  // La web usa la cookie httpOnly. El Bearer queda para clientes sin navegador (scripts, tests):
-  // el navegador no lo adjunta solo, así que no abre la puerta a CSRF.
+// La web usa la cookie httpOnly. El Bearer queda para clientes sin navegador (scripts, tests):
+// el navegador no lo adjunta solo, así que no abre la puerta a CSRF.
+export const requestToken = (req: Request): string | undefined => {
   const [scheme, bearer] = (req.headers.authorization ?? "").split(" ");
-  const token: string | undefined = req.cookies?.[SESSION_COOKIE] ?? (scheme === "Bearer" ? bearer : undefined);
+  return req.cookies?.[SESSION_COOKIE] ?? (scheme === "Bearer" ? bearer : undefined);
+};
 
+// Cada petición consulta la sesión en la base: logout, caducidad y cambios de rol aplican de inmediato.
+export const authMiddleware = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  const token = requestToken(req);
   if (!token) {
     return res.status(401).json({ message: "No autenticado" });
   }
 
-  let payload: ReturnType<typeof verifyToken> | undefined;
-  try {
-    payload = verifyToken(token);
-  } catch {
-    // Firma inválida o token expirado: mismo 401 que un token sin rol.
-  }
-  // Un token sin rol válido (emitido antes de los roles) obliga a iniciar sesión de nuevo.
-  if (!payload?.userId || !payload.role || !ROLES.includes(payload.role)) {
+  const user = await sessionUser(token);
+  if (!user) {
     return res.status(401).json({ message: "Sesión expirada. Inicia sesión de nuevo." });
   }
-  req.userId = payload.userId;
-  req.userRole = payload.role;
+  req.userId = user.id;
+  req.userRole = user.role;
   next();
 };
 
-// Después de authMiddleware. El rol viaja en el token: un cambio de rol aplica en el siguiente login.
+// Después de authMiddleware: el rol es el actual en la base.
 export const requireRole =
   (...roles: Role[]) =>
   (req: AuthRequest, res: Response, next: NextFunction) =>

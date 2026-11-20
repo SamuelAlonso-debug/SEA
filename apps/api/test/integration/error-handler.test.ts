@@ -1,11 +1,11 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import request from "supertest";
-import { signToken } from "../../src/shared/jwt";
+import { bearer } from "./session";
 import { startMongo } from "./mongo";
 
 let db: Awaited<ReturnType<typeof startMongo>>;
 let app: any;
-const auth = `Bearer ${signToken({ userId: "507f1f77bcf86cd799439011", role: "ADMIN" })}`;
+const auth = bearer("ADMIN");
 const get = (url: string) => request(app).get(url).set("Authorization", auth);
 
 beforeAll(async () => {

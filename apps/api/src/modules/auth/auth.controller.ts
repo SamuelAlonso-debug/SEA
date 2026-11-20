@@ -1,7 +1,8 @@
 import { CookieOptions, Request, Response } from "express";
 import { loginSchema } from "./auth.schema";
 import { loginUser, getUserProfile } from "./auth.service";
-import { AuthRequest, SESSION_COOKIE } from "../../shared/auth.middleware";
+import { AuthRequest, requestToken, SESSION_COOKIE } from "../../shared/auth.middleware";
+import { revokeSession, SESSION_MAX_MS } from "../../shared/session";
 
 // httpOnly: el token no es legible desde JavaScript. Strict: el navegador no la envía desde otros sitios.
 // COOKIE_SECURE=false solo para servir la API por http fuera de localhost (p. ej. IP de la LAN).
@@ -11,16 +12,18 @@ const sessionCookie: CookieOptions = {
   sameSite: "strict",
   path: "/",
 };
-const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // igual que la caducidad del JWT
 
 // Sin try/catch: Express 5 lleva los errores (Zod, dominio, BD) al middleware central.
 export const loginHandler = async (req: Request, res: Response) => {
   const { user, token } = await loginUser(loginSchema.parse(req.body));
-  res.cookie(SESSION_COOKIE, token, { ...sessionCookie, maxAge: SESSION_MAX_AGE_MS });
+  res.cookie(SESSION_COOKIE, token, { ...sessionCookie, maxAge: SESSION_MAX_MS });
   return res.status(200).json({ user });
 };
 
-export const logoutHandler = (req: Request, res: Response) => {
+// Borra la sesión en la base: una copia del token deja de valer.
+export const logoutHandler = async (req: Request, res: Response) => {
+  const token = requestToken(req);
+  if (token) await revokeSession(token);
   res.clearCookie(SESSION_COOKIE, sessionCookie);
   return res.status(204).end();
 };

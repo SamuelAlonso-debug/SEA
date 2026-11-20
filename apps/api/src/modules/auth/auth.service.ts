@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import prisma from "../../shared/prisma";
-import { signToken } from "../../shared/jwt";
+import { createSession } from "../../shared/session";
 import { ConflictError, HttpError, NotFoundError } from "../../shared/errors";
 import { AuthResponseDto, CreateUserDto, LoginDto } from "./auth.dto";
 
@@ -52,7 +52,7 @@ export const loginUser = async (data: LoginDto): Promise<AuthResponseDto> => {
     throw new HttpError(401, BAD_CREDENTIALS);
   }
 
-  const token = signToken({ userId: user.id, role: user.role });
+  const token = await createSession(user.id);
 
   return {
     user: {
