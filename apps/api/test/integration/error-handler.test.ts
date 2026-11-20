@@ -31,13 +31,15 @@ describe("manejo de errores central", () => {
     expect(res.body).toEqual({ message: "Datos inválidos", issues: [{ path: "id", message: "ID inválido" }] });
   });
 
-  it.each(["/api/products", "/api/clients"])("%s/<id inválido> → 400", async (base) => {
+  it.each(["/api/products", "/api/clients", "/api/sales", "/api/expenses"])("%s/<id inválido> → 400", async (base) => {
     expect((await get(`${base}/abc`)).body.issues).toEqual([{ path: "id", message: "ID inválido" }]);
   });
 
   it.each([
     ["/api/products", "Producto no encontrado"],
     ["/api/clients", "Cliente no encontrado"],
+    ["/api/sales", "Venta no encontrada"],
+    ["/api/expenses", "Gasto no encontrado"],
   ])("%s/<ObjectId inexistente> → 404", async (base, message) => {
     const res = await get(`${base}/507f1f77bcf86cd799439099`);
     expect(res.status).toBe(404);

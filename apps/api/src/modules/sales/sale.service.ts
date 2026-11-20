@@ -5,6 +5,7 @@ import { Prisma } from "@prisma/client";
 import { computeTotals } from "./sale.totals";
 import { mainPaymentMethod, salePayments, settlePayments, toCents } from "./sale.payments";
 import { withRetry } from "../../shared/with-retry";
+import { ConflictError, NotFoundError } from "../../shared/errors";
 import { paged, Cell } from "../../shared/csv";
 import { businessStamp, Period, rangeOf } from "../../shared/business-time";
 
@@ -46,12 +47,6 @@ function mapSaleToDto(sale: SaleWithRelations): SaleDto {
   };
 }
 
-export class SaleError extends Error {
-  constructor(public status: number, message: string) {
-    super(message);
-  }
-}
-
 // Ventas que cuentan como ingreso. Las previas a `status` no tienen el campo.
 export const notCancelled = {
   OR: [{ status: { not: "CANCELLED" } }, { status: { isSet: false } }],
@@ -76,8 +71,8 @@ export const createSale = async (
 
     if (data.clientId) {
       const client = await tx.client.findUnique({ where: { id: data.clientId } });
-      if (!client) throw new SaleError(404, "Cliente no encontrado");
-      if (client.isActive === false) throw new SaleError(409, "El cliente está dado de baja");
+      if (!client) throw new NotFoundError("Cliente no encontrado");
+      if (client.isActive === false) throw new ConflictError("El cliente está dado de baja");
     }
 
     for (const item of data.items) {
@@ -86,11 +81,11 @@ export const createSale = async (
       });
 
       if (!product) {
-        throw new SaleError(404, `Producto ${item.productCode} no encontrado`);
+        throw new NotFoundError(`Producto ${item.productCode} no encontrado`);
       }
 
       if (!product.isActive) {
-        throw new SaleError(409, `El producto ${item.productCode} está inactivo`);
+        throw new ConflictError(`El producto ${item.productCode} está inactivo`);
       }
 
       // Descuento condicional: nunca deja stock negativo aunque haya ventas simultáneas.
@@ -100,8 +95,7 @@ export const createSale = async (
       });
 
       if (count === 0) {
-        throw new SaleError(
-          409,
+        throw new ConflictError(
           `Stock insuficiente para ${product.name}. Disponible: ${product.stock}`
         );
       }
@@ -193,7 +187,7 @@ export const getSaleById = async (id: string): Promise<SaleDto> => {
   });
 
   if (!sale) {
-    throw new Error("Venta no encontrada");
+    throw new NotFoundError("Venta no encontrada");
   }
 
   return mapSaleToDto(sale);
@@ -261,8 +255,8 @@ export const cancelSale = async (id: string, reason: string, userId?: string): P
     if (count === 0) {
       const exists = await tx.sale.findUnique({ where: { id }, select: { id: true } });
       throw exists
-        ? new SaleError(409, "La venta ya está cancelada")
-        : new SaleError(404, "Venta no encontrada");
+        ? new ConflictError("La venta ya está cancelada")
+        : new NotFoundError("Venta no encontrada");
     }
 
     const items = await tx.saleItem.findMany({ where: { saleId: id } });

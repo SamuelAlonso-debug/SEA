@@ -25,10 +25,13 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   // Respuesta ya empezada: solo Express puede cortar la conexión.
   if (res.headersSent) return next(err);
   if (err instanceof ZodError) {
-    return res.status(400).json({
-      message: "Datos inválidos",
-      issues: err.issues.map((i) => ({ path: i.path.join("."), message: i.message })),
-    });
+    // Zod agrupa las claves desconocidas (schemas strict) en una issue: una por clave.
+    const issues = err.issues.flatMap((i) =>
+      i.code === "unrecognized_keys"
+        ? i.keys.map((key) => ({ path: [...i.path, key].join("."), message: "Parámetro no permitido" }))
+        : [{ path: i.path.join("."), message: i.message }]
+    );
+    return res.status(400).json({ message: "Datos inválidos", issues });
   }
   if (err instanceof HttpError) {
     return res.status(err.status).json({ message: err.message });

@@ -1,4 +1,3 @@
-import { CaughtError } from "../../shared/caught-error";
 import { Request, RequestHandler, Response } from "express";
 import { z } from "zod";
 import {
@@ -13,22 +12,16 @@ import { percentChange } from "../../shared/business-time";
 import { comparedKpi, numericChange } from "../../shared/period";
 import { headerKpisSchema, lowStockKpisSchema, paymentMethodKpisSchema, profitKpisSchema, summaryKpisSchema, topProductsKpisSchema } from "./kpi.schema";
 
-// Valida query, params y body con el schema del endpoint antes del handler. Zod agrupa las claves
-// desconocidas en una sola issue: la expandimos a una por clave (path ["foo"]) y quitamos el prefijo
-// "query", como en los paths de periodQuerySchema.
+// Valida query, params y body con el schema del endpoint antes del handler. Sin el prefijo "query"
+// en los paths, como en los de periodQuerySchema.
 const validated =
   (schema: z.ZodType, handler: RequestHandler): RequestHandler =>
   (req, res, next) => {
     const parsed = schema.safeParse({ query: req.query, params: req.params, body: req.body });
-    if (parsed.success) return handler(req, res, next);
-    const errors = parsed.error.issues
-      .flatMap((i): { path: PropertyKey[]; message: string }[] =>
-        i.code === "unrecognized_keys"
-          ? i.keys.map((key) => ({ ...i, path: [...i.path, key], message: "Parámetro no permitido" }))
-          : [i]
-      )
-      .map((i) => (i.path[0] === "query" ? { ...i, path: i.path.slice(1) } : i));
-    return res.status(400).json({ message: "Errores de validación", errors });
+    if (!parsed.success) {
+      throw new z.ZodError(parsed.error.issues.map((i) => (i.path[0] === "query" ? { ...i, path: i.path.slice(1) } : i)));
+    }
+    return handler(req, res, next);
   };
 
 // Variación por elemento de una lista (p. ej. por método de pago o producto).
@@ -44,43 +37,34 @@ const changeBy =
 
 export const getHeaderKpisHandler = validated(
   headerKpisSchema,
-  comparedKpi(getHeaderKpis, numericChange, "Error al obtener KPIs del header")
+  comparedKpi(getHeaderKpis, numericChange)
 );
 
 export const getPaymentMethodKpisHandler = validated(
   paymentMethodKpisSchema,
   comparedKpi(
     getPaymentMethodKpis,
-    changeBy((m) => m.paymentMethod, (m) => m.totalSalesAmount),
-    "Error al obtener KPIs por método de pago"
+    changeBy((m) => m.paymentMethod, (m) => m.totalSalesAmount)
   )
 );
 
 // Sin variación: el top anterior puede omitir un producto que sí se vendió.
 export const getTopProductsHandler = validated(
   topProductsKpisSchema,
-  comparedKpi((range) => getTopProducts(range), undefined, "Error al obtener top productos")
+  comparedKpi((range) => getTopProducts(range))
 );
 
 export const getSummaryKpisHandler = validated(
   summaryKpisSchema,
-  comparedKpi(getSummaryKpis, numericChange, "Error al obtener resumen de KPIs")
+  comparedKpi(getSummaryKpis, numericChange)
 );
 
 export const getProfitKpisHandler = validated(
   profitKpisSchema,
-  comparedKpi(getProfitKpis, numericChange, "Error al obtener la utilidad")
+  comparedKpi(getProfitKpis, numericChange)
 );
 
 export const getLowStockProductsHandler = validated(lowStockKpisSchema, async (req: Request, res: Response) => {
-  try {
-    const data = await getLowStockProducts();
-    return res.status(200).json(data);
-  } catch (caught) {
-    const error = caught as CaughtError;
-    return res.status(500).json({
-      message: error.message || "Error al obtener productos con stock bajo",
-    });
-  }
+  return res.status(200).json(await getLowStockProducts());
 });
 

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authMiddleware, requireRole } from "../../shared/auth.middleware";
+import { validateId } from "../../shared/error-handler";
 import {
   listExpensesHandler,
   getExpenseHandler,
@@ -14,6 +15,7 @@ const router = Router();
 
 // Gastos: solo ADMIN.
 router.use(authMiddleware, requireRole("ADMIN"));
+router.param("id", validateId);
 
 // /api/expenses
 router.get("/kpis", getExpenseKpisHandler);

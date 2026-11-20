@@ -21,6 +21,6 @@ describe("rutas de KPIs de gastos", () => {
 
   it("/kpis rechaza parámetros desconocidos con 400", async () => {
     const res = await request(db.app).get("/api/expenses/kpis?foo=1").set("Authorization", auth).expect(400);
-    expect(res.body.errors).toMatchObject([{ path: ["foo"] }]);
+    expect(res.body.issues).toEqual([{ path: "foo", message: "Parámetro no permitido" }]);
   });
 });

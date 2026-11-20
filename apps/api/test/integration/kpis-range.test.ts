@@ -78,7 +78,7 @@ describe("KPIs por rango con periodo anterior", () => {
   ])("400 con %s", async (query, path, message) => {
     for (const url of ["/api/kpis/header", "/api/expenses/kpis"]) {
       const res = await get(`${url}${query}`).expect(400);
-      expect(res.body.errors).toEqual([expect.objectContaining({ path: [path], message })]);
+      expect(res.body.issues).toEqual([{ path, message }]);
     }
   });
 });
@@ -86,12 +86,12 @@ describe("KPIs por rango con periodo anterior", () => {
 describe("KPIs: parámetros desconocidos", () => {
   it.each(["header", "payment-methods", "top-products", "summary", "profit", "low-stock"])("%s rechaza ?foo=1 con 400", async (endpoint) => {
     const res = await get(`/api/kpis/${endpoint}?foo=1`).expect(400);
-    expect(res.body.errors).toMatchObject([{ path: ["foo"] }]);
+    expect(res.body.issues).toEqual([{ path: "foo", message: "Parámetro no permitido" }]);
   });
 
   it("header ya no acepta month/year sueltos", async () => {
     const res = await get("/api/kpis/header?month=3&year=2026").expect(400);
-    expect(res.body.errors.map((e: any) => e.path[0]).sort()).toEqual(["month", "year"]);
+    expect(res.body.issues.map((i: { path: string }) => i.path).sort()).toEqual(["month", "year"]);
   });
 
   it("body inesperado → 400", async () => {
@@ -134,7 +134,7 @@ describe("presets ?period=", () => {
   ])("400 con %s", async (query, message) => {
     for (const url of ["/api/kpis/header", "/api/expenses/kpis"]) {
       const res = await get(`${url}${query}`).expect(400);
-      expect(res.body.errors).toEqual([expect.objectContaining({ path: ["period"], message })]);
+      expect(res.body.issues).toEqual([{ path: "period", message }]);
     }
   });
 });

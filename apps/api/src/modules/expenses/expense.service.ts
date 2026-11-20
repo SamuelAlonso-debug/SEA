@@ -1,4 +1,5 @@
 import prisma from "../../shared/prisma";
+import { NotFoundError } from "../../shared/errors";
 import { businessStamp, Period, Range, rangeOf } from "../../shared/business-time";
 import { paged, Cell } from "../../shared/csv";
 import {
@@ -38,7 +39,7 @@ export const updateExpense = async (
 ): Promise<ExpenseDto> => {
   const expense = await prisma.expense.findUnique({ where: { id } });
   if (!expense) {
-    throw new Error("Gasto no encontrado");
+    throw new NotFoundError("Gasto no encontrado");
   }
 
   const updated = await prisma.expense.update({
@@ -62,7 +63,7 @@ export const updateExpense = async (
 export const deleteExpense = async (id: string): Promise<void> => {
   const expense = await prisma.expense.findUnique({ where: { id } });
   if (!expense) {
-    throw new Error("Gasto no encontrado");
+    throw new NotFoundError("Gasto no encontrado");
   }
 
   await prisma.expense.delete({ where: { id } });
@@ -72,7 +73,7 @@ export const getExpenseById = async (id: string): Promise<ExpenseDto> => {
   const expense = await prisma.expense.findUnique({ where: { id } });
 
   if (!expense) {
-    throw new Error("Gasto no encontrado");
+    throw new NotFoundError("Gasto no encontrado");
   }
 
   return expense;
